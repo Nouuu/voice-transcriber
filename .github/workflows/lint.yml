@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: make install
 
-    - name: Run lint checks
+    - name: Run Biome checks
       run: make lint
 
     - name: Check code formatting
