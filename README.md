@@ -1,5 +1,12 @@
 # 🎤 Voice Transcriber
 
+[![Build](https://github.com/Nouuu/voice-transcriber/workflows/Build/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
+[![Test](https://github.com/Nouuu/voice-transcriber/workflows/Test/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
+[![Lint](https://github.com/Nouuu/voice-transcriber/workflows/Lint/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/lint.yml)
+[![Security](https://github.com/Nouuu/voice-transcriber/workflows/Security/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/security.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
+
 A lightweight desktop voice transcription application that records audio from your microphone and transcribes it using OpenAI's Whisper API, with optional GPT-based text formatting.
 
 ## ✨ Features
