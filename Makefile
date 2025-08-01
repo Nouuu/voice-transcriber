@@ -1,6 +1,6 @@
 # Transcriber Voice Application Makefile
 
-.PHONY: help install run dev test test-watch test-file clean build check-deps
+.PHONY: help install run dev test test-watch test-file clean build check-deps lint format format-check audit
 
 # Default target
 help:
@@ -14,6 +14,10 @@ help:
 	@echo "  make clean       - Clean build artifacts and temporary files"
 	@echo "  make build       - Build for production"
 	@echo "  make check-deps  - Check system dependencies"
+	@echo "  make lint        - Run TypeScript type checking"
+	@echo "  make format      - Format code with Prettier"
+	@echo "  make format-check - Check code formatting"
+	@echo "  make audit       - Run security audit"
 
 # Install dependencies
 install:
@@ -60,3 +64,23 @@ check-deps:
 	@echo "Checking system dependencies..."
 	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
 	@echo "✅ All system dependencies are installed"
+
+# Run TypeScript type checking
+lint:
+	@echo "Running TypeScript type checking..."
+	bunx tsc --noEmit
+
+# Format code with Prettier
+format:
+	@echo "Formatting code with Prettier..."
+	bunx prettier --write "src/**/*.{ts,js,json}"
+
+# Check code formatting
+format-check:
+	@echo "Checking code formatting..."
+	bunx prettier --check "src/**/*.{ts,js,json}"
+
+# Run security audit
+audit:
+	@echo "Running security audit..."
+	bun audit
