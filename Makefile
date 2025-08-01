@@ -58,4 +58,5 @@ build:
 # Check system dependencies
 check-deps:
 	@echo "Checking system dependencies..."
-	@bun run check-deps
+	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
+	@echo "✅ All system dependencies are installed"

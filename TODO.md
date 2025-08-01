@@ -93,7 +93,7 @@ Following CLAUDE.md guidelines, all services have been refactored:
 - ✅ **Config Protection**: Protected from accidental deletion
 
 ### Usage:
-1. Run: `bun run src/index.ts`
+1. Run: `make run` (or `make dev` for development)
 2. Look for system tray icon (green = idle, red = recording, purple = processing)
 3. Click tray icon or menu to start/stop recording
 4. Transcribed text automatically copied to clipboard
@@ -127,8 +127,22 @@ Following CLAUDE.md guidelines, all services have been refactored:
 - **Better error handling**: More robust error recovery and user feedback
 
 ### Next Steps (Priority Order):
-1. Fix config.json deletion issue (High)
-2. Improve test coverage (Medium)
-3. Add audio compression (Medium)
-4. Implement file saving feature (Medium)
-5. Package for distribution (Phase 5)
+1. **Fix config.json deletion issue** (High Priority) 🚨
+2. **Improve test coverage** (Medium Priority)
+3. **Add audio compression** (Medium Priority) 
+4. **Implement file saving feature** (Medium Priority)
+5. **Package for distribution** (Phase 5)
+
+### Development Commands (Makefile)
+All development tasks use the Makefile:
+```bash
+make help          # Show all available commands
+make install       # Install dependencies  
+make check-deps    # Verify system requirements
+make run          # Run the application
+make dev          # Development mode with watch
+make test         # Run all tests
+make test-watch   # Run tests in watch mode
+make clean        # Clean temporary files
+make build        # Build for production
+```

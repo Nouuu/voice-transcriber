@@ -63,6 +63,67 @@ make dev
 2. Click the tray icon or menu to start/stop recording  
 3. Transcribed text is automatically copied to your clipboard
 
+## 🎬 Showcase - What It Actually Does
+
+### Real-World Example
+
+**Scenario**: You want to quickly dictate a message or note without typing.
+
+1. **Start the app**: `make run`
+2. **System tray appears**: Look for a green circle icon in your system tray
+3. **Click to record**: Click the tray icon - it turns red indicating recording
+4. **Speak naturally**: "Hello, this is a test of the voice transcription system. I'm speaking in English but I could also switch to French."
+5. **Click to stop**: Click the red icon again - it turns purple (processing)
+6. **Result in clipboard**: After ~2-3 seconds, this text appears in your clipboard:
+   ```
+   Hello, this is a test of the voice transcription system. I'm speaking in English, but I could also switch to French.
+   ```
+
+### Visual Flow
+
+```
+🟢 Idle State    →    🔴 Recording    →    🟣 Processing    →    📋 Clipboard
+Click to start         Speaking...         AI transcribing      Result ready!
+```
+
+### Menu Options
+
+Right-click the tray icon for additional options:
+- **🎤 Start Recording** - Begin voice capture
+- **⏹️ Stop Recording** - End recording and transcribe
+- **⚙️ Settings** - Future configuration options
+- **❌ Quit** - Exit the application
+
+### Language Support
+
+**English Example**:
+- **You speak**: "Can you please send me the meeting notes from yesterday?"
+- **You get**: "Can you please send me the meeting notes from yesterday?"
+
+**French Example**:
+- **You speak**: "Bonjour, j'aimerais prendre rendez-vous pour demain matin"
+- **You get**: "Bonjour, j'aimerais prendre rendez-vous pour demain matin."
+
+**Mixed Languages**:
+- **You speak**: "Hello, je voudrais dire something important"
+- **You get**: "Hello, je voudrais dire something important."
+
+### Text Formatting (Optional)
+
+When `formatterEnabled: true` in config:
+
+**Raw transcription**: "um so basically what i want to say is that the meeting went really well and uh we should probably schedule another one soon"
+
+**GPT-formatted result**: "What I want to say is that the meeting went really well, and we should probably schedule another one soon."
+
+### Perfect For
+
+- 📝 **Quick note-taking** - Dictate thoughts faster than typing
+- 💬 **Message composition** - Speak messages for chat/email
+- 📋 **Meeting notes** - Record key points during calls
+- 🌍 **Multilingual content** - Switch between French and English naturally
+- ♿ **Accessibility** - Voice input for those who prefer it over typing
+
 ## 🛠️ Development
 
 ### Available Make Commands
