@@ -1,0 +1,49 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'assets/**'
+  pull_request:
+    branches: [ main, dev ]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'assets/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        bun-version: [1.2.x, latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: ${{ matrix.bun-version }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y alsa-utils
+
+    - name: Install dependencies
+      run: make install
+
+    - name: Create test config
+      run: |
+        echo '{"openaiApiKey":"test-key","formatterEnabled":false}' > config.json
+
+    - name: Run tests
+      run: make test
