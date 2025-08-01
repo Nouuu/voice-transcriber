@@ -65,9 +65,13 @@ describe("SystemTrayService", () => {
     });
 
     it("should update state", async () => {
+      // Mock the constructor to return a new systray instance after recreation
+      mockSystrayConstructor.mockReturnValue(mockSystray);
+      
       const result = await service.setState(TrayState.RECORDING);
       expect(result.success).toBe(true);
-      expect(mockSystray.sendAction).toHaveBeenCalled();
+      expect(mockSystray.kill).toHaveBeenCalled();
+      expect(mockSystrayConstructor).toHaveBeenCalledTimes(2); // Initial + recreation
     });
 
     it("should handle errors", async () => {

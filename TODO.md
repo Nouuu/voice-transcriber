@@ -98,7 +98,37 @@ Following CLAUDE.md guidelines, all services have been refactored:
 3. Click tray icon or menu to start/stop recording
 4. Transcribed text automatically copied to clipboard
 
-### Next Steps (Optional):
-1. Package for distribution (Phase 5)
-2. Add desktop integration
-3. Create installation scripts
+## Issues to Fix
+
+### High Priority
+- **Config.json deletion**: Unit tests are deleting the config.json file at project root - needs investigation
+- **System tray icon updates**: ✅ FIXED - Implemented systray recreation workaround
+
+### Medium Priority  
+- **Test coverage**: Current coverage may be too low - need to assess and improve
+- **Audio compression**: Current audio files are heavy - implement compression
+- **Long audio handling**: Need proper handling for long audio files (chunking, timeouts)
+
+## Future Improvements
+
+### Core Features
+- **File saving**: Add option to save transcriptions to file instead of just clipboard
+- **Audio optimization**: Implement audio compression to reduce file sizes
+- **Long audio support**: Handle audio files longer than API limits
+
+### User Interface
+- **CLI interface**: Add command-line interface for automation
+- **Keyboard shortcuts**: Add global shortcuts to trigger transcription
+- **Graphical interface**: Desktop GUI for easier configuration and usage
+
+### Technical Improvements
+- **Enhanced logging**: More detailed logging with file output and rotation
+- **Usage statistics**: Track and display transcription stats
+- **Better error handling**: More robust error recovery and user feedback
+
+### Next Steps (Priority Order):
+1. Fix config.json deletion issue (High)
+2. Improve test coverage (Medium)
+3. Add audio compression (Medium)
+4. Implement file saving feature (Medium)
+5. Package for distribution (Phase 5)

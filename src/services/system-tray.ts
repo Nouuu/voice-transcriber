@@ -165,33 +165,33 @@ export class SystemTrayService {
           this.startItem.enabled = true;
           this.stopItem.enabled = state !== TrayState.PROCESSING;
         }
-        
-        // Update the menu items
-        await this.systray.sendAction({
-          type: "update-item",
-          item: this.startItem
-        });
-        
-        await this.systray.sendAction({
-          type: "update-item", 
-          item: this.stopItem
-        });
       }
       
-      // Update tray icon and tooltip by recreating the systray
-      // This is a workaround since systray2 has limited update capabilities
-      const newConfig = {
+      // Update tray icon by recreating the systray
+      // This is a workaround since node-systray doesn't support dynamic icon updates
+      this.systray.kill(false);
+      
+      // Recreate systray with new icon and updated menu items
+      this.systray = new SysTray({
         menu: {
           icon: this.getIconPath(state),
           title: "Voice Transcriber",
           tooltip: this.getTooltip(state),
           items: [this.startItem!, this.stopItem!, this.quitItem!]
         }
-      };
-      
-      // Note: For now we'll just log the state change
-      // Full icon updates may require systray recreation
-      console.log(`Tray should show: ${this.getIconPath(state)}`);
+      });
+
+      // Re-setup click handler
+      this.systray.onClick((action) => {
+        console.log(`Menu item clicked:`, action.item.title);
+        if (action.item.click) {
+          action.item.click();
+        }
+      });
+
+      // Wait for systray to be ready
+      await this.systray.ready();
+      console.log(`Tray icon updated to: ${this.getIconPath(state)}`);
 
       return { success: true };
     } catch (error) {
