@@ -14,9 +14,9 @@ help:
 	@echo "  make clean       - Clean build artifacts and temporary files"
 	@echo "  make build       - Build for production"
 	@echo "  make check-deps  - Check system dependencies"
-	@echo "  make lint        - Run TypeScript type checking"
-	@echo "  make format      - Format code with Prettier"
-	@echo "  make format-check - Check code formatting"
+	@echo "  make lint        - Run Biome linting only"
+	@echo "  make format      - Format code with Biome"
+	@echo "  make format-check - Check both linting and formatting"
 	@echo "  make audit       - Run security audit"
 
 # Install dependencies
@@ -65,20 +65,20 @@ check-deps:
 	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
 	@echo "✅ All system dependencies are installed"
 
-# Run TypeScript type checking
+# Run Biome linting only
 lint:
-	@echo "Running TypeScript type checking..."
-	bunx tsc --noEmit
+	@echo "Running Biome linting..."
+	bunx --bun biome lint "./src"
 
-# Format code with Prettier
+# Format code with Biome
 format:
-	@echo "Formatting code with Prettier..."
-	bunx prettier --write "src/**/*.{ts,js,json}"
+	@echo "Formatting code with Biome..."
+	bunx --bun biome format --write "./src"
 
-# Check code formatting
+# Check both linting and formatting
 format-check:
-	@echo "Checking code formatting..."
-	bunx prettier --check "src/**/*.{ts,js,json}"
+	@echo "Checking code with Biome (lint + format)..."
+	bunx --bun biome check "./src"
 
 # Run security audit
 audit:

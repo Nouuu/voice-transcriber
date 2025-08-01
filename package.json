@@ -1,34 +1,34 @@
 {
-  "name": "transcriber",
-  "version": "0.1.0",
-  "description": "Voice transcription application with OpenAI integration",
-  "main": "index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun run src/index.ts",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "clean": "rm -rf dist tmp",
-    "build": "bun build src/index.ts --outdir dist --target bun",
-    "check-deps": "which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils'"
-  },
-  "dependencies": {
-    "clipboardy": "^4.0.0",
-    "openai": "^5.9.0",
-    "systray2": "^2.1.4"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "^24.0.14",
-    "prettier": "^3.2.4",
-    "typescript": "^5.3.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "engines": {
-    "bun": ">=1.2.0"
-  }
+	"name": "transcriber",
+	"version": "0.1.0",
+	"description": "Voice transcription application with OpenAI integration",
+	"main": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun run src/index.ts",
+		"test": "bun test",
+		"test:watch": "bun test --watch",
+		"clean": "rm -rf dist tmp",
+		"build": "bun build src/index.ts --outdir dist --target bun",
+		"check-deps": "which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils'"
+	},
+	"dependencies": {
+		"clipboardy": "^4.0.0",
+		"openai": "^5.9.0",
+		"systray2": "^2.1.4"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.1.3",
+		"@types/bun": "latest",
+		"@types/node": "^24.0.14",
+		"typescript": "^5.3.3"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"engines": {
+		"bun": ">=1.2.0"
+	}
 }
