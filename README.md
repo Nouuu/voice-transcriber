@@ -279,12 +279,15 @@ make test-file FILE=src/services/system-tray.test.ts
 
 ## 🛣️ Future Roadmap
 
-### Phase 5: Enhanced Features 🚀
+### Phase 5: Production Ready 🚀 (MAX PRIORITY)
+- **🏠 User Config Directory**: Move config.json to ~/.config/voice-transcriber/ with first-run setup wizard
+- **✅ CI/CD Reliability**: Ensure GitHub Actions work properly with new config location
 - **📦 npm Package**: Publish as installable npm package with global CLI
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
 ### Phase 6: Core Improvements 🔧
+- **🖥️ System Tray Optimization**: Fix recreation workaround that causes brief double icons (2 second overlap)
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
 - **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
