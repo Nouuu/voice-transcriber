@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
   release:
@@ -42,14 +42,16 @@ jobs:
 
     - name: Generate changelog
       id: changelog
-      uses: mikepenz/release-changelog-builder-action@v4
+      uses: mikepenz/release-changelog-builder-action@v5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         body: ${{ steps.changelog.outputs.changelog }}
+        files: |
+          index.js
         draft: false
         prerelease: false
       env:
