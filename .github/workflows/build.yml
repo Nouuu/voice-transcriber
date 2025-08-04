@@ -29,10 +29,21 @@ jobs:
       with:
         bun-version: ${{ matrix.bun-version }}
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y alsa-utils
+    - name: Cache APT packages
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: alsa-utils
+        version: 1.0
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.bun/install/cache
+          node_modules
+        key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
 
     - name: Install dependencies
       run: make install
