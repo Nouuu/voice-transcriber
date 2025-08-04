@@ -60,10 +60,10 @@ jobs:
       id: changelog
       uses: mikepenz/release-changelog-builder-action@v5
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         configuration: ".github/release-changelog-config.json"
         mode: "HYBRID"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        fetchViaCommits: true
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
