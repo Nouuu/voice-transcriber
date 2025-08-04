@@ -2,49 +2,65 @@
   "categories": [
     {
       "title": "## 🚀 Features",
-      "labels": ["feature", "enhancement", "feat"]
+      "labels": ["feat", "feature", "enhancement"]
     },
     {
       "title": "## 🐛 Bug Fixes", 
-      "labels": ["bug", "fix", "bugfix"]
+      "labels": ["fix", "bug", "bugfix"]
     },
     {
       "title": "## 🔧 Maintenance",
-      "labels": ["maintenance", "refactor", "chore", "ci", "docs"]
+      "labels": ["chore", "ci", "docs", "refactor", "maintenance"]
     },
     {
       "title": "## 🧪 Testing",
       "labels": ["test", "tests"]
     }
   ],
-  "ignore_labels": [
-    "ignore-for-release"
-  ],
-  "sort": {
-    "order": "ASC",
-    "on_property": "mergedAt"
-  },
-  "commitMode": true,
-  "template": "#{{CHANGELOG}}\n\n**Full Changelog**: https://github.com/Nouuu/voice-transcriber/compare/${{FROM_TAG}}...${{TO_TAG}}",
+  "template": "${{CHANGELOG}}\n\n**Full Changelog**: https://github.com/Nouuu/voice-transcriber/compare/${{FROM_TAG}}...${{TO_TAG}}",
   "pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}",
   "commit_template": "- ${{TITLE}} by @${{AUTHOR}} (${{SHA}})",
   "empty_template": "- no changes",
-  "label_extractor": [
-    {
-      "pattern": "feat|feature",
-      "target": "feature"
+  "transform": {
+    "pr": {
+      "title": [
+        {
+          "pattern": "^(feat|feature).*",
+          "target": "feat"
+        },
+        {
+          "pattern": "^(fix|bug).*",
+          "target": "fix"
+        },
+        {
+          "pattern": "^(chore|ci|docs|refactor).*",
+          "target": "chore"
+        },
+        {
+          "pattern": "^test.*",
+          "target": "test"
+        }
+      ]
     },
-    {
-      "pattern": "fix|bug",
-      "target": "bug"
-    },
-    {
-      "pattern": "chore|ci|docs|refactor",
-      "target": "maintenance"
-    },
-    {
-      "pattern": "test",
-      "target": "test"
+    "commit": {
+      "title": [
+        {
+          "pattern": "^(feat|feature).*",
+          "target": "feat"
+        },
+        {
+          "pattern": "^(fix|bug).*", 
+          "target": "fix"
+        },
+        {
+          "pattern": "^(chore|ci|docs|refactor).*",
+          "target": "chore"
+        },
+        {
+          "pattern": "^test.*",
+          "target": "test"
+        }
+      ]
     }
-  ]
+  }
 }
