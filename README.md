@@ -146,6 +146,15 @@ make test-file    # Run specific test (usage: make test-file FILE=path/to/test.t
 make clean        # Clean build artifacts and temporary files
 make build        # Build for production
 make check-deps   # Check system dependencies
+make lint         # Run Biome linting
+make format       # Format code with Biome
+make format-check # Check code formatting and linting
+
+# Release Management (Semantic Versioning)
+make release-patch  # Create patch release (v1.0.0 → v1.0.1)
+make release-minor  # Create minor release (v1.0.0 → v1.1.0)  
+make release-major  # Create major release (v1.0.0 → v2.0.0)
+make get-version   # Show current version from latest git tag
 ```
 
 ### Project Structure
@@ -270,18 +279,19 @@ make test-file FILE=src/services/system-tray.test.ts
 
 #### ✅ Recently Fixed
 1. ✅ **Config.json deletion**: FIXED - Unit tests no longer delete production config.json
-2. ✅ **System tray icon updates**: FIXED - Implemented systray recreation workaround  
+2. ✅ **System tray icon updates**: FIXED - Implemented systray recreation workaround with recreation method
+3. ✅ **CI/CD workflows**: FIXED - GitHub Actions now work properly with optimized caching and semantic versioning
+4. ✅ **Release automation**: FIXED - Automatic changelog generation for both PRs and direct commits
 
 #### Medium Priority  
-3. **Test coverage**: May need assessment and improvement
-4. **Audio compression**: Current audio files are heavy - needs compression
-5. **Long audio handling**: Need proper handling for long audio files
+5. **Test coverage**: May need assessment and improvement
+6. **Audio compression**: Current audio files are heavy - needs compression
+7. **Long audio handling**: Need proper handling for long audio files
 
 ## 🛣️ Future Roadmap
 
 ### Phase 5: Production Ready 🚀 (MAX PRIORITY)
 - **🏠 User Config Directory**: Move config.json to ~/.config/voice-transcriber/ with first-run setup wizard
-- **✅ CI/CD Reliability**: Ensure GitHub Actions work properly with new config location
 - **📦 npm Package**: Publish as installable npm package with global CLI
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
@@ -348,3 +358,6 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 - **Clipboard**: clipboardy
 - **Testing**: Bun test runner
 - **Build**: Makefile with development commands
+- **Linting**: Biome (unified linting and formatting)
+- **CI/CD**: GitHub Actions with APT and Bun dependency caching
+- **Release**: Automated semantic versioning with changelog generation
