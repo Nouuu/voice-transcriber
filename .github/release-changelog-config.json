@@ -1,31 +1,31 @@
 {
-  "categories": [
-    {
-      "title": "## 🚀 Features",
-      "labels": ["feat", "feature"]
-    },
-    {
-      "title": "## 🐛 Bug Fixes", 
-      "labels": ["fix", "bug"]
-    },
-    {
-      "title": "## 🔧 Maintenance",
-      "labels": ["chore", "ci", "docs", "refactor"]
-    },
-    {
-      "title": "## 🧪 Testing",
-      "labels": ["test"]
-    }
-  ],
-  "template": "${{CHANGELOG}}\n\n**Full Changelog**: https://github.com/Nouuu/voice-transcriber/compare/${{FROM_TAG}}...${{TO_TAG}}",
-  "pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}",
-  "commit_template": "- ${{TITLE}} by @${{AUTHOR}} (${{SHA}})",
-  "empty_template": "- no changes",
-  "label_extractor": [
-    {
-      "pattern": "^(feat|fix|chore|ci|docs|refactor|test)(?:\\([^)]+\\))?!?:\\s*(.*)",
-      "on_property": "title",
-      "target": "$1"
-    }
-  ]
+	"categories": [
+		{
+			"title": "## 🚀 Features",
+			"labels": ["feat", "feature"]
+		},
+		{
+			"title": "## 🐛 Bug Fixes",
+			"labels": ["fix", "bug"]
+		},
+		{
+			"title": "## 🔧 Maintenance",
+			"labels": ["chore", "ci", "docs", "refactor"]
+		},
+		{
+			"title": "## 🧪 Testing",
+			"labels": ["test"]
+		}
+	],
+	"template": "${{CHANGELOG}}\n\n**Full Changelog**: https://github.com/Nouuu/voice-transcriber/compare/${{FROM_TAG}}...${{TO_TAG}}",
+	"pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}",
+	"commit_template": "- ${{TITLE}} by @${{AUTHOR}} (${{MERGE_SHA}})",
+	"empty_template": "- no changes",
+	"label_extractor": [
+		{
+			"pattern": "^(feat|fix|chore|ci|docs|refactor|test)(?:\\([^)]+\\))?!?:\\s*(.*)",
+			"on_property": "title",
+			"target": "$1"
+		}
+	]
 }
