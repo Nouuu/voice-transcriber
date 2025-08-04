@@ -24,8 +24,10 @@
     "order": "ASC",
     "on_property": "mergedAt"
   },
+  "commitMode": true,
   "template": "#{{CHANGELOG}}\n\n**Full Changelog**: https://github.com/Nouuu/voice-transcriber/compare/${{FROM_TAG}}...${{TO_TAG}}",
   "pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}",
+  "commit_template": "- ${{TITLE}} by @${{AUTHOR}} (${{SHA}})",
   "empty_template": "- no changes",
   "label_extractor": [
     {
