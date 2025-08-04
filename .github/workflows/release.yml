@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
   release:
@@ -50,6 +50,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         body: ${{ steps.changelog.outputs.changelog }}
+        files: |
+          index.js
         draft: false
         prerelease: false
       env:

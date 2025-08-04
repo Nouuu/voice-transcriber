@@ -1,6 +1,6 @@
 # Transcriber Voice Application Makefile
 
-.PHONY: help install run dev test test-watch test-file clean build check-deps lint format format-check audit
+.PHONY: help install run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major tag-list tag-push
 
 # Default target
 help:
@@ -18,6 +18,11 @@ help:
 	@echo "  make format      - Format code with Biome"
 	@echo "  make format-check - Check both linting and formatting"
 	@echo "  make audit       - Run security audit"
+	@echo "  make release-patch - Create patch release (x.x.X)"
+	@echo "  make release-minor - Create minor release (x.X.0)"
+	@echo "  make release-major - Create major release (X.0.0)"
+	@echo "  make tag-list    - List all git tags"
+	@echo "  make tag-push    - Push tags to remote repository"
 
 # Install dependencies
 install:
@@ -84,3 +89,49 @@ format-check:
 audit:
 	@echo "Running security audit..."
 	bun audit
+
+# Get current version from git tags
+get-version:
+	$(eval CURRENT_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"))
+	$(eval VERSION_NUMBERS := $(subst v,,$(CURRENT_VERSION)))
+	$(eval MAJOR := $(word 1,$(subst ., ,$(VERSION_NUMBERS))))
+	$(eval MINOR := $(word 2,$(subst ., ,$(VERSION_NUMBERS))))
+	$(eval PATCH := $(word 3,$(subst ., ,$(VERSION_NUMBERS))))
+
+# Create patch release (x.x.X)
+release-patch: get-version
+	$(eval NEW_PATCH := $(shell echo $$(($(PATCH) + 1))))
+	$(eval NEW_VERSION := v$(MAJOR).$(MINOR).$(NEW_PATCH))
+	@echo "Creating patch release: $(CURRENT_VERSION) → $(NEW_VERSION)"
+	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "✅ Created tag $(NEW_VERSION)"
+	@echo "💡 Push with: make tag-push"
+
+# Create minor release (x.X.0)
+release-minor: get-version  
+	$(eval NEW_MINOR := $(shell echo $$(($(MINOR) + 1))))
+	$(eval NEW_VERSION := v$(MAJOR).$(NEW_MINOR).0)
+	@echo "Creating minor release: $(CURRENT_VERSION) → $(NEW_VERSION)"
+	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "✅ Created tag $(NEW_VERSION)"
+	@echo "💡 Push with: make tag-push"
+
+# Create major release (X.0.0)
+release-major: get-version
+	$(eval NEW_MAJOR := $(shell echo $$(($(MAJOR) + 1))))
+	$(eval NEW_VERSION := v$(NEW_MAJOR).0.0)
+	@echo "Creating major release: $(CURRENT_VERSION) → $(NEW_VERSION)"
+	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "✅ Created tag $(NEW_VERSION)"
+	@echo "💡 Push with: make tag-push"
+
+# List all git tags
+tag-list:
+	@echo "All git tags:"
+	@git tag -l --sort=-version:refname
+
+# Push tags to remote repository
+tag-push:
+	@echo "Pushing tags to remote..."
+	@git push origin --tags
+	@echo "✅ Tags pushed to remote repository"
