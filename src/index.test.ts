@@ -7,6 +7,12 @@ describe("VoiceTranscriberApp", () => {
 	beforeEach(() => {
 		// Use a test config path to avoid creating real config files in CI
 		app = new VoiceTranscriberApp("/tmp/test-voice-transcriber-config.json");
+		
+		// Mock loadWithSetup to avoid the setup wizard in CI
+		(app as any).config.loadWithSetup = async () => {
+			// Just load without setup wizard
+			await (app as any).config.load();
+		};
 	});
 
 	describe("constructor", () => {
