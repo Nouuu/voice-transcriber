@@ -15,8 +15,8 @@ export class VoiceTranscriberApp {
 	private clipboardService: ClipboardService;
 	private systemTrayService: SystemTrayService;
 
-	constructor() {
-		this.config = new Config();
+	constructor(configPath?: string) {
+		this.config = new Config(configPath);
 		this.audioRecorder = new AudioRecorder();
 		this.clipboardService = new ClipboardService();
 

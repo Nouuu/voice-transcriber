@@ -1,5 +1,5 @@
-import { writeFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { writeFileSync } from "node:fs";
 import { TranscriptionService } from "./transcription";
 
 // Mock OpenAI

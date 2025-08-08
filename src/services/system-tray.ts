@@ -1,6 +1,6 @@
-import * as systrayModule from "systray2";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import * as systrayModule from "systray2";
 
 // Extract systray constructor resolution for easier testing
 function getSysTrayConstructor(module: any): any {

@@ -5,7 +5,8 @@ describe("VoiceTranscriberApp", () => {
 	let app: VoiceTranscriberApp;
 
 	beforeEach(() => {
-		app = new VoiceTranscriberApp();
+		// Use a test config path to avoid creating real config files in CI
+		app = new VoiceTranscriberApp("/tmp/test-voice-transcriber-config.json");
 	});
 
 	describe("constructor", () => {
