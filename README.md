@@ -268,6 +268,7 @@ make test-file FILE=src/services/system-tray.test.ts
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
 ### Phase 6: Core Improvements 🔧
+- **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
 - **🖥️ System Tray Optimization**: Fix recreation workaround that causes brief double icons (2 second overlap)
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
 - **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
