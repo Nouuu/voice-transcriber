@@ -218,8 +218,10 @@ async function main() {
 	});
 }
 
-// Start the application
-main().catch((error) => {
-	console.error("Application failed:", error);
-	process.exit(1);
-});
+// Start the application only if this is the main module
+if (import.meta.main) {
+	main().catch((error) => {
+		console.error("Application failed:", error);
+		process.exit(1);
+	});
+}
