@@ -1,4 +1,13 @@
-import SysTray from "systray2";
+import * as systrayModule from "systray2";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Extract systray constructor resolution for easier testing
+function getSysTrayConstructor(module: any): any {
+	return module.default?.default || module.default || module;
+}
+
+const SysTray = getSysTrayConstructor(systrayModule);
 
 export enum TrayState {
 	IDLE = "idle",
@@ -45,9 +54,11 @@ export class SystemTrayService {
 	private startItem: MenuItem | null = null;
 	private stopItem: MenuItem | null = null;
 	private quitItem: MenuItem | null = null;
+	private SysTrayConstructor: any;
 
-	constructor(config: TrayConfig) {
+	constructor(config: TrayConfig, systrayConstructor?: any) {
 		this.callbacks = config.callbacks;
+		this.SysTrayConstructor = systrayConstructor || SysTray;
 	}
 
 	public async initialize(): Promise<TrayResult> {
@@ -86,9 +97,9 @@ export class SystemTrayService {
 				},
 			};
 
-			this.systray = new SysTray({
+			const systray = new this.SysTrayConstructor({
 				menu: {
-					icon: "assets/icon-idle.png",
+					icon: this.getIconPath(TrayState.IDLE),
 					title: "Voice Transcriber",
 					tooltip: "Voice Transcriber - Click to record",
 					items: [startItem, stopItem, quitItem],
@@ -101,7 +112,7 @@ export class SystemTrayService {
 			this.quitItem = quitItem;
 
 			// Proper click handling according to systray2 API
-			this.systray.onClick((action) => {
+			systray.onClick((action) => {
 				console.log(`Menu item clicked:`, action.item.title);
 				if (action.item.click) {
 					action.item.click();
@@ -109,7 +120,10 @@ export class SystemTrayService {
 			});
 
 			// Wait for systray to be ready
-			await this.systray.ready();
+			await systray.ready();
+
+			// Assign after successful initialization
+			this.systray = systray;
 			console.log("System tray initialized successfully");
 
 			return { success: true };
@@ -119,13 +133,40 @@ export class SystemTrayService {
 	}
 
 	private getIconPath(state: TrayState): string {
-		// Use actual image files
+		// Get the package root directory (where assets folder is located)
+		const packageRoot = this.getPackageRoot();
 		const icons = {
-			[TrayState.IDLE]: "assets/icon-idle.png",
-			[TrayState.RECORDING]: "assets/icon-recording.png",
-			[TrayState.PROCESSING]: "assets/icon-processing.png",
+			[TrayState.IDLE]: join(packageRoot, "assets", "icon-idle.png"),
+			[TrayState.RECORDING]: join(packageRoot, "assets", "icon-recording.png"),
+			[TrayState.PROCESSING]: join(packageRoot, "assets", "icon-processing.png"),
 		};
 		return icons[state];
+	}
+
+	private getPackageRoot(): string {
+		// In development (bun start): use current working directory
+		// In production (npm package): find package root from module location
+		try {
+			// Try to use import.meta.url to find current module location
+			if (typeof import.meta.url !== 'undefined') {
+				const currentFile = fileURLToPath(import.meta.url);
+				
+				// In built package, we're in dist/index.js, so package root is parent
+				// In source, we're in src/services/system-tray.ts, so package root is 3 levels up
+				if (currentFile.includes('/dist/')) {
+					// Built package: from dist/index.js, go up 1 level to package root
+					return dirname(dirname(currentFile));
+				} else {
+					// Source: from src/services/system-tray.js, go up 3 levels
+					return join(dirname(dirname(dirname(currentFile))));
+				}
+			}
+		} catch {
+			// Fallback to current working directory
+		}
+		
+		// Default fallback for development or if import.meta.url fails
+		return process.cwd();
 	}
 
 	private getTooltip(state: TrayState): string {
@@ -164,7 +205,7 @@ export class SystemTrayService {
 			this.systray.kill(false);
 
 			// Recreate systray with new icon and updated menu items
-			this.systray = new SysTray({
+			const newSystray = new this.SysTrayConstructor({
 				menu: {
 					icon: this.getIconPath(state),
 					title: "Voice Transcriber",
@@ -174,7 +215,7 @@ export class SystemTrayService {
 			});
 
 			// Re-setup click handler
-			this.systray.onClick((action) => {
+			newSystray.onClick((action) => {
 				console.log(`Menu item clicked:`, action.item.title);
 				if (action.item.click) {
 					action.item.click();
@@ -182,7 +223,10 @@ export class SystemTrayService {
 			});
 
 			// Wait for systray to be ready
-			await this.systray.ready();
+			await newSystray.ready();
+
+			// Assign after successful initialization
+			this.systray = newSystray;
 			console.log(`Tray icon updated to: ${this.getIconPath(state)}`);
 
 			return { success: true };
