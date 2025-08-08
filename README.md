@@ -77,7 +77,7 @@ make dev
 
 ```
 🟢 Idle/Ready State    →    🔴 Recording    →    🟣 Processing
-Click to start         Speaking...         AI transcribing
+   Click to start              Speaking...          AI transcribing
 ```
 
 ### Menu Options
