@@ -28,7 +28,7 @@ export class VoiceTranscriberApp {
 	public async initialize(): Promise<{ success: boolean; error?: string }> {
 		try {
 			// Load configuration
-			await this.config.load();
+			await this.config.loadWithSetup();
 
 			if (!this.config.openaiApiKey) {
 				return {

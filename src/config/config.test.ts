@@ -53,4 +53,17 @@ describe("Config", () => {
 			expect(savedData.formatterEnabled).toBe(false);
 		});
 	});
+
+	describe("loadWithSetup", () => {
+		it("should exist and be callable", async () => {
+			const config = new Config("nonexistent.json");
+
+			// Should not throw
+			await config.loadWithSetup();
+
+			// Should use defaults since file doesn't exist
+			expect(config.openaiApiKey).toBe("");
+			expect(config.formatterEnabled).toBe(true);
+		});
+	});
 });

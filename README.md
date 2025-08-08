@@ -41,18 +41,21 @@ make install
 
 ### Configuration
 
-1. Copy the example configuration:
-```bash
-cp config.example.json config.json
-```
+The application now uses a user configuration directory for better system integration.
 
-2. Add your OpenAI API key to `config.json`:
+**First Run Setup:**
+1. Run the application - it will automatically create the config directory and show setup instructions
+2. The config file will be created at: `~/.config/voice-transcriber/config.json`
+3. Edit the config file and add your OpenAI API key:
+
 ```json
 {
   "openaiApiKey": "your-openai-api-key-here",  
   "formatterEnabled": true
 }
 ```
+
+**Get your OpenAI API key:** https://platform.openai.com/api-keys
 
 ### Usage
 
@@ -259,7 +262,7 @@ make test-file FILE=src/services/system-tray.test.ts
 ## 🛣️ Future Roadmap
 
 ### Phase 5: Production Ready 🚀 (MAX PRIORITY)
-- **🏠 User Config Directory**: Move config.json to ~/.config/voice-transcriber/ with first-run setup wizard
+- ✅ **🏠 User Config Directory**: COMPLETED - Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
 - **📦 npm Package**: Publish as installable npm package with global CLI
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
