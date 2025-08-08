@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Config } from "./config/config";
 import { AudioRecorder } from "./services/audio-recorder";
 import { ClipboardService } from "./services/clipboard";
@@ -199,6 +200,9 @@ async function main() {
 
 	// Keep the process alive
 	logger.info("App is running... Press Ctrl+C to exit");
+	
+	// Keep the process alive by preventing stdin from ending
+	process.stdin.resume();
 
 	// Handle graceful shutdown
 	process.on("SIGINT", async () => {
@@ -215,9 +219,7 @@ async function main() {
 }
 
 // Start the application
-if (require.main === module) {
-	main().catch((error) => {
-		console.error("Application failed:", error);
-		process.exit(1);
-	});
-}
+main().catch((error) => {
+	console.error("Application failed:", error);
+	process.exit(1);
+});
