@@ -162,7 +162,7 @@ export class SystemTrayService {
 					return dirname(dirname(currentFile));
 				} else {
 					// Source: from src/services/system-tray.ts, go up 3 levels
-					return join(dirname(dirname(dirname(currentFile))));
+					return join(dirname(currentFile), '../../..');
 				}
 			}
 		} catch {
