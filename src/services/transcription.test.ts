@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { writeFileSync } from "node:fs";
 import { TranscriptionService } from "./transcription";
 
 // Mock OpenAI
@@ -35,7 +36,7 @@ describe("TranscriptionService", () => {
 		it("should handle empty transcription response", async () => {
 			// Create a temp file for testing
 			const tempFile = "/tmp/test-transcription.txt";
-			Bun.write(tempFile, "test audio content");
+			writeFileSync(tempFile, "test audio content");
 
 			mockOpenAI.audio.transcriptions.create.mockResolvedValueOnce({
 				text: "",
@@ -50,7 +51,7 @@ describe("TranscriptionService", () => {
 		it("should handle API errors", async () => {
 			// Create a temp file for testing
 			const tempFile = "/tmp/test-transcription-2.txt";
-			Bun.write(tempFile, "test audio content");
+			writeFileSync(tempFile, "test audio content");
 
 			mockOpenAI.audio.transcriptions.create.mockRejectedValueOnce(
 				new Error("API Error"),

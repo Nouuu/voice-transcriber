@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { Config } from "./config";
 
 describe("Config", () => {
@@ -20,7 +20,7 @@ describe("Config", () => {
 				formatterEnabled: false,
 			};
 
-			await Bun.write(testConfigPath, JSON.stringify(testData));
+			writeFileSync(testConfigPath, JSON.stringify(testData));
 
 			const config = new Config(testConfigPath);
 			await config.load();
@@ -48,7 +48,7 @@ describe("Config", () => {
 
 			expect(existsSync(testConfigPath)).toBe(true);
 
-			const savedData = await Bun.file(testConfigPath).json();
+			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
 			expect(savedData.openaiApiKey).toBe("saved-key");
 			expect(savedData.formatterEnabled).toBe(false);
 		});

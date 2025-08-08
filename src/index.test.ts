@@ -5,7 +5,14 @@ describe("VoiceTranscriberApp", () => {
 	let app: VoiceTranscriberApp;
 
 	beforeEach(() => {
-		app = new VoiceTranscriberApp();
+		// Use a test config path to avoid creating real config files in CI
+		app = new VoiceTranscriberApp("/tmp/test-voice-transcriber-config.json");
+
+		// Mock loadWithSetup to avoid the setup wizard in CI
+		(app as any).config.loadWithSetup = async () => {
+			// Just load without setup wizard
+			await (app as any).config.load();
+		};
 	});
 
 	describe("constructor", () => {
@@ -17,17 +24,14 @@ describe("VoiceTranscriberApp", () => {
 
 	describe("initialize", () => {
 		it("should fail without API key", async () => {
-			// Create app and mock empty config to test validation
-			const emptyApp = new VoiceTranscriberApp();
-
-			// Mock the config to have no API key
-			(emptyApp as any).config = {
+			// Mock the config to have no API key directly on existing app
+			(app as any).config = {
 				openaiApiKey: "",
 				formatterEnabled: true,
-				loadWithSetup: async () => {},
+				loadWithSetup: mock().mockResolvedValue(undefined),
 			};
 
-			const result = await emptyApp.initialize();
+			const result = await app.initialize();
 
 			expect(result.success).toBe(false);
 			expect(result.error).toContain("OpenAI API key not configured");

@@ -1,3 +1,4 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -25,9 +26,9 @@ export class Config {
 
 	public async load(): Promise<void> {
 		try {
-			const configFile = Bun.file(this.configPath);
-			if (await configFile.exists()) {
-				const data = (await configFile.json()) as Partial<ConfigData>;
+			if (existsSync(this.configPath)) {
+				const fileContent = readFileSync(this.configPath, "utf8");
+				const data = JSON.parse(fileContent) as Partial<ConfigData>;
 				this.openaiApiKey = data.openaiApiKey || "";
 				this.formatterEnabled = data.formatterEnabled ?? true;
 			}
@@ -41,7 +42,7 @@ export class Config {
 
 		// If no config file exists and this is the default user config, run setup
 		if (
-			!(await Bun.file(this.configPath).exists()) &&
+			!existsSync(this.configPath) &&
 			this.configPath === this.getUserConfigPath()
 		) {
 			await this.setupWizard();
@@ -70,13 +71,13 @@ export class Config {
 	public async save(): Promise<void> {
 		// Only ensure config directory exists for user config path
 		if (this.configPath === this.getUserConfigPath()) {
-			await Bun.mkdir(this.getUserConfigDir(), { recursive: true });
+			mkdirSync(this.getUserConfigDir(), { recursive: true });
 		}
 
 		const data: ConfigData = {
 			openaiApiKey: this.openaiApiKey,
 			formatterEnabled: this.formatterEnabled,
 		};
-		await Bun.write(this.configPath, JSON.stringify(data, null, 2));
+		writeFileSync(this.configPath, JSON.stringify(data, null, 2));
 	}
 }

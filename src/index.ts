@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Config } from "./config/config";
 import { AudioRecorder } from "./services/audio-recorder";
 import { ClipboardService } from "./services/clipboard";
@@ -14,8 +15,8 @@ export class VoiceTranscriberApp {
 	private clipboardService: ClipboardService;
 	private systemTrayService: SystemTrayService;
 
-	constructor() {
-		this.config = new Config();
+	constructor(configPath?: string) {
+		this.config = new Config(configPath);
 		this.audioRecorder = new AudioRecorder();
 		this.clipboardService = new ClipboardService();
 
@@ -200,6 +201,9 @@ async function main() {
 	// Keep the process alive
 	logger.info("App is running... Press Ctrl+C to exit");
 
+	// Keep the process alive by preventing stdin from ending
+	process.stdin.resume();
+
 	// Handle graceful shutdown
 	process.on("SIGINT", async () => {
 		logger.info("Received SIGINT, shutting down...");
@@ -214,8 +218,8 @@ async function main() {
 	});
 }
 
-// Start the application
-if (require.main === module) {
+// Start the application only if this is the main module
+if (import.meta.main) {
 	main().catch((error) => {
 		console.error("Application failed:", error);
 		process.exit(1);

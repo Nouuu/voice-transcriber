@@ -1,18 +1,30 @@
 {
-	"name": "transcriber",
-	"version": "0.1.0",
-	"description": "Voice transcription application with OpenAI integration",
-	"main": "index.ts",
+	"name": "voice-transcriber",
+	"version": "0.1.1",
+	"description": "Lightweight desktop voice transcription with OpenAI Whisper and system tray integration",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nospy/transcriber.git"
+	},
+	"homepage": "https://github.com/nospy/transcriber#readme",
+	"bugs": {
+		"url": "https://github.com/nospy/transcriber/issues"
+	},
+	"main": "dist/index.js",
 	"type": "module",
-	"private": true,
+	"bin": {
+		"voice-transcriber": "./dist/index.js"
+	},
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"start": "bun run src/index.ts",
 		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"clean": "rm -rf dist tmp",
-		"build": "bun build src/index.ts --outdir dist --target bun",
-		"check-deps": "which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils'"
+		"build": "bun build src/index.ts --outdir dist --target node --format esm",
+		"prepublishOnly": "make build && make test",
+		"check-deps": "(which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils') && (which xsel || echo 'Install xsel: sudo apt-get install xsel')"
 	},
 	"dependencies": {
 		"clipboardy": "^4.0.0",
@@ -29,6 +41,7 @@
 		"typescript": "^5"
 	},
 	"engines": {
+		"node": ">=22",
 		"bun": ">=1.2.0"
 	}
 }

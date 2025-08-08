@@ -56,6 +56,23 @@ jobs:
     - name: Build application
       run: make build
 
+    - name: Check version consistency
+      run: |
+        TAG_VERSION=${GITHUB_REF#refs/tags/v}
+        PACKAGE_VERSION=$(grep '"version"' package.json | cut -d'"' -f4)
+        
+        if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+          echo "❌ Version mismatch: tag=$TAG_VERSION, package.json=$PACKAGE_VERSION"
+          exit 1
+        fi
+        
+        echo "✅ Versions match: $TAG_VERSION"
+
+    - name: Publish to NPM
+      run: bun publish --access public
+      env:
+        NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     - name: Generate changelog
       id: changelog
       uses: mikepenz/release-changelog-builder-action@v5
