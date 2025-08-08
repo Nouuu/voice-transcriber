@@ -138,7 +138,11 @@ export class SystemTrayService {
 		const icons = {
 			[TrayState.IDLE]: join(packageRoot, "assets", "icon-idle.png"),
 			[TrayState.RECORDING]: join(packageRoot, "assets", "icon-recording.png"),
-			[TrayState.PROCESSING]: join(packageRoot, "assets", "icon-processing.png"),
+			[TrayState.PROCESSING]: join(
+				packageRoot,
+				"assets",
+				"icon-processing.png",
+			),
 		};
 		return icons[state];
 	}
@@ -148,12 +152,12 @@ export class SystemTrayService {
 		// In production (npm package): find package root from module location
 		try {
 			// Try to use import.meta.url to find current module location
-			if (typeof import.meta.url !== 'undefined') {
+			if (typeof import.meta.url !== "undefined") {
 				const currentFile = fileURLToPath(import.meta.url);
-				
+
 				// In built package, we're in dist/index.js, so package root is parent
 				// In source, we're in src/services/system-tray.ts, so package root is 3 levels up
-				if (currentFile.includes('/dist/')) {
+				if (currentFile.includes("/dist/")) {
 					// Built package: from dist/index.js, go up 1 level to package root
 					return dirname(dirname(currentFile));
 				} else {
@@ -164,7 +168,7 @@ export class SystemTrayService {
 		} catch {
 			// Fallback to current working directory
 		}
-		
+
 		// Default fallback for development or if import.meta.url fails
 		return process.cwd();
 	}

@@ -17,17 +17,14 @@ describe("VoiceTranscriberApp", () => {
 
 	describe("initialize", () => {
 		it("should fail without API key", async () => {
-			// Create app and mock empty config to test validation
-			const emptyApp = new VoiceTranscriberApp();
-
-			// Mock the config to have no API key
-			(emptyApp as any).config = {
+			// Mock the config to have no API key directly on existing app
+			(app as any).config = {
 				openaiApiKey: "",
 				formatterEnabled: true,
-				loadWithSetup: async () => {},
+				loadWithSetup: mock().mockResolvedValue(undefined),
 			};
 
-			const result = await emptyApp.initialize();
+			const result = await app.initialize();
 
 			expect(result.success).toBe(false);
 			expect(result.error).toContain("OpenAI API key not configured");

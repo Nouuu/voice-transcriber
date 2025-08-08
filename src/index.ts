@@ -200,7 +200,7 @@ async function main() {
 
 	// Keep the process alive
 	logger.info("App is running... Press Ctrl+C to exit");
-	
+
 	// Keep the process alive by preventing stdin from ending
 	process.stdin.resume();
 

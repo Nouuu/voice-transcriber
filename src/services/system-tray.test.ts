@@ -89,7 +89,7 @@ describe("SystemTrayService", () => {
 		it("should shutdown successfully when initialized", async () => {
 			mockSystrayConstructor.mockReturnValue(mockSystray);
 			await service.initialize();
-			
+
 			const result = await service.shutdown();
 			expect(result.success).toBe(true);
 			expect(mockSystray.kill).toHaveBeenCalled();
