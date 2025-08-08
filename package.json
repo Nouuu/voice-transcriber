@@ -5,17 +5,21 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/nospy/transcriber.git"
+		"url": "https://github.com/nospy/voice-transcriber.git"
 	},
-	"homepage": "https://github.com/nospy/transcriber#readme",
+	"homepage": "https://github.com/nospy/voice-transcriber#readme",
 	"bugs": {
-		"url": "https://github.com/nospy/transcriber/issues"
+		"url": "https://github.com/nospy/voice-transcriber/issues"
 	},
 	"main": "dist/index.js",
 	"type": "module",
 	"bin": {
 		"voice-transcriber": "./dist/index.js"
 	},
+	"files": [
+		"dist",
+		"assets"
+	],
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"start": "bun run src/index.ts",
