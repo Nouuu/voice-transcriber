@@ -24,7 +24,7 @@ describe("VoiceTranscriberApp", () => {
 			(emptyApp as any).config = {
 				openaiApiKey: "",
 				formatterEnabled: true,
-				load: async () => {},
+				loadWithSetup: async () => {},
 			};
 
 			const result = await emptyApp.initialize();
