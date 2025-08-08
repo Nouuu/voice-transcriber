@@ -70,7 +70,7 @@ export class Config {
 	public async save(): Promise<void> {
 		// Only ensure config directory exists for user config path
 		if (this.configPath === this.getUserConfigPath()) {
-			await Bun.write(join(this.getUserConfigDir(), ".keep"), "");
+			await Bun.mkdir(this.getUserConfigDir(), { recursive: true });
 		}
 
 		const data: ConfigData = {
