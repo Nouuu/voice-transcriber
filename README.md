@@ -76,8 +76,8 @@ make dev
 ### Visual Flow
 
 ```
-🟢 Idle State    →    🔴 Recording    →    🟣 Processing    →    📋 Clipboard
-Click to start         Speaking...         AI transcribing      Result ready!
+🟢 Idle/Ready State    →    🔴 Recording    →    🟣 Processing
+Click to start         Speaking...         AI transcribing
 ```
 
 ### Menu Options
