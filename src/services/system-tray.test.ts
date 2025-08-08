@@ -11,9 +11,11 @@ const mockSystray = {
 const mockSystrayConstructor = mock(() => mockSystray);
 mockSystrayConstructor.mockImplementation(() => mockSystray);
 
-// Mock the module
+// Mock the module to match our import structure
 mock.module("systray2", () => ({
-	default: mockSystrayConstructor,
+	default: {
+		default: mockSystrayConstructor,
+	},
 }));
 
 import { SystemTrayService, type TrayConfig, TrayState } from "./system-tray";
@@ -37,63 +39,66 @@ describe("SystemTrayService", () => {
 			},
 		};
 
-		service = new SystemTrayService(config);
+		service = new SystemTrayService(config, mockSystrayConstructor);
 	});
 
 	describe("initialize", () => {
 		it("should initialize successfully", async () => {
-			mockSystrayConstructor.mockReturnValueOnce(mockSystray);
+			mockSystrayConstructor.mockReturnValue(mockSystray);
 
 			const result = await service.initialize();
 			expect(result.success).toBe(true);
+			expect(mockSystrayConstructor).toHaveBeenCalled();
 		});
 
-		it("should handle errors", async () => {
-			mockSystrayConstructor.mockImplementationOnce(() => {
-				throw new Error("Failed");
+		it("should handle constructor errors", async () => {
+			// Reset and configure mock to throw
+			mockSystrayConstructor.mockReset();
+			mockSystrayConstructor.mockImplementation(() => {
+				throw new Error("Mock constructor failed");
 			});
 
 			const result = await service.initialize();
 			expect(result.success).toBe(false);
+			expect(result.error).toContain("Failed to initialize");
 		});
 	});
 
 	describe("setState", () => {
 		beforeEach(async () => {
-			mockSystrayConstructor.mockReturnValueOnce(mockSystray);
+			mockSystrayConstructor.mockReturnValue(mockSystray);
 			await service.initialize();
 		});
 
 		it("should update state", async () => {
-			// Mock the constructor to return a new systray instance after recreation
-			mockSystrayConstructor.mockReturnValue(mockSystray);
-
 			const result = await service.setState(TrayState.RECORDING);
 			expect(result.success).toBe(true);
 			expect(mockSystray.kill).toHaveBeenCalled();
 			expect(mockSystrayConstructor).toHaveBeenCalledTimes(2); // Initial + recreation
 		});
 
-		it("should handle errors", async () => {
-			mockSystray.sendAction.mockImplementationOnce(() => {
-				throw new Error("Failed");
-			});
-
-			const result = await service.setState(TrayState.RECORDING);
+		it("should return error when not initialized", async () => {
+			const uninitializedService = new SystemTrayService(config);
+			const result = await uninitializedService.setState(TrayState.RECORDING);
 			expect(result.success).toBe(false);
+			expect(result.error).toContain("not initialized");
 		});
 	});
 
 	describe("shutdown", () => {
-		beforeEach(async () => {
-			mockSystrayConstructor.mockReturnValueOnce(mockSystray);
+		it("should shutdown successfully when initialized", async () => {
+			mockSystrayConstructor.mockReturnValue(mockSystray);
 			await service.initialize();
-		});
-
-		it("should shutdown successfully", async () => {
+			
 			const result = await service.shutdown();
 			expect(result.success).toBe(true);
 			expect(mockSystray.kill).toHaveBeenCalled();
+		});
+
+		it("should shutdown successfully when not initialized", async () => {
+			const result = await service.shutdown();
+			expect(result.success).toBe(true);
+			// kill should not be called when not initialized
 		});
 	});
 });
