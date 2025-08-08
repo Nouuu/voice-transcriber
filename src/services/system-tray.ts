@@ -161,7 +161,7 @@ export class SystemTrayService {
 					// Built package: from dist/index.js, go up 1 level to package root
 					return dirname(dirname(currentFile));
 				} else {
-					// Source: from src/services/system-tray.js, go up 3 levels
+					// Source: from src/services/system-tray.ts, go up 3 levels
 					return join(dirname(dirname(dirname(currentFile))));
 				}
 			}
