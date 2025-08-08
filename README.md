@@ -24,17 +24,29 @@ A lightweight desktop voice transcription application that records audio from yo
 ```bash
 # Install system dependencies (Ubuntu/Linux)
 sudo apt-get update
-sudo apt-get install alsa-utils
+sudo apt-get install alsa-utils xsel
 
-# Verify system dependencies
+# Verify system dependencies (for development)
 make check-deps
 ```
 
-### Installation & Setup
+### Installation
+
+**Method 1: Install from npm (Recommended)**
+
+```bash
+# Install globally from npm
+npm install -g voice-transcriber
+
+# Run the application
+voice-transcriber
+```
+
+**Method 2: From Source**
 
 ```bash
 # Clone and install dependencies
-git clone <repository-url>
+git clone https://github.com/nospy/transcriber.git
 cd transcriber
 make install
 ```
@@ -59,6 +71,13 @@ The application now uses a user configuration directory for better system integr
 
 ### Usage
 
+**For npm installation:**
+```bash
+# Simply run the command
+voice-transcriber
+```
+
+**For source installation:**
 ```bash
 # Run the application
 make run
@@ -261,9 +280,11 @@ make test-file FILE=src/services/system-tray.test.ts
 
 ## 🛣️ Future Roadmap
 
-### Phase 5: Production Ready 🚀 (MAX PRIORITY)
+### Phase 5: Production Ready 🚀 
 - ✅ **🏠 User Config Directory**: COMPLETED - Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
-- **📦 npm Package**: Publish as installable npm package with global CLI
+- ✅ **📦 npm Package**: COMPLETED - Published as `voice-transcriber` on npm with global CLI installation
+- ✅ **🔄 Hybrid Runtime Support**: COMPLETED - Works with both Bun (development) and Node.js (npm distribution)
+- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Automatically resolves icon paths for both development and production
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
@@ -282,6 +303,7 @@ make test-file FILE=src/services/system-tray.test.ts
 - **🖼️ Graphical Interface**: Desktop GUI for easier configuration and usage
 
 ### Phase 8: Technical Enhancements 📊
+- **🔧 System Dependencies Elimination**: Replace system dependencies (alsa-utils, xsel) with pure JS alternatives or bundled binaries for zero-dependency npm installation
 - **📈 Enhanced Logging**: More detailed logging with file output and rotation
 - **📊 Usage Statistics**: Track and display transcription stats  
 - **🛡️ Better Error Handling**: More robust error recovery and user feedback
@@ -323,7 +345,7 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 
 ## 🔗 Tech Stack
 
-- **Runtime**: Bun with TypeScript
+- **Runtime**: Hybrid Bun (development) / Node.js (production) with TypeScript
 - **Audio**: node-audiorecorder (arecord backend)  
 - **AI**: OpenAI SDK (Whisper + GPT)
 - **System Tray**: systray2
@@ -332,4 +354,5 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 - **Build**: Makefile with development commands
 - **Linting**: Biome (unified linting and formatting)
 - **CI/CD**: GitHub Actions with APT and Bun dependency caching
+- **Distribution**: npm package with global CLI installation
 - **Release**: Automated semantic versioning with changelog generation
