@@ -18,10 +18,11 @@ help:
 	@echo "  make format      - Format code with Biome"
 	@echo "  make format-check - Check both linting and formatting"
 	@echo "  make audit       - Run security audit on dependencies"
-	@echo "  make release-patch - Create patch release (x.x.X)"
-	@echo "  make release-minor - Create minor release (x.X.0)"
-	@echo "  make release-major - Create major release (X.0.0)"
-	@echo "  make get-version   - Show current version from latest git tag"
+	@echo "  make release-patch - Create patch release (x.x.X) - Bug fixes"
+	@echo "  make release-minor - Create minor release (x.X.0) - New features"
+	@echo "  make release-major - Create major release (X.0.0) - Breaking changes"
+	@echo "  make get-version   - Show current version from package.json"
+	@echo "  make pre-release   - Validate code before release (linting, tests, git status)"
 
 # Install dependencies
 install:
@@ -89,37 +90,42 @@ audit:
 	@echo "Running security audit..."
 	bun audit
 
-# Get current version from git tags
+# Get current version from package.json
 get-version:
-	$(eval CURRENT_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"))
-	$(eval VERSION_NUMBERS := $(subst v,,$(CURRENT_VERSION)))
-	$(eval MAJOR := $(word 1,$(subst ., ,$(VERSION_NUMBERS))))
-	$(eval MINOR := $(word 2,$(subst ., ,$(VERSION_NUMBERS))))
-	$(eval PATCH := $(word 3,$(subst ., ,$(VERSION_NUMBERS))))
+	$(eval CURRENT_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@echo "Current version: $(CURRENT_VERSION)"
 
-# Create patch release (x.x.X)
-release-patch: get-version
-	$(eval NEW_PATCH := $(shell echo $$(($(PATCH) + 1))))
-	$(eval NEW_VERSION := v$(MAJOR).$(MINOR).$(NEW_PATCH))
-	@echo "Creating patch release: $(CURRENT_VERSION) → $(NEW_VERSION)"
-	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
-	@echo "✅ Created tag $(NEW_VERSION)"
-	@echo "💡 Push with: git push origin --tags"
+# Pre-release validation
+pre-release:
+	@echo "🔍 Pre-release validation..."
+	@make format-check
+	@make test
+	@git status --porcelain | grep -q . && (echo "❌ Working directory not clean. Commit or stash changes first." && exit 1) || echo "✅ Working directory clean"
+	@echo "✅ Ready for release"
 
-# Create minor release (x.X.0)
-release-minor: get-version  
-	$(eval NEW_MINOR := $(shell echo $$(($(MINOR) + 1))))
-	$(eval NEW_VERSION := v$(MAJOR).$(NEW_MINOR).0)
-	@echo "Creating minor release: $(CURRENT_VERSION) → $(NEW_VERSION)"
-	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
-	@echo "✅ Created tag $(NEW_VERSION)"
-	@echo "💡 Push with: git push origin --tags"
+# Create patch release (x.x.X) - Bug fixes
+release-patch: pre-release
+	@echo "Creating patch release..."
+	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@npm version patch
+	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
+	@echo "🚀 Push with: git push --follow-tags"
 
-# Create major release (X.0.0)
-release-major: get-version
-	$(eval NEW_MAJOR := $(shell echo $$(($(MAJOR) + 1))))
-	$(eval NEW_VERSION := v$(NEW_MAJOR).0.0)
-	@echo "Creating major release: $(CURRENT_VERSION) → $(NEW_VERSION)"
-	@git tag -a $(NEW_VERSION) -m "Release $(NEW_VERSION)"
-	@echo "✅ Created tag $(NEW_VERSION)"
-	@echo "💡 Push with: git push origin --tags"
+# Create minor release (x.X.0) - New features
+release-minor: pre-release
+	@echo "Creating minor release..."
+	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@npm version minor
+	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
+	@echo "🚀 Push with: git push --follow-tags"
+
+# Create major release (X.0.0) - Breaking changes
+release-major: pre-release
+	@echo "Creating major release..."
+	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@npm version major
+	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
+	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
+	@echo "🚀 Push with: git push --follow-tags"
