@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as systrayModule from "systray2";
@@ -133,44 +134,54 @@ export class SystemTrayService {
 	}
 
 	private getIconPath(state: TrayState): string {
-		// Get the package root directory (where assets folder is located)
-		const packageRoot = this.getPackageRoot();
 		const icons = {
-			[TrayState.IDLE]: join(packageRoot, "assets", "icon-idle.png"),
-			[TrayState.RECORDING]: join(packageRoot, "assets", "icon-recording.png"),
-			[TrayState.PROCESSING]: join(
-				packageRoot,
-				"assets",
-				"icon-processing.png",
-			),
+			[TrayState.IDLE]: this.getAssetPath("icon-idle.png"),
+			[TrayState.RECORDING]: this.getAssetPath("icon-recording.png"),
+			[TrayState.PROCESSING]: this.getAssetPath("icon-processing.png"),
 		};
 		return icons[state];
 	}
 
-	private getPackageRoot(): string {
-		// In development (bun start): use current working directory
-		// In production (npm package): find package root from module location
-		try {
-			// Try to use import.meta.url to find current module location
-			if (typeof import.meta.url !== "undefined") {
-				const currentFile = fileURLToPath(import.meta.url);
+	private getAssetPath(filename: string): string {
+		// Modern and robust asset resolution for development and npm package
+		let moduleDir: string;
 
-				// In built package, we're in dist/index.js, so package root is parent
-				// In source, we're in src/services/system-tray.ts, so package root is 3 levels up
-				if (currentFile.includes("/dist/")) {
-					// Built package: from dist/index.js, go up 1 level to package root
-					return dirname(dirname(currentFile));
-				} else {
-					// Source: from src/services/system-tray.ts, go up 3 levels
-					return join(dirname(currentFile), "../../..");
-				}
-			}
-		} catch {
-			// Fallback to current working directory
+		// Use import.meta.dirname if available (Node.js 20.11+)
+		if (typeof import.meta.dirname !== "undefined") {
+			moduleDir = import.meta.dirname;
+		} else {
+			// Fallback for older Node.js versions
+			moduleDir = dirname(fileURLToPath(import.meta.url));
 		}
 
-		// Default fallback for development or if import.meta.url fails
-		return process.cwd();
+		// Case 1: Source development - from src/services/ to assets/
+		// Structure: /project/src/services/system-tray.ts → /project/assets/
+		const srcPath = join(moduleDir, "../../assets", filename);
+		if (existsSync(srcPath)) {
+			return srcPath;
+		}
+
+		// Case 2: Built npm package - from dist/ to assets/
+		// Structure: /node_modules/voice-transcriber/dist/system-tray.js → /node_modules/voice-transcriber/assets/
+		const npmPath = join(moduleDir, "../assets", filename);
+		if (existsSync(npmPath)) {
+			return npmPath;
+		}
+
+		// Case 3: Development at package root
+		// Structure: /project/system-tray.ts → /project/assets/
+		const devPath = join(moduleDir, "assets", filename);
+		if (existsSync(devPath)) {
+			return devPath;
+		}
+
+		// Fallback: current working directory (compatibility)
+		const cwdPath = join(process.cwd(), "assets", filename);
+		if (existsSync(cwdPath)) {
+			return cwdPath;
+		}
+
+		throw new Error(`Asset ${filename} not found in any expected location`);
 	}
 
 	private getTooltip(state: TrayState): string {
