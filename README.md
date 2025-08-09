@@ -1,11 +1,12 @@
 # 🎤 Voice Transcriber
 
-[![Build](https://github.com/Nouuu/voice-transcriber/workflows/Build/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
-[![Test](https://github.com/Nouuu/voice-transcriber/workflows/Test/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
-[![Lint](https://github.com/Nouuu/voice-transcriber/workflows/Lint/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/lint.yml)
-[![Security](https://github.com/Nouuu/voice-transcriber/workflows/Security/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/security.yml)
+[![npm version](https://img.shields.io/npm/v/voice-transcriber?style=flat&logo=npm)](https://www.npmjs.com/package/voice-transcriber)
+[![npm downloads](https://img.shields.io/npm/dm/voice-transcriber?style=flat)](https://www.npmjs.com/package/voice-transcriber)
+[![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
+[![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D22-green)](https://nodejs.org)
 
 A lightweight desktop voice transcription application that records audio from your microphone and transcribes it using OpenAI's Whisper API, with optional GPT-based text formatting.
 
@@ -46,8 +47,8 @@ voice-transcriber
 
 ```bash
 # Clone and install dependencies
-git clone https://github.com/nospy/transcriber.git
-cd transcriber
+git clone https://github.com/Nouuu/voice-transcriber.git
+cd voice-transcriber
 make install
 ```
 
@@ -104,7 +105,7 @@ make dev
 Right-click the tray icon for additional options:
 - **🎤 Start Recording** - Begin voice capture
 - **⏹️ Stop Recording** - End recording and transcribe
-- **⚙️ Settings** - Future configuration options
+- **⚙️ Settings** - Configuration via ~/.config/voice-transcriber/config.json
 - **❌ Quit** - Exit the application
 
 ### Language Support
@@ -140,17 +141,18 @@ make lint         # Run Biome linting
 make format       # Format code with Biome
 make format-check # Check code formatting and linting
 
-# Release Management (Semantic Versioning)
-make release-patch  # Create patch release (v1.0.0 → v1.0.1)
-make release-minor  # Create minor release (v1.0.0 → v1.1.0)  
-make release-major  # Create major release (v1.0.0 → v2.0.0)
-make get-version   # Show current version from latest git tag
+# Release Management (npm version)
+make release-patch  # Create patch release (x.x.X) - Bug fixes
+make release-minor  # Create minor release (x.X.0) - New features
+make release-major  # Create major release (X.0.0) - Breaking changes
+make get-version   # Show current version from package.json
+make pre-release   # Validate code before release (linting, tests, git status)
 ```
 
 ### Project Structure
 
 ```
-transcriber/
+voice-transcriber/
 ├── src/
 │   ├── index.ts              # Main application entry point
 │   ├── config/
@@ -167,7 +169,9 @@ transcriber/
 ├── assets/
 │   ├── icon-idle.png         # Tray icon (idle state)
 │   ├── icon-recording.png    # Tray icon (recording)
-│   └── icon-processing.png   # Tray icon (processing)  
+│   └── icon-processing.png   # Tray icon (processing)
+├── dist/                     # Built application (generated)
+│   └── index.js              # Bundled application
 ├── Makefile                  # Development commands
 ├── config.example.json       # Configuration template
 └── package.json
@@ -256,7 +260,7 @@ make test-file FILE=src/services/system-tray.test.ts
 **Phase 4: Main Application** ✅
 - Complete workflow: Record → Transcribe → Format → Clipboard
 - Graceful shutdown handling and error management
-- **All 35 tests passing** with comprehensive coverage
+- **All 37 tests passing** with comprehensive coverage
 
 ### 🎯 Implementation Philosophy
 - **KEEP IT SIMPLE** - No overengineering
@@ -272,11 +276,13 @@ make test-file FILE=src/services/system-tray.test.ts
 2. ✅ **System tray icon updates**: FIXED - Implemented systray recreation workaround with recreation method
 3. ✅ **CI/CD workflows**: FIXED - GitHub Actions now work properly with optimized caching and semantic versioning
 4. ✅ **Release automation**: FIXED - Automatic changelog generation for both PRs and direct commits
+5. ✅ **Asset resolution**: FIXED - Modern import.meta.dirname-based asset paths for development and npm package compatibility
+6. ✅ **npm version workflow**: FIXED - Automated release workflow with npm version, pre-release validation, and conventional commit messages
 
 #### Medium Priority  
-5. **Test coverage**: May need assessment and improvement
-6. **Audio compression**: Current audio files are heavy - needs compression
-7. **Long audio handling**: Need proper handling for long audio files
+1. **Test coverage**: May need assessment and improvement
+2. **Audio compression**: Current audio files are heavy - needs compression
+3. **Long audio handling**: Need proper handling for long audio files
 
 ## 🛣️ Future Roadmap
 
@@ -284,13 +290,14 @@ make test-file FILE=src/services/system-tray.test.ts
 - ✅ **🏠 User Config Directory**: COMPLETED - Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
 - ✅ **📦 npm Package**: COMPLETED - Published as `voice-transcriber` on npm with global CLI installation
 - ✅ **🔄 Hybrid Runtime Support**: COMPLETED - Works with both Bun (development) and Node.js (npm distribution)
-- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Automatically resolves icon paths for both development and production
+- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Modern import.meta.dirname-based asset resolution for development and npm package compatibility
+- ✅ **🚀 Automated Release Workflow**: COMPLETED - npm version-based releases with pre-validation, conventional commits, and CI/CD integration
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
 ### Phase 6: Core Improvements 🔧
 - **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
-- **🖥️ System Tray Optimization**: Fix recreation workaround that causes brief double icons (2 second overlap)
+- **🖥️ System Tray Optimization**: Improve recreation workaround to reduce brief double icon visibility
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
 - **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
@@ -355,4 +362,4 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 - **Linting**: Biome (unified linting and formatting)
 - **CI/CD**: GitHub Actions with APT and Bun dependency caching
 - **Distribution**: npm package with global CLI installation
-- **Release**: Automated semantic versioning with changelog generation
+- **Release**: Automated npm version workflow with pre-validation, conventional commits, and semantic versioning
