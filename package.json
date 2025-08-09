@@ -20,6 +20,9 @@
 		"dist",
 		"assets"
 	],
+	"bundleDependencies": [
+		"systray2"
+	],
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"start": "bun run src/index.ts",

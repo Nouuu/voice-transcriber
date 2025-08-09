@@ -297,7 +297,7 @@ make test-file FILE=src/services/system-tray.test.ts
 
 ### Phase 6: Core Improvements 🔧
 - **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
-- **🖥️ System Tray Optimization**: Improve recreation workaround to reduce brief double icon visibility
+- **🖥️ System Tray Improvements**: Replace systray2 with node-systray-v2 for better binary distribution and eliminate recreation workaround issues
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
 - **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
