@@ -107,7 +107,7 @@ pre-release:
 release-patch: pre-release
 	@echo "Creating patch release..."
 	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
-	@npm version patch
+	@npm version patch -m "chore: bump version to %s"
 	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
 	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
 	@echo "🚀 Push with: git push --follow-tags"
@@ -116,7 +116,7 @@ release-patch: pre-release
 release-minor: pre-release
 	@echo "Creating minor release..."
 	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
-	@npm version minor
+	@npm version minor -m "chore: bump version to %s"
 	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
 	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
 	@echo "🚀 Push with: git push --follow-tags"
@@ -125,7 +125,7 @@ release-minor: pre-release
 release-major: pre-release
 	@echo "Creating major release..."
 	$(eval OLD_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
-	@npm version major
+	@npm version major -m "chore: bump version to %s"
 	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
 	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
 	@echo "🚀 Push with: git push --follow-tags"
