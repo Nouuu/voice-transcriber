@@ -50,28 +50,48 @@ export class Config {
 	}
 
 	private async setupWizard(): Promise<void> {
+		if (existsSync(this.configPath)) {
+			return;
+		}
+
 		console.log("🎤 Welcome to Voice Transcriber!");
-		console.log("First-run setup: Creating configuration file...");
-		console.log(`Config will be saved to: ${this.configPath}`);
+		console.log("First-run setup...");
 		console.log("");
-		console.log(
-			"⚠️  You need to add your OpenAI API key to the config file:"
-		);
-		console.log(
-			"1. Get an API key from: https://platform.openai.com/api-keys"
-		);
-		console.log(`2. Edit: ${this.configPath}`);
-		console.log(
-			'3. Add your key: {"openaiApiKey": "your-key-here", "formatterEnabled": true}'
-		);
+		console.log("You need an OpenAI API key to use this application.");
+		console.log("Get one from: https://platform.openai.com/api-keys");
 		console.log("");
 
-		// Create default config file
-		await this.save();
-		console.log("✅ Configuration file created!");
-		console.log(
-			"Please add your OpenAI API key and restart the application."
-		);
+		const apiKey = await this.promptForApiKey();
+
+		if (this.configPath === this.getUserConfigPath()) {
+			mkdirSync(this.getUserConfigDir(), { recursive: true });
+		}
+
+		this.openaiApiKey = apiKey;
+		this.formatterEnabled = true;
+
+		const configData: ConfigData = {
+			openaiApiKey: apiKey,
+			formatterEnabled: true,
+		};
+		writeFileSync(this.configPath, JSON.stringify(configData, null, 2));
+		console.log("");
+		console.log("✅ Configuration saved!");
+		console.log(`Config file: ${this.configPath}`);
+	}
+
+	private async promptForApiKey(): Promise<string> {
+		return new Promise(resolve => {
+			process.stdout.write("Enter your OpenAI API key: ");
+			process.stdin.once("data", data => {
+				const apiKey = data.toString().trim();
+				if (apiKey.length === 0) {
+					console.log("API key cannot be empty. Exiting.");
+					process.exit(1);
+				}
+				resolve(apiKey);
+			});
+		});
 	}
 
 	public async save(): Promise<void> {
