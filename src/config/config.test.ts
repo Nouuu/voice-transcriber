@@ -61,7 +61,10 @@ describe("Config", () => {
 				formatterEnabled: false,
 			};
 
-			writeFileSync(testConfigPath, JSON.stringify(existingConfig, null, 2));
+			writeFileSync(
+				testConfigPath,
+				JSON.stringify(existingConfig, null, 2)
+			);
 
 			const config = new Config(testConfigPath);
 			await config.loadWithSetup();
@@ -77,7 +80,10 @@ describe("Config", () => {
 				formatterEnabled: false,
 			};
 
-			writeFileSync(testConfigPath, JSON.stringify(existingConfig, null, 2));
+			writeFileSync(
+				testConfigPath,
+				JSON.stringify(existingConfig, null, 2)
+			);
 
 			const config = new Config(testConfigPath);
 			await config.loadWithSetup();

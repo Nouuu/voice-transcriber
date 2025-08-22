@@ -62,7 +62,7 @@ export class Config {
 		console.log("");
 
 		const apiKey = await this.promptForApiKey();
-		
+
 		if (this.configPath === this.getUserConfigPath()) {
 			mkdirSync(this.getUserConfigDir(), { recursive: true });
 		}
@@ -81,9 +81,9 @@ export class Config {
 	}
 
 	private async promptForApiKey(): Promise<string> {
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			process.stdout.write("Enter your OpenAI API key: ");
-			process.stdin.once("data", (data) => {
+			process.stdin.once("data", data => {
 				const apiKey = data.toString().trim();
 				if (apiKey.length === 0) {
 					console.log("API key cannot be empty. Exiting.");
