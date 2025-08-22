@@ -137,8 +137,8 @@ make test-file    # Run specific test (usage: make test-file FILE=path/to/test.t
 make clean        # Clean build artifacts and temporary files
 make build        # Build for production
 make check-deps   # Check system dependencies
-make lint         # Run Biome linting
-make format       # Format code with Biome
+make lint         # Run ESLint linting
+make format       # Format code with Prettier
 make format-check # Check code formatting and linting
 
 # Release Management (npm version)
@@ -278,6 +278,10 @@ make test-file FILE=src/services/system-tray.test.ts
 4. ✅ **Release automation**: FIXED - Automatic changelog generation for both PRs and direct commits
 5. ✅ **Asset resolution**: FIXED - Modern import.meta.dirname-based asset paths for development and npm package compatibility
 6. ✅ **npm version workflow**: FIXED - Automated release workflow with npm version, pre-release validation, and conventional commit messages
+7. ✅ **Linting Migration**: FIXED - Successfully migrated from Biome to ESLint + Prettier with updated CI workflows
+8. ✅ **Mixed Language Transcription**: FIXED - Enhanced Whisper prompt to better preserve French/English mixed speech
+9. ✅ **System Tray Library**: FIXED - Migrated from systray2 to node-systray-v2 for better reliability and distribution
+10. ✅ **Config Wizard**: FIXED - Improved first-run setup with better guidance for API key configuration
 
 #### Medium Priority  
 1. **Test coverage**: May need assessment and improvement
@@ -296,8 +300,9 @@ make test-file FILE=src/services/system-tray.test.ts
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
 ### Phase 6: Core Improvements 🔧
+- ✅ **🖥️ System Tray Library**: COMPLETED - Migrated from systray2 to node-systray-v2 for better reliability and binary distribution
+- ✅ **🌍 Mixed Language Support**: COMPLETED - Enhanced Whisper prompt for better French/English mixed speech preservation
 - **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
-- **🖥️ System Tray Improvements**: Replace systray2 with node-systray-v2 for better binary distribution and eliminate recreation workaround issues
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
 - **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
@@ -355,11 +360,11 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 - **Runtime**: Hybrid Bun (development) / Node.js (production) with TypeScript
 - **Audio**: node-audiorecorder (arecord backend)  
 - **AI**: OpenAI SDK (Whisper + GPT)
-- **System Tray**: systray2
+- **System Tray**: node-systray-v2 (improved binary distribution)
 - **Clipboard**: clipboardy
 - **Testing**: Bun test runner
 - **Build**: Makefile with development commands
-- **Linting**: Biome (unified linting and formatting)
+- **Linting**: ESLint + Prettier (migrated from Biome)
 - **CI/CD**: GitHub Actions with APT and Bun dependency caching
 - **Distribution**: npm package with global CLI installation
 - **Release**: Automated npm version workflow with pre-validation, conventional commits, and semantic versioning
