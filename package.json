@@ -17,11 +17,7 @@
 		"voice-transcriber": "./dist/index.js"
 	},
 	"files": [
-		"dist",
-		"assets"
-	],
-	"bundleDependencies": [
-		"systray2"
+		"dist"
 	],
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
@@ -35,8 +31,8 @@
 	},
 	"dependencies": {
 		"clipboardy": "^4.0.0",
-		"openai": "^5.11.0",
-		"systray2": "^2.1.4"
+		"node-systray-v2": "https://github.com/Edgar-P-yan/node-systray-v2.git",
+		"openai": "^5.11.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.3",
