@@ -21,8 +21,7 @@ export class TranscriptionService {
 		this.config = {
 			// No language specified = auto-detect (supports French, English, and others)
 			language: undefined,
-			prompt:
-				"Please transcribe this audio clearly with proper punctuation. The audio may contain French or English.",
+			prompt: "Please transcribe this audio clearly with proper punctuation. The audio may contain French or English.",
 			...config,
 		};
 

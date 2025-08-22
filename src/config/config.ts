@@ -32,7 +32,7 @@ export class Config {
 				this.openaiApiKey = data.openaiApiKey || "";
 				this.formatterEnabled = data.formatterEnabled ?? true;
 			}
-		} catch (_error) {
+		} catch {
 			// Use defaults if config fails to load
 		}
 	}
@@ -54,18 +54,24 @@ export class Config {
 		console.log("First-run setup: Creating configuration file...");
 		console.log(`Config will be saved to: ${this.configPath}`);
 		console.log("");
-		console.log("⚠️  You need to add your OpenAI API key to the config file:");
-		console.log("1. Get an API key from: https://platform.openai.com/api-keys");
+		console.log(
+			"⚠️  You need to add your OpenAI API key to the config file:"
+		);
+		console.log(
+			"1. Get an API key from: https://platform.openai.com/api-keys"
+		);
 		console.log(`2. Edit: ${this.configPath}`);
 		console.log(
-			'3. Add your key: {"openaiApiKey": "your-key-here", "formatterEnabled": true}',
+			'3. Add your key: {"openaiApiKey": "your-key-here", "formatterEnabled": true}'
 		);
 		console.log("");
 
 		// Create default config file
 		await this.save();
 		console.log("✅ Configuration file created!");
-		console.log("Please add your OpenAI API key and restart the application.");
+		console.log(
+			"Please add your OpenAI API key and restart the application."
+		);
 	}
 
 	public async save(): Promise<void> {

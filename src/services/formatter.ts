@@ -18,8 +18,7 @@ export class FormatterService {
 
 	constructor(config: FormatterConfig) {
 		this.config = {
-			prompt:
-				"Please format this transcribed text with proper grammar and punctuation. The text may be in French or English - preserve the original language:",
+			prompt: "Please format this transcribed text with proper grammar and punctuation. The text may be in French or English - preserve the original language:",
 			...config,
 		};
 

@@ -66,7 +66,7 @@ describe("FormatterService", () => {
 
 		it("should handle API errors", async () => {
 			mockOpenAI.chat.completions.create.mockRejectedValueOnce(
-				new Error("API Error"),
+				new Error("API Error")
 			);
 
 			const result = await service.formatText("test text");
