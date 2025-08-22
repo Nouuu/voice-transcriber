@@ -38,7 +38,7 @@ export class AudioRecorder {
 			const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 			this.currentFile = join(
 				this.config.tempDir!,
-				`recording-${timestamp}.wav`,
+				`recording-${timestamp}.wav`
 			);
 
 			this.recordingProcess = spawn("arecord", [
@@ -58,7 +58,10 @@ export class AudioRecorder {
 
 			return { success: true, filePath: this.currentFile };
 		} catch (error) {
-			return { success: false, error: `Failed to start recording: ${error}` };
+			return {
+				success: false,
+				error: `Failed to start recording: ${error}`,
+			};
 		}
 	}
 
@@ -76,7 +79,10 @@ export class AudioRecorder {
 
 			return { success: true, filePath: filePath || undefined };
 		} catch (error) {
-			return { success: false, error: `Failed to stop recording: ${error}` };
+			return {
+				success: false,
+				error: `Failed to stop recording: ${error}`,
+			};
 		}
 	}
 

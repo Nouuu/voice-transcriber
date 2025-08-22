@@ -124,7 +124,9 @@ export class VoiceTranscriberApp {
 			const transcriptionResult =
 				await this.transcriptionService.transcribe(filePath);
 			if (!transcriptionResult.success || !transcriptionResult.text) {
-				logger.error(`Transcription failed: ${transcriptionResult.error}`);
+				logger.error(
+					`Transcription failed: ${transcriptionResult.error}`
+				);
 				await this.systemTrayService.setState(TrayState.IDLE);
 				return;
 			}
@@ -134,7 +136,8 @@ export class VoiceTranscriberApp {
 			// Format text if enabled
 			if (this.config.formatterEnabled) {
 				logger.info("Formatting text...");
-				const formatResult = await this.formatterService.formatText(finalText);
+				const formatResult =
+					await this.formatterService.formatText(finalText);
 				if (formatResult.success && formatResult.text) {
 					finalText = formatResult.text;
 				}
@@ -142,7 +145,8 @@ export class VoiceTranscriberApp {
 
 			// Copy to clipboard
 			logger.info("Copying to clipboard...");
-			const clipboardResult = await this.clipboardService.writeText(finalText);
+			const clipboardResult =
+				await this.clipboardService.writeText(finalText);
 			if (!clipboardResult.success) {
 				logger.error(`Clipboard failed: ${clipboardResult.error}`);
 			} else {
@@ -220,7 +224,7 @@ async function main() {
 
 // Start the application only if this is the main module
 if (import.meta.main) {
-	main().catch((error) => {
+	main().catch(error => {
 		console.error("Application failed:", error);
 		process.exit(1);
 	});

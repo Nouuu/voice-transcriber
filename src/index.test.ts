@@ -6,7 +6,9 @@ describe("VoiceTranscriberApp", () => {
 
 	beforeEach(() => {
 		// Use a test config path to avoid creating real config files in CI
-		app = new VoiceTranscriberApp("/tmp/test-voice-transcriber-config.json");
+		app = new VoiceTranscriberApp(
+			"/tmp/test-voice-transcriber-config.json"
+		);
 
 		// Mock loadWithSetup to avoid the setup wizard in CI
 		(app as any).config.loadWithSetup = async () => {
@@ -131,10 +133,14 @@ describe("VoiceTranscriberApp", () => {
 			await (app as any).processAudioFile("/tmp/test.wav");
 
 			expect(mockTranscription.transcribe).toHaveBeenCalledWith(
-				"/tmp/test.wav",
+				"/tmp/test.wav"
 			);
-			expect(mockFormatter.formatText).toHaveBeenCalledWith("Hello world");
-			expect(mockClipboard.writeText).toHaveBeenCalledWith("Hello world.");
+			expect(mockFormatter.formatText).toHaveBeenCalledWith(
+				"Hello world"
+			);
+			expect(mockClipboard.writeText).toHaveBeenCalledWith(
+				"Hello world."
+			);
 		});
 
 		it("should skip formatting when disabled", async () => {

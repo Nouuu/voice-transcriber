@@ -73,7 +73,7 @@ export class SystemTrayService {
 			});
 
 			// Simple click handling with seq_id based routing
-			systray.onClick((action) => {
+			systray.onClick(action => {
 				console.log(`Menu item clicked:`, action.item.title);
 
 				// Route based on seq_id (0=start, 1=stop, 2=quit)
@@ -94,7 +94,7 @@ export class SystemTrayService {
 			});
 
 			// Wait for systray to be ready using onReady
-			await new Promise<void>((resolve) => {
+			await new Promise<void>(resolve => {
 				systray.onReady(() => resolve());
 			});
 

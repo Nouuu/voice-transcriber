@@ -35,7 +35,7 @@ describe("ClipboardService", () => {
 		it("should handle clipboard write errors", async () => {
 			const testText = "Test text";
 			mockClipboard.write.mockRejectedValueOnce(
-				new Error("Clipboard access denied"),
+				new Error("Clipboard access denied")
 			);
 
 			const result = await service.writeText(testText);
@@ -67,7 +67,7 @@ describe("ClipboardService", () => {
 
 		it("should handle clipboard read errors", async () => {
 			mockClipboard.read.mockRejectedValueOnce(
-				new Error("Clipboard read failed"),
+				new Error("Clipboard read failed")
 			);
 
 			const result = await service.readText();

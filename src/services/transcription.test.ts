@@ -54,7 +54,7 @@ describe("TranscriptionService", () => {
 			writeFileSync(tempFile, "test audio content");
 
 			mockOpenAI.audio.transcriptions.create.mockRejectedValueOnce(
-				new Error("API Error"),
+				new Error("API Error")
 			);
 
 			const result = await service.transcribe(tempFile);

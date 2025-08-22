@@ -44,7 +44,7 @@ describe("SystemTrayService", () => {
 		it("should initialize successfully", async () => {
 			mockSysTrayConstructor.mockReturnValue(mockSystray);
 			// Mock onReady to call callback immediately
-			mockSystray.onReady.mockImplementation((callback) => callback());
+			mockSystray.onReady.mockImplementation(callback => callback());
 
 			const result = await service.initialize();
 			expect(result.success).toBe(true);
@@ -68,7 +68,7 @@ describe("SystemTrayService", () => {
 		beforeEach(async () => {
 			mockSysTrayConstructor.mockReturnValue(mockSystray);
 			// Mock onReady to call callback immediately
-			mockSystray.onReady.mockImplementation((callback) => callback());
+			mockSystray.onReady.mockImplementation(callback => callback());
 			await service.initialize();
 		});
 
@@ -81,7 +81,9 @@ describe("SystemTrayService", () => {
 
 		it("should return error when not initialized", async () => {
 			const uninitializedService = new SystemTrayService(config);
-			const result = await uninitializedService.setState(TrayState.RECORDING);
+			const result = await uninitializedService.setState(
+				TrayState.RECORDING
+			);
 			expect(result.success).toBe(false);
 			expect(result.error).toContain("not initialized");
 		});
@@ -91,7 +93,7 @@ describe("SystemTrayService", () => {
 		it("should shutdown successfully when initialized", async () => {
 			mockSysTrayConstructor.mockReturnValue(mockSystray);
 			// Mock onReady to call callback immediately
-			mockSystray.onReady.mockImplementation((callback) => callback());
+			mockSystray.onReady.mockImplementation(callback => callback());
 			await service.initialize();
 
 			const result = await service.shutdown();

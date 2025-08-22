@@ -14,8 +14,8 @@ help:
 	@echo "  make clean       - Clean build artifacts and temporary files"
 	@echo "  make build       - Build for production"
 	@echo "  make check-deps  - Check system dependencies"
-	@echo "  make lint        - Run Biome linting only"
-	@echo "  make format      - Format code with Biome"
+	@echo "  make lint        - Run ESLint linting only"
+	@echo "  make format      - Format code with Prettier"
 	@echo "  make format-check - Check both linting and formatting"
 	@echo "  make audit       - Run security audit on dependencies"
 	@echo "  make release-patch - Create patch release (x.x.X) - Bug fixes"
@@ -70,20 +70,23 @@ check-deps:
 	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
 	@echo "✅ All system dependencies are installed"
 
-# Run Biome linting only
+# Run ESLint linting only
 lint:
-	@echo "Running Biome linting..."
-	bunx --bun biome lint "./src"
+	@echo "Running ESLint linting..."
+	bunx eslint "./src/**/*.ts"
 
-# Format code with Biome
+# Format code with Prettier
 format:
-	@echo "Formatting code with Biome..."
-	bunx --bun biome format --write "./src"
+	@echo "Formatting code with Prettier..."
+	bunx prettier --write "./src/**/*.ts"
 
 # Check both linting and formatting
 format-check:
-	@echo "Checking code with Biome (lint + format)..."
-	bunx --bun biome check "./src"
+	@echo "Checking code with ESLint and Prettier..."
+	@echo "Checking formatting..."
+	bunx prettier --check "./src/**/*.ts"
+	@echo "Running linting..."
+	bunx eslint "./src/**/*.ts"
 
 # Run security audit on dependencies
 audit:
