@@ -3,7 +3,7 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { Config } from "./config";
 
 describe("Config", () => {
-	const testConfigPath = "test-config.json";
+	const testConfigPath = "/tmp/test-config.json";
 
 	afterEach(() => {
 		// Only clean up test files, NEVER delete production config.json
@@ -30,7 +30,7 @@ describe("Config", () => {
 		});
 
 		it("should use defaults when file doesn't exist", async () => {
-			const config = new Config("nonexistent.json");
+			const config = new Config("/tmp/nonexistent.json");
 			await config.load();
 
 			expect(config.openaiApiKey).toBe("");
@@ -55,15 +55,38 @@ describe("Config", () => {
 	});
 
 	describe("loadWithSetup", () => {
-		it("should exist and be callable", async () => {
-			const config = new Config("nonexistent.json");
+		it("should load existing config without running setup", async () => {
+			const existingConfig = {
+				openaiApiKey: "existing-key",
+				formatterEnabled: false,
+			};
 
-			// Should not throw
+			writeFileSync(testConfigPath, JSON.stringify(existingConfig, null, 2));
+
+			const config = new Config(testConfigPath);
 			await config.loadWithSetup();
 
-			// Should use defaults since file doesn't exist
-			expect(config.openaiApiKey).toBe("");
-			expect(config.formatterEnabled).toBe(true);
+			expect(config.openaiApiKey).toBe("existing-key");
+			expect(config.formatterEnabled).toBe(false);
+		});
+
+		it("should not overwrite existing config with real API key", async () => {
+			const realApiKey = "sk-real-api-key-that-should-be-preserved";
+			const existingConfig = {
+				openaiApiKey: realApiKey,
+				formatterEnabled: false,
+			};
+
+			writeFileSync(testConfigPath, JSON.stringify(existingConfig, null, 2));
+
+			const config = new Config(testConfigPath);
+			await config.loadWithSetup();
+
+			const configContent = readFileSync(testConfigPath, "utf8");
+			const savedConfig = JSON.parse(configContent);
+
+			expect(savedConfig.openaiApiKey).toBe(realApiKey);
+			expect(savedConfig.formatterEnabled).toBe(false);
 		});
 	});
 });
