@@ -41,7 +41,3 @@ tmp/
 
 # Configuration files with sensitive data
 config.json
-
-# CRITICAL: config.json contains OpenAI API key and must NOT be committed
-# Use config.example.json as template
-CLAUDE.md
