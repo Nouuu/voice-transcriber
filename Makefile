@@ -1,32 +1,87 @@
 # Transcriber Voice Application Makefile
 
-.PHONY: help install run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version
+.PHONY: help setup check-system-deps init-config install run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make install     - Install dependencies"
-	@echo "  make run         - Run the application"
-	@echo "  make dev         - Run in development mode with watch"
-	@echo "  make test        - Run all tests"
-	@echo "  make test-watch  - Run tests in watch mode"
-	@echo "  make test-file   - Run specific test file (usage: make test-file FILE=path/to/test.ts)"
-	@echo "  make clean       - Clean build artifacts and temporary files"
-	@echo "  make build       - Build for production"
-	@echo "  make check-deps  - Check system dependencies"
-	@echo "  make lint        - Run ESLint linting only"
-	@echo "  make format      - Format code with Prettier"
-	@echo "  make format-check - Check both linting and formatting"
-	@echo "  make audit       - Run security audit on dependencies"
-	@echo "  make release-patch - Create patch release (x.x.X) - Bug fixes"
-	@echo "  make release-minor - Create minor release (x.X.0) - New features"
-	@echo "  make release-major - Create major release (X.0.0) - Breaking changes"
-	@echo "  make get-version   - Show current version from package.json"
-	@echo "  make pre-release   - Validate code before release (linting, tests, git status)"
+	@echo ""
+	@echo "🚀 Setup & Installation:"
+	@echo "  make setup            - Complete setup (system deps + bun deps + config)"
+	@echo "  make check-system-deps - Check system dependencies (Bun, arecord, xsel)"
+	@echo "  make init-config      - Initialize config file in ~/.config/voice-transcriber/"
+	@echo "  make install          - Install bun dependencies only"
+	@echo ""
+	@echo "▶️ Running:"
+	@echo "  make run              - Run the application"
+	@echo "  make dev              - Run in development mode with watch"
+	@echo ""
+	@echo "🧪 Testing & Quality:"
+	@echo "  make test             - Run all tests"
+	@echo "  make test-watch       - Run tests in watch mode"
+	@echo "  make test-file        - Run specific test (usage: make test-file FILE=path/to/test.ts)"
+	@echo "  make lint             - Run ESLint linting only"
+	@echo "  make format           - Format code with Prettier"
+	@echo "  make format-check     - Check both linting and formatting"
+	@echo ""
+	@echo "🛠️ Utilities:"
+	@echo "  make clean            - Clean build artifacts and temporary files"
+	@echo "  make build            - Build for production"
+	@echo "  make check-deps       - Alias for check-system-deps (legacy)"
+	@echo "  make audit            - Run security audit on dependencies"
+	@echo "  make release-patch    - Create patch release (x.x.X) - Bug fixes"
+	@echo "  make release-minor    - Create minor release (x.X.0) - New features"
+	@echo "  make release-major    - Create major release (X.0.0) - Breaking changes"
+	@echo "  make get-version      - Show current version from package.json"
+	@echo "  make pre-release      - Validate code before release (linting, tests, git status)"
+
+# Complete setup: check system dependencies, install bun deps, initialize config
+setup: check-system-deps install init-config
+	@echo ""
+	@echo "✅ Setup complete!"
+	@echo ""
+	@echo "📝 Next steps:"
+	@echo "  1. Edit your config: nano ~/.config/voice-transcriber/config.json"
+	@echo "  2. Add your OpenAI API key"
+	@echo "  3. Run the application: make run"
+
+# Check system dependencies
+check-system-deps:
+	@echo "Checking system dependencies..."
+	@echo ""
+	@echo "Checking Bun runtime..."
+	@which bun > /dev/null || (echo "❌ Bun not found. Install from: https://bun.sh" && exit 1)
+	@bun --version | awk '{print "✅ Bun version: " $$1}'
+	@echo ""
+	@echo "Checking arecord (required for audio recording)..."
+	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
+	@echo "✅ arecord found"
+	@echo ""
+	@echo "Checking xsel (optional for clipboard)..."
+	@which xsel > /dev/null && echo "✅ xsel found" || echo "⚠️  xsel not found (optional). Install with: sudo apt-get install xsel"
+	@echo ""
+	@echo "✅ All required system dependencies are installed"
+
+# Initialize config file
+init-config:
+	@echo "Initializing configuration..."
+	@mkdir -p ~/.config/voice-transcriber
+	@if [ -f ~/.config/voice-transcriber/config.json ]; then \
+		echo "✅ Config file already exists at ~/.config/voice-transcriber/config.json"; \
+	else \
+		if [ -f config.example.json ]; then \
+			cp config.example.json ~/.config/voice-transcriber/config.json; \
+			echo "✅ Config file created at ~/.config/voice-transcriber/config.json"; \
+			echo "⚠️  Remember to add your OpenAI API key!"; \
+		else \
+			echo "❌ config.example.json not found. Please create it first."; \
+			exit 1; \
+		fi \
+	fi
 
 # Install dependencies
 install:
-	@echo "Installing dependencies..."
+	@echo "Installing Bun dependencies..."
 	bun install
 
 # Run the application
@@ -64,11 +119,8 @@ build:
 	@echo "Building for production..."
 	bun run build
 
-# Check system dependencies
-check-deps:
-	@echo "Checking system dependencies..."
-	@which arecord > /dev/null || (echo "❌ arecord not found. Install with: sudo apt-get install alsa-utils" && exit 1)
-	@echo "✅ All system dependencies are installed"
+# Legacy alias for check-system-deps
+check-deps: check-system-deps
 
 # Run ESLint linting only
 lint:

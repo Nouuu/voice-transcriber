@@ -11,14 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/nouuu/voice-transcriber/issues"
 	},
-	"main": "dist/index.js",
 	"type": "module",
-	"bin": {
-		"voice-transcriber": "./dist/index.js"
-	},
-	"files": [
-		"dist"
-	],
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
 		"start": "bun run src/index.ts",
@@ -26,7 +19,6 @@
 		"test:watch": "bun test --watch",
 		"clean": "rm -rf dist tmp",
 		"build": "bun build src/index.ts --outdir dist --target node --format esm --external node-systray-v2",
-		"prepublishOnly": "make build && make test",
 		"check-deps": "(which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils') && (which xsel || echo 'Install xsel: sudo apt-get install xsel')"
 	},
 	"dependencies": {
