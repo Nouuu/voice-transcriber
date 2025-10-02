@@ -1,6 +1,6 @@
 # Transcriber Voice Application Makefile
 
-.PHONY: help setup check-system-deps init-config install run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version
+.PHONY: help setup check-system-deps init-config install install-global uninstall-global run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version
 
 # Default target
 help:
@@ -11,6 +11,8 @@ help:
 	@echo "  make check-system-deps - Check system dependencies (Bun, arecord, xsel)"
 	@echo "  make init-config      - Initialize config file in ~/.config/voice-transcriber/"
 	@echo "  make install          - Install bun dependencies only"
+	@echo "  make install-global   - Install voice-transcriber command globally (requires sudo)"
+	@echo "  make uninstall-global - Uninstall global voice-transcriber command"
 	@echo ""
 	@echo "▶️ Running:"
 	@echo "  make run              - Run the application"
@@ -83,6 +85,27 @@ init-config:
 install:
 	@echo "Installing Bun dependencies..."
 	bun install
+
+# Install globally (create symlink in /usr/local/bin)
+install-global:
+	@echo "🔗 Installing voice-transcriber globally..."
+	@if [ ! -f "$(PWD)/src/index.ts" ]; then \
+		echo "❌ Error: Must be run from project directory"; \
+		exit 1; \
+	fi
+	@echo '#!/bin/bash' > /tmp/voice-transcriber
+	@echo 'cd "$(PWD)" && bun run src/index.ts "$$@"' >> /tmp/voice-transcriber
+	@chmod +x /tmp/voice-transcriber
+	@sudo mv /tmp/voice-transcriber /usr/local/bin/voice-transcriber
+	@echo "✅ voice-transcriber installed globally"
+	@echo "💡 You can now run 'voice-transcriber' from anywhere"
+
+# Uninstall global command
+uninstall-global:
+	@echo "🗑️  Uninstalling voice-transcriber..."
+	@sudo rm -f /usr/local/bin/voice-transcriber
+	@echo "✅ voice-transcriber uninstalled"
+	@echo "💡 You can still run with 'make run' from the project directory"
 
 # Run the application
 run:

@@ -59,41 +59,41 @@ Add your OpenAI API key:
 ```json
 {
   "openaiApiKey": "sk-your-api-key-here",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "spokenLanguage": "en"
 }
 ```
 
 **Get your OpenAI API key:** https://platform.openai.com/api-keys
 
-**Step 4: Run the application**
+**Step 4: Install globally (optional)**
 ```bash
+make install-global
+```
+
+This installs the `voice-transcriber` command globally, allowing you to run it from anywhere.
+
+**Step 5: Run the application**
+```bash
+# If installed globally
+voice-transcriber
+
+# Or from project directory
 make run
 ```
 
-### Manual Setup (Alternative)
-
-If you prefer step-by-step installation:
-
-```bash
-# Check system dependencies
-make check-system-deps
-
-# Install Bun dependencies
-make install
-
-# Initialize config file
-make init-config
-
-# Edit config and add your API key
-nano ~/.config/voice-transcriber/config.json
-
-# Run the application
-make run
-```
+### Usage
 
 1. Look for the system tray icon (green circle when idle)
-2. Click the tray icon or menu to start/stop recording  
+2. Click the tray icon or menu to start/stop recording
 3. Transcribed text is automatically copied to your clipboard
+
+### Uninstall
+
+To remove the global command:
+```bash
+make uninstall-global
+```
 
 ## How It Works
 
