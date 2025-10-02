@@ -5,11 +5,13 @@ import { join } from "node:path";
 export interface ConfigData {
 	openaiApiKey: string;
 	formatterEnabled: boolean;
+	spokenLanguage: string;
 }
 
 export class Config {
 	public openaiApiKey: string = "";
 	public formatterEnabled: boolean = true;
+	public spokenLanguage: string = "en";
 	private readonly configPath: string;
 
 	constructor(configPath?: string) {
@@ -31,6 +33,7 @@ export class Config {
 				const data = JSON.parse(fileContent) as Partial<ConfigData>;
 				this.openaiApiKey = data.openaiApiKey || "";
 				this.formatterEnabled = data.formatterEnabled ?? true;
+				this.spokenLanguage = data.spokenLanguage || "en";
 			}
 		} catch {
 			// Use defaults if config fails to load
@@ -73,6 +76,7 @@ export class Config {
 		const configData: ConfigData = {
 			openaiApiKey: apiKey,
 			formatterEnabled: true,
+			spokenLanguage: "en",
 		};
 		writeFileSync(this.configPath, JSON.stringify(configData, null, 2));
 		console.log("");
@@ -103,6 +107,7 @@ export class Config {
 		const data: ConfigData = {
 			openaiApiKey: this.openaiApiKey,
 			formatterEnabled: this.formatterEnabled,
+			spokenLanguage: this.spokenLanguage,
 		};
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));
 	}

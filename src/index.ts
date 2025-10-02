@@ -41,6 +41,7 @@ export class VoiceTranscriberApp {
 			// Initialize OpenAI services
 			this.transcriptionService = new TranscriptionService({
 				apiKey: this.config.openaiApiKey,
+				language: this.config.spokenLanguage,
 			});
 
 			this.formatterService = new FormatterService({

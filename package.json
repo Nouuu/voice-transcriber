@@ -25,7 +25,7 @@
 		"test": "bun test",
 		"test:watch": "bun test --watch",
 		"clean": "rm -rf dist tmp",
-		"build": "bun build src/index.ts --outdir dist --target node --format esm",
+		"build": "bun build src/index.ts --outdir dist --target node --format esm --external node-systray-v2",
 		"prepublishOnly": "make build && make test",
 		"check-deps": "(which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils') && (which xsel || echo 'Install xsel: sudo apt-get install xsel')"
 	},
