@@ -1,12 +1,9 @@
 # 🎤 Voice Transcriber
 
-[![npm version](https://img.shields.io/npm/v/voice-transcriber?style=flat&logo=npm)](https://www.npmjs.com/package/voice-transcriber)
-[![npm downloads](https://img.shields.io/npm/dm/voice-transcriber?style=flat)](https://www.npmjs.com/package/voice-transcriber)
 [![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
 [![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D22-green)](https://nodejs.org)
 
 A lightweight desktop voice transcription application that records audio from your microphone and transcribes it using OpenAI's Whisper API, with optional GPT-based text formatting.
 
@@ -22,69 +19,76 @@ A lightweight desktop voice transcription application that records audio from yo
 
 ### Prerequisites
 
-```bash
-# Install system dependencies (Ubuntu/Linux)
-sudo apt-get update
-sudo apt-get install alsa-utils xsel
+Before installing, ensure you have:
 
-# Verify system dependencies (for development)
-make check-deps
-```
+1. **Bun runtime** (≥1.2.0)
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   ```
+
+2. **System dependencies** (Ubuntu/Linux)
+   ```bash
+   sudo apt-get update
+   sudo apt-get install alsa-utils xsel
+   ```
 
 ### Installation
 
-**Method 1: Install from npm (Recommended)**
-
+**Step 1: Clone the repository**
 ```bash
-# Install globally from npm
-npm install -g voice-transcriber
-
-# Run the application
-voice-transcriber
-```
-
-**Method 2: From Source**
-
-```bash
-# Clone and install dependencies
 git clone https://github.com/Nouuu/voice-transcriber.git
 cd voice-transcriber
-make install
 ```
 
-### Configuration
+**Step 2: Run automated setup**
+```bash
+make setup
+```
 
-The application now uses a user configuration directory for better system integration.
+This command will:
+- Check all system dependencies (Bun, arecord, xsel)
+- Install Bun dependencies
+- Create configuration file at `~/.config/voice-transcriber/config.json`
 
-**First Run Setup:**
-1. Run the application - it will automatically create the config directory and show setup instructions
-2. The config file will be created at: `~/.config/voice-transcriber/config.json`
-3. Edit the config file and add your OpenAI API key:
+**Step 3: Configure OpenAI API key**
+```bash
+nano ~/.config/voice-transcriber/config.json
+```
 
+Add your OpenAI API key:
 ```json
 {
-  "openaiApiKey": "your-openai-api-key-here",  
+  "openaiApiKey": "sk-your-api-key-here",
   "formatterEnabled": true
 }
 ```
 
 **Get your OpenAI API key:** https://platform.openai.com/api-keys
 
-### Usage
-
-**For npm installation:**
+**Step 4: Run the application**
 ```bash
-# Simply run the command
-voice-transcriber
+make run
 ```
 
-**For source installation:**
+### Manual Setup (Alternative)
+
+If you prefer step-by-step installation:
+
 ```bash
+# Check system dependencies
+make check-system-deps
+
+# Install Bun dependencies
+make install
+
+# Initialize config file
+make init-config
+
+# Edit config and add your API key
+nano ~/.config/voice-transcriber/config.json
+
 # Run the application
 make run
-
-# Or run in development mode
-make dev
 ```
 
 1. Look for the system tray icon (green circle when idle)
@@ -128,25 +132,35 @@ When `formatterEnabled: true`:
 
 ```bash
 make help          # Show all available commands
-make install       # Install dependencies
-make run          # Run the application
-make dev          # Run in development mode with watch
-make test         # Run all tests
-make test-watch   # Run tests in watch mode
-make test-file    # Run specific test (usage: make test-file FILE=path/to/test.ts)
-make clean        # Clean build artifacts and temporary files
-make build        # Build for production
-make check-deps   # Check system dependencies
-make lint         # Run ESLint linting
-make format       # Format code with Prettier
-make format-check # Check code formatting and linting
 
-# Release Management (npm version)
-make release-patch  # Create patch release (x.x.X) - Bug fixes
-make release-minor  # Create minor release (x.X.0) - New features
-make release-major  # Create major release (X.0.0) - Breaking changes
-make get-version   # Show current version from package.json
-make pre-release   # Validate code before release (linting, tests, git status)
+# 🚀 Setup & Installation
+make setup              # Complete setup (system deps + bun deps + config)
+make check-system-deps  # Check system dependencies (Bun, arecord, xsel)
+make init-config        # Initialize config file in ~/.config/voice-transcriber/
+make install            # Install bun dependencies only
+
+# ▶️ Running
+make run                # Run the application
+make dev                # Run in development mode with watch
+
+# 🧪 Testing & Quality
+make test               # Run all tests
+make test-watch         # Run tests in watch mode
+make test-file          # Run specific test (usage: make test-file FILE=path/to/test.ts)
+make lint               # Run ESLint linting
+make format             # Format code with Prettier
+make format-check       # Check code formatting and linting
+
+# 🛠️ Utilities
+make clean              # Clean build artifacts and temporary files
+make build              # Build for production
+make check-deps         # Alias for check-system-deps (legacy)
+make audit              # Run security audit on dependencies
+make release-patch      # Create patch release (x.x.X) - Bug fixes
+make release-minor      # Create minor release (x.X.0) - New features
+make release-major      # Create major release (X.0.0) - Breaking changes
+make get-version        # Show current version from package.json
+make pre-release        # Validate code before release (linting, tests, git status)
 ```
 
 ### Project Structure
@@ -180,11 +194,11 @@ voice-transcriber/
 ### Development Workflow
 
 ```bash
-# Install dependencies
-make install
+# First-time setup (if not done already)
+make setup
 
 # Check system requirements
-make check-deps
+make check-system-deps
 
 # Run tests (recommended before development)
 make test
@@ -194,6 +208,9 @@ make dev
 
 # Run specific test file
 make test-file FILE=src/services/system-tray.test.ts
+
+# Format and lint code
+make format-check
 
 # Clean up temporary files
 make clean
@@ -290,12 +307,11 @@ make test-file FILE=src/services/system-tray.test.ts
 
 ## 🛣️ Future Roadmap
 
-### Phase 5: Production Ready 🚀 
+### Phase 5: Production Ready 🚀
 - ✅ **🏠 User Config Directory**: COMPLETED - Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
-- ✅ **📦 npm Package**: COMPLETED - Published as `voice-transcriber` on npm with global CLI installation
-- ✅ **🔄 Hybrid Runtime Support**: COMPLETED - Works with both Bun (development) and Node.js (npm distribution)
-- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Modern import.meta.dirname-based asset resolution for development and npm package compatibility
-- ✅ **🚀 Automated Release Workflow**: COMPLETED - npm version-based releases with pre-validation, conventional commits, and CI/CD integration
+- ✅ **🔧 Local Installation**: COMPLETED - Streamlined local-only Bun installation with automated setup
+- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Modern import.meta.dirname-based asset resolution
+- ✅ **🚀 Automated Setup**: COMPLETED - Complete `make setup` command for one-step installation
 - **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
 - **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
 
@@ -357,14 +373,13 @@ This project was created using `bun init` with [Bun](https://bun.sh) runtime.
 
 ## 🔗 Tech Stack
 
-- **Runtime**: Hybrid Bun (development) / Node.js (production) with TypeScript
-- **Audio**: node-audiorecorder (arecord backend)  
+- **Runtime**: Bun (≥1.2.0) with TypeScript
+- **Audio**: node-audiorecorder (arecord backend)
 - **AI**: OpenAI SDK (Whisper + GPT)
-- **System Tray**: node-systray-v2 (improved binary distribution)
+- **System Tray**: node-systray-v2 (native binary distribution)
 - **Clipboard**: clipboardy
 - **Testing**: Bun test runner
 - **Build**: Makefile with development commands
-- **Linting**: ESLint + Prettier (migrated from Biome)
+- **Linting**: ESLint + Prettier
 - **CI/CD**: GitHub Actions with APT and Bun dependency caching
-- **Distribution**: npm package with global CLI installation
-- **Release**: Automated npm version workflow with pre-validation, conventional commits, and semantic versioning
+- **Distribution**: Local installation with automated setup
