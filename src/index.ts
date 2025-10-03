@@ -39,14 +39,19 @@ export class VoiceTranscriberApp {
 			}
 
 			// Initialize OpenAI services
+			const transcriptionConfig = this.config.getTranscriptionConfig();
 			this.transcriptionService = new TranscriptionService({
-				apiKey: this.config.openaiApiKey,
-				language: this.config.spokenLanguage,
+				apiKey: transcriptionConfig.apiKey,
+				language: transcriptionConfig.language,
+				prompt: transcriptionConfig.prompt,
 			});
 
+			const formatterConfig = this.config.getFormatterConfig();
 			this.formatterService = new FormatterService({
-				apiKey: this.config.openaiApiKey,
-				enabled: this.config.formatterEnabled,
+				apiKey: formatterConfig.apiKey,
+				enabled: formatterConfig.enabled,
+				language: formatterConfig.language,
+				prompt: formatterConfig.prompt,
 			});
 
 			// Initialize system tray

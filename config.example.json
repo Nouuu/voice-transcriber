@@ -1,4 +1,7 @@
 {
   "openaiApiKey": "your-openai-api-key-here",
-  "formatterEnabled": true
+  "language": "en",
+  "formatterEnabled": true,
+  "transcriptionPrompt": null,
+  "formattingPrompt": null
 }

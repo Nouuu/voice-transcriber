@@ -18,11 +18,7 @@ export class TranscriptionService {
 	private config: TranscriptionConfig;
 
 	constructor(config: TranscriptionConfig) {
-		this.config = {
-			// No language specified = auto-detect (supports French, English, and others)
-			// prompt: "Please transcribe this audio exactly as spoken, preserving the spoken language. The speaker may mix and speak mainly French but also English for technical termes in the same sentence. Keep technical terms in their original language (English), but preserve French sentence structure and grammar. Do not translate between languages.",
-			...config,
-		};
+		this.config = { ...config };
 
 		this.openai = new OpenAI({
 			apiKey: this.config.apiKey,
@@ -30,7 +26,8 @@ export class TranscriptionService {
 	}
 
 	/**
-	 * Transcribes audio file using Whisper (auto-detects French/English)
+	 * Transcribes audio file using OpenAI Whisper API
+	 * Uses language and prompt from config to prevent language switching
 	 */
 	public async transcribe(filePath: string): Promise<TranscriptionResult> {
 		if (!filePath || !existsSync(filePath)) {

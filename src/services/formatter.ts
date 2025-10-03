@@ -3,7 +3,8 @@ import OpenAI from "openai";
 export interface FormatterConfig {
 	apiKey: string;
 	enabled: boolean;
-	prompt?: string;
+	language: string;
+	prompt: string;
 }
 
 export interface FormatResult {
@@ -17,10 +18,7 @@ export class FormatterService {
 	private config: FormatterConfig;
 
 	constructor(config: FormatterConfig) {
-		this.config = {
-			prompt: "Please format this transcribed text with proper grammar and punctuation. The text may be in French or English - preserve the original language:",
-			...config,
-		};
+		this.config = { ...config };
 
 		this.openai = new OpenAI({
 			apiKey: this.config.apiKey,

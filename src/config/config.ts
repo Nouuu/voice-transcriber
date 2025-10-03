@@ -4,14 +4,18 @@ import { join } from "node:path";
 
 export interface ConfigData {
 	openaiApiKey: string;
+	language: string;
 	formatterEnabled: boolean;
-	spokenLanguage: string;
+	transcriptionPrompt?: string | null;
+	formattingPrompt?: string | null;
 }
 
 export class Config {
 	public openaiApiKey: string = "";
+	public language: string = "en";
 	public formatterEnabled: boolean = true;
-	public spokenLanguage: string = "en";
+	public transcriptionPrompt: string | null = null;
+	public formattingPrompt: string | null = null;
 	private readonly configPath: string;
 
 	constructor(configPath?: string) {
@@ -32,8 +36,10 @@ export class Config {
 				const fileContent = readFileSync(this.configPath, "utf8");
 				const data = JSON.parse(fileContent) as Partial<ConfigData>;
 				this.openaiApiKey = data.openaiApiKey || "";
+				this.language = data.language || "en";
 				this.formatterEnabled = data.formatterEnabled ?? true;
-				this.spokenLanguage = data.spokenLanguage || "en";
+				this.transcriptionPrompt = data.transcriptionPrompt ?? null;
+				this.formattingPrompt = data.formattingPrompt ?? null;
 			}
 		} catch {
 			// Use defaults if config fails to load
@@ -71,12 +77,13 @@ export class Config {
 		}
 
 		this.openaiApiKey = apiKey;
+		this.language = "en";
 		this.formatterEnabled = true;
 
 		const configData: ConfigData = {
 			openaiApiKey: apiKey,
+			language: "en",
 			formatterEnabled: true,
-			spokenLanguage: "en",
 		};
 		writeFileSync(this.configPath, JSON.stringify(configData, null, 2));
 		console.log("");
@@ -106,9 +113,82 @@ export class Config {
 
 		const data: ConfigData = {
 			openaiApiKey: this.openaiApiKey,
+			language: this.language,
 			formatterEnabled: this.formatterEnabled,
-			spokenLanguage: this.spokenLanguage,
+			transcriptionPrompt: this.transcriptionPrompt,
+			formattingPrompt: this.formattingPrompt,
 		};
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));
+	}
+
+	/**
+	 * Builds a strong language-specific prompt for transcription
+	 * This prevents Whisper from switching languages mid-transcription
+	 */
+	private buildTranscriptionPrompt(language: string): string {
+		const languageNames: Record<string, string> = {
+			fr: "French",
+			en: "English",
+			es: "Spanish",
+			de: "German",
+			it: "Italian",
+		};
+
+		const langName = languageNames[language] || "the spoken language";
+
+		return `This is a ${langName} audio recording. Transcribe the entire audio in ${langName} only. Do NOT switch to English or translate. Keep all content in ${langName}, preserving ${langName} sentence structure and grammar throughout the entire transcription.`;
+	}
+
+	/**
+	 * Builds a language-aware formatting prompt
+	 */
+	private buildFormattingPrompt(language: string): string {
+		const languageNames: Record<string, string> = {
+			fr: "French",
+			en: "English",
+			es: "Spanish",
+			de: "German",
+			it: "Italian",
+		};
+
+		const langName = languageNames[language] || "the original language";
+
+		return `Format this ${langName} text with proper grammar, punctuation, and structure. Keep the text in ${langName}. Do not translate to another language.`;
+	}
+
+	/**
+	 * Gets transcription service configuration
+	 */
+	public getTranscriptionConfig(): {
+		apiKey: string;
+		language: string;
+		prompt: string;
+	} {
+		return {
+			apiKey: this.openaiApiKey,
+			language: this.language,
+			prompt:
+				this.transcriptionPrompt ||
+				this.buildTranscriptionPrompt(this.language),
+		};
+	}
+
+	/**
+	 * Gets formatter service configuration
+	 */
+	public getFormatterConfig(): {
+		apiKey: string;
+		enabled: boolean;
+		language: string;
+		prompt: string;
+	} {
+		return {
+			apiKey: this.openaiApiKey,
+			enabled: this.formatterEnabled,
+			language: this.language,
+			prompt:
+				this.formattingPrompt ||
+				this.buildFormattingPrompt(this.language),
+		};
 	}
 }

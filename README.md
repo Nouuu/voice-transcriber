@@ -11,7 +11,7 @@ A lightweight desktop voice transcription application that records audio from yo
 
 - **🎯 System Tray Integration**: Click to record, visual state feedback (green=idle, red=recording, purple=processing)
 - **🎙️ High-Quality Recording**: Audio capture using arecord on Linux
-- **🌍 Multilingual Support**: French/English auto-detection via Whisper API
+- **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
 - **✍️ Text Formatting**: Optional GPT-based grammar improvement
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
 
@@ -55,16 +55,20 @@ This command will:
 nano ~/.config/voice-transcriber/config.json
 ```
 
-Add your OpenAI API key:
+Add your OpenAI API key and configure language:
 ```json
 {
   "openaiApiKey": "sk-your-api-key-here",
-  "formatterEnabled": true,
-  "spokenLanguage": "en"
+  "language": "en",
+  "formatterEnabled": true
 }
 ```
 
 **Get your OpenAI API key:** https://platform.openai.com/api-keys
+
+**Supported languages**: `fr` (French), `en` (English), `es` (Spanish), `de` (German), `it` (Italian)
+
+**For detailed configuration options**, see [Configuration Guide](docs/CONFIGURATION.md)
 
 **Step 4: Install globally (optional)**
 ```bash
@@ -114,10 +118,26 @@ Right-click the tray icon for additional options:
 
 ### Language Support
 
-Supports French/English auto-detection and mixed languages:
+Configure your primary language in `config.json` with the `language` setting:
+
+**Supported languages**:
+- `"fr"` - French
+- `"en"` - English (default)
+- `"es"` - Spanish
+- `"de"` - German
+- `"it"` - Italian
+
+**How it works**:
+- Strong language-specific prompts prevent Whisper from switching languages mid-transcription
+- Both transcription (Whisper) and formatting (GPT) maintain your configured language
+- Perfect for long recordings where language consistency is crucial
+
+**Example transcriptions**:
 - **English**: "Can you please send me the meeting notes?"
 - **French**: "Bonjour, j'aimerais prendre rendez-vous pour demain"
-- **Mixed**: "Hello, je voudrais dire something important"
+- **Spanish**: "Buenos días, necesito información sobre el producto"
+
+**Note**: For mixed-language support or custom behavior, see [Configuration Guide](docs/CONFIGURATION.md)
 
 ### Text Formatting (Optional)
 

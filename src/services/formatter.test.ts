@@ -19,6 +19,8 @@ describe("FormatterService", () => {
 		service = new FormatterService({
 			apiKey: "test-key",
 			enabled: true,
+			language: "en",
+			prompt: "Format this text with proper grammar:",
 		});
 
 		// Inject mock
@@ -55,6 +57,8 @@ describe("FormatterService", () => {
 			const disabledService = new FormatterService({
 				apiKey: "test-key",
 				enabled: false,
+				language: "en",
+				prompt: "Format this text:",
 			});
 
 			const result = await disabledService.formatText("test text");
