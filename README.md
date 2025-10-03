@@ -297,7 +297,7 @@ make test-file FILE=src/services/system-tray.test.ts
 **Phase 4: Main Application** ✅
 - Complete workflow: Record → Transcribe → Format → Clipboard
 - Graceful shutdown handling and error management
-- **All 37 tests passing** with comprehensive coverage
+- **All 47 tests passing** with comprehensive coverage (9 new config tests added)
 
 ### 🎯 Implementation Philosophy
 - **KEEP IT SIMPLE** - No overengineering
@@ -319,21 +319,23 @@ make test-file FILE=src/services/system-tray.test.ts
 8. ✅ **Mixed Language Transcription**: FIXED - Enhanced Whisper prompt to better preserve French/English mixed speech
 9. ✅ **System Tray Library**: FIXED - Migrated from systray2 to node-systray-v2 for better reliability and distribution
 10. ✅ **Config Wizard**: FIXED - Improved first-run setup with better guidance for API key configuration
+11. ✅ **French→English Language Switching**: FIXED - Strong language-specific prompts prevent Whisper from switching languages during long transcriptions
+12. ✅ **Configuration Architecture**: FIXED - Centralized config system with single source of truth and clear documentation
 
-#### Medium Priority  
-1. **Test coverage**: May need assessment and improvement
-2. **Audio compression**: Current audio files are heavy - needs compression
-3. **Long audio handling**: Need proper handling for long audio files
+#### Medium Priority
+1. **Audio compression**: Current audio files are heavy - needs compression
+2. **Long audio handling**: Need proper handling for long audio files
 
 ## 🛣️ Future Roadmap
 
-### Phase 5: Production Ready 🚀
-- ✅ **🏠 User Config Directory**: COMPLETED - Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
-- ✅ **🔧 Local Installation**: COMPLETED - Streamlined local-only Bun installation with automated setup
-- ✅ **📁 Dynamic Asset Resolution**: COMPLETED - Modern import.meta.dirname-based asset resolution
-- ✅ **🚀 Automated Setup**: COMPLETED - Complete `make setup` command for one-step installation
-- **🌍 Extended Multilingual**: Support Spanish, German, Italian, Portuguese, Chinese, Japanese, etc.
-- **✏️ Custom Format Prompts**: User-configurable GPT formatting instructions
+### Phase 5: Production Ready 🚀 ✅ COMPLETED
+- ✅ **🏠 User Config Directory**: Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
+- ✅ **🔧 Local Installation**: Streamlined local-only Bun installation with automated setup
+- ✅ **📁 Dynamic Asset Resolution**: Modern import.meta.dirname-based asset resolution
+- ✅ **🚀 Automated Setup**: Complete `make setup` command for one-step installation
+- ✅ **🌍 Multilingual Support**: Spanish, German, Italian support with strong language enforcement
+- ✅ **✏️ Custom Prompts**: User-configurable transcription and formatting prompts
+- ✅ **📚 Configuration System**: Centralized config with comprehensive documentation
 
 ### Phase 6: Core Improvements 🔧
 - ✅ **🖥️ System Tray Library**: COMPLETED - Migrated from systray2 to node-systray-v2 for better reliability and binary distribution
