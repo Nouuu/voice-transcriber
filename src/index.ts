@@ -113,7 +113,6 @@ export class VoiceTranscriberApp {
 				await this.systemTrayService.setState(TrayState.IDLE);
 				return;
 			}
-
 			// Process the audio file
 			await this.processAudioFile(stopResult.filePath);
 		} catch (error) {

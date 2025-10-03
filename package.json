@@ -22,6 +22,7 @@
 		"check-deps": "(which arecord || echo 'Install alsa-utils: sudo apt-get install alsa-utils') && (which xsel || echo 'Install xsel: sudo apt-get install xsel')"
 	},
 	"dependencies": {
+		"@breezystack/lamejs": "^1.2.7",
 		"clipboardy": "^4.0.0",
 		"node-systray-v2": "https://github.com/Edgar-P-yan/node-systray-v2.git",
 		"openai": "^5.11.0"

@@ -1,7 +1,8 @@
 import { type ChildProcess, spawn } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { convertWavToMp3 } from "../utils/mp3-encoder";
 
 export interface AudioRecorderConfig {
 	tempDir?: string;
@@ -76,12 +77,23 @@ export class AudioRecorder {
 
 		try {
 			this.recordingProcess.kill("SIGTERM");
-			const filePath = this.currentFile;
+			const wavPath = this.currentFile;
 
 			this.recordingProcess = null;
 			this.currentFile = null;
 
-			return { success: true, filePath: filePath || undefined };
+			if (!wavPath || !existsSync(wavPath)) {
+				return { success: false, error: "Recording file not found" };
+			}
+
+			// Convert WAV to MP3 (75% size reduction)
+			const mp3Path = wavPath.replace(".wav", ".mp3");
+			convertWavToMp3(wavPath, mp3Path);
+
+			// Delete WAV file to save space
+			// unlinkSync(wavPath);
+
+			return { success: true, filePath: mp3Path };
 		} catch (error) {
 			return {
 				success: false,
