@@ -91,7 +91,7 @@ export class AudioRecorder {
 			convertWavToMp3(wavPath, mp3Path);
 
 			// Delete WAV file to save space
-			// unlinkSync(wavPath);
+			unlinkSync(wavPath);
 
 			return { success: true, filePath: mp3Path };
 		} catch (error) {
