@@ -21,7 +21,6 @@ Voice Transcriber supports two transcription backends: **OpenAI Whisper** (cloud
 
 ```json
 {
-  "openaiApiKey": "sk-your-api-key-here",
   "language": "en",
   "transcription": {
     "backend": "openai"
