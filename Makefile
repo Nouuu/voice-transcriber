@@ -1,6 +1,6 @@
 # Transcriber Voice Application Makefile
 
-.PHONY: help setup check-system-deps init-config install install-global uninstall-global run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version
+.PHONY: help setup check-system-deps init-config install install-global uninstall-global run dev test test-watch test-file clean build check-deps lint format format-check audit release-patch release-minor release-major get-version docs-install docs-build docs-serve docs-deploy
 
 # Default target
 help:
@@ -25,6 +25,12 @@ help:
 	@echo "  make lint             - Run ESLint linting only"
 	@echo "  make format           - Format code with Prettier"
 	@echo "  make format-check     - Check both linting and formatting"
+	@echo ""
+	@echo "📚 Documentation:"
+	@echo "  make docs-install     - Install MkDocs and required plugins"
+	@echo "  make docs-build       - Build documentation site"
+	@echo "  make docs-serve       - Serve documentation locally at http://127.0.0.1:8000"
+	@echo "  make docs-deploy      - Deploy documentation to GitHub Pages (CI only)"
 	@echo ""
 	@echo "🛠️ Utilities:"
 	@echo "  make clean            - Clean build artifacts and temporary files"
@@ -207,3 +213,33 @@ release-major: pre-release
 	$(eval NEW_VERSION := $(shell grep '"version"' package.json | cut -d'"' -f4))
 	@echo "✅ Released $(OLD_VERSION) → $(NEW_VERSION)"
 	@echo "🚀 Push with: git push --follow-tags"
+
+# Documentation commands
+docs-install:
+	@echo "📚 Installing MkDocs and plugins..."
+	@which pip3 > /dev/null || (echo "❌ pip3 not found. Install Python 3 first." && exit 1)
+	pip3 install --upgrade pip
+	pip3 install mkdocs-material \
+	            mkdocs-minify-plugin \
+	            mkdocs-git-revision-date-localized-plugin \
+	            mkdocs-awesome-pages-plugin
+	@echo "✅ MkDocs installation complete"
+
+docs-build:
+	@echo "📚 Building documentation..."
+	@which mkdocs > /dev/null || (echo "❌ mkdocs not found. Run 'make docs-install' first." && exit 1)
+	mkdocs build --strict
+	@echo "✅ Documentation built in site/"
+
+docs-serve:
+	@echo "📚 Serving documentation locally..."
+	@echo "🌐 Open http://127.0.0.1:8000 in your browser"
+	@which mkdocs > /dev/null || (echo "❌ mkdocs not found. Run 'make docs-install' first." && exit 1)
+	mkdocs serve
+
+docs-deploy:
+	@echo "📚 Deploying documentation to GitHub Pages..."
+	@which mkdocs > /dev/null || (echo "❌ mkdocs not found. Run 'make docs-install' first." && exit 1)
+	@git status --porcelain | grep -q . && (echo "⚠️  Warning: Uncommitted changes will not be deployed" && sleep 2) || true
+	mkdocs gh-deploy --force --message "docs: deploy documentation [skip ci]"
+	@echo "✅ Documentation deployed to GitHub Pages"

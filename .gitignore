@@ -48,3 +48,7 @@ hf-cache/
 
 # Internal documentation (for AI agent and engineer only, never committed)
 docs/
+
+# MkDocs documentation build artifacts
+site/
+.cache/
