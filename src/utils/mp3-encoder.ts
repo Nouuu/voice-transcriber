@@ -68,7 +68,7 @@ export function convertWavToMp3(wavPath: string, mp3Path: string): void {
 		offset += chunk.length;
 	}
 
-	writeFileSync(mp3Path, finalMp3);
+	writeFileSync(mp3Path, Buffer.from(finalMp3));
 
 	const mp3Size = statSync(mp3Path).size;
 	const mp3SizeMB = (mp3Size / 1024 / 1024).toFixed(2);

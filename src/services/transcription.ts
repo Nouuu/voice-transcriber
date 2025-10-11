@@ -2,6 +2,11 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import OpenAI from "openai";
 import { logger } from "../utils/logger.ts";
 
+// Constants for timing estimation ratios
+const UPLOAD_TIME_RATIO = 0.3;
+const PROCESSING_TIME_RATIO = 0.6;
+const RECEIVE_TIME_RATIO = 0.1;
+
 export interface TranscriptionConfig {
 	apiKey: string;
 	language?: string;
@@ -192,15 +197,15 @@ export class TranscriptionService {
 
 			// Estimation : ~30% upload, ~60% processing, ~10% receive
 			const estimatedUploadTime = (
-				((endTime - startTime) * 0.3) /
+				((endTime - startTime) * UPLOAD_TIME_RATIO) /
 				1000
 			).toFixed(2);
 			const estimatedProcessingTime = (
-				((endTime - startTime) * 0.6) /
+				((endTime - startTime) * PROCESSING_TIME_RATIO) /
 				1000
 			).toFixed(2);
 			const estimatedReceiveTime = (
-				((endTime - startTime) * 0.1) /
+				((endTime - startTime) * RECEIVE_TIME_RATIO) /
 				1000
 			).toFixed(2);
 

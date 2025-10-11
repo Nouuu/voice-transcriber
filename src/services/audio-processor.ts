@@ -265,29 +265,17 @@ export class AudioProcessor {
 		textOpenAI: string,
 		textSpeaches: string
 	): Promise<void> {
-		// Choose the best result for clipboard using similarity score
-		const similarityOpenAI = calculateSimilarity(textOpenAI, textSpeaches);
-		const similaritySpeaches = calculateSimilarity(
-			textSpeaches,
-			textOpenAI
-		);
+		// Choose the longer text as it's likely more complete
+		// (both backends transcribe the same audio, so length is a good proxy for completeness)
 		let finalText: string;
 		let chosenBackend: string;
-		if (similaritySpeaches > similarityOpenAI) {
+
+		if (textSpeaches.length >= textOpenAI.length) {
 			finalText = textSpeaches;
 			chosenBackend = "Speaches";
-		} else if (similarityOpenAI > similaritySpeaches) {
+		} else {
 			finalText = textOpenAI;
 			chosenBackend = "OpenAI";
-		} else {
-			// If similarity is equal, fall back to longer text
-			if (textSpeaches.length >= textOpenAI.length) {
-				finalText = textSpeaches;
-				chosenBackend = "Speaches";
-			} else {
-				finalText = textOpenAI;
-				chosenBackend = "OpenAI";
-			}
 		}
 
 		logger.info(
