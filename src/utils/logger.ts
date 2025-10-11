@@ -10,7 +10,7 @@ export class Logger {
 
 	/**
 	 * Set the minimum log level to display
-	 * @param level - Minimum level (DEBUG, INFO, or ERROR)
+	 * @param level - Minimum level (DEBUG, INFO, WARN, or ERROR)
 	 */
 	public setLogLevel(level: LogLevel): void {
 		this.logLevel = level;
