@@ -84,6 +84,31 @@ voice-transcriber
 
 # Or from project directory
 make run
+
+# Enable debug mode for detailed logging (benchmarks, file sizes, timings)
+voice-transcriber --debug
+# or
+make run ARGS="--debug"
+```
+
+### Debug Mode
+
+Enable debug mode to see detailed information about:
+- **File sizes**: WAV and MP3 file sizes with compression ratios
+- **Audio format**: Sample rate, channels, conversion details
+- **Processing times**: Breakdown of upload, processing, and response times
+- **Transcription details**: Character count, duration metrics
+
+**Example debug output:**
+```
+2025-10-11T10:30:15.123Z [DEBUG] WAV file size: 2.45 MB (2569216 bytes)
+2025-10-11T10:30:15.125Z [DEBUG] WAV format: 2 channel(s), 44100 Hz sample rate
+2025-10-11T10:30:15.234Z [DEBUG] MP3 file size: 0.62 MB (650240 bytes)
+2025-10-11T10:30:15.234Z [DEBUG] Compression ratio: 74.7% size reduction
+2025-10-11T10:30:15.234Z [DEBUG] WAV to MP3 conversion completed in 0.11 seconds
+2025-10-11T10:30:16.789Z [INFO] OpenAI transcription completed in 1.55s
+2025-10-11T10:30:16.789Z [DEBUG]   └─ Estimated breakdown: upload ~0.47s, processing ~0.93s, receive ~0.16s
+2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
 ```
 
 ### Usage

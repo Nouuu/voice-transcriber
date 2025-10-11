@@ -5,7 +5,7 @@ import { ClipboardService } from "./services/clipboard";
 import { FormatterService } from "./services/formatter";
 import { SystemTrayService, TrayState } from "./services/system-tray";
 import { TranscriptionService } from "./services/transcription";
-import { logger } from "./utils/logger";
+import { logger, LogLevel } from "./utils/logger";
 
 export class VoiceTranscriberApp {
 	private config: Config;
@@ -206,16 +206,24 @@ export class VoiceTranscriberApp {
 
 	private async processBothWhispers(filePath: string): Promise<void> {
 		try {
-			logger.info("Transcribing audio with both Whisper models...");
-			// Transcribe audio
+			logger.debug("====================================");
+			logger.debug("🔬 BENCHMARK: Comparing both Whisper models");
+			logger.debug("====================================");
+
+			// Transcribe with OpenAI Whisper
+			const startOpenAI = Date.now();
 			const transcriptionResultOpenAI =
 				await this.transcriptionService.transcribe(filePath);
+			const durationOpenAI = ((Date.now() - startOpenAI) / 1000).toFixed(
+				2
+			);
+
 			if (
 				!transcriptionResultOpenAI.success ||
 				!transcriptionResultOpenAI.text
 			) {
 				logger.error(
-					`Transcription failed: ${transcriptionResultOpenAI.error}`
+					`OpenAI Whisper transcription failed: ${transcriptionResultOpenAI.error}`
 				);
 				await this.systemTrayService.setState(TrayState.IDLE);
 				return;
@@ -223,18 +231,22 @@ export class VoiceTranscriberApp {
 
 			const finalTextOpenAI = transcriptionResultOpenAI.text;
 
-			logger.info(`Transcription result: ${finalTextOpenAI}`);
-			logger.info("====================================");
+			logger.debug("====================================");
 
-			// Transcribe audio
+			// Transcribe with Faster Whisper
+			const startFaster = Date.now();
 			const transcriptionResultFaster =
 				await this.transcriptionService.transcribeFaster(filePath);
+			const durationFaster = ((Date.now() - startFaster) / 1000).toFixed(
+				2
+			);
+
 			if (
 				!transcriptionResultFaster.success ||
 				!transcriptionResultFaster.text
 			) {
 				logger.error(
-					`Transcription failed: ${transcriptionResultFaster.error}`
+					`Faster Whisper transcription failed: ${transcriptionResultFaster.error}`
 				);
 				await this.systemTrayService.setState(TrayState.IDLE);
 				return;
@@ -242,12 +254,166 @@ export class VoiceTranscriberApp {
 
 			const finalTextFaster = transcriptionResultFaster.text;
 
-			logger.info(`Transcription result: ${finalTextFaster}`);
+			// Comparison Analysis
+			logger.debug("====================================");
+			logger.debug("📊 COMPARISON RESULTS");
+			logger.debug("====================================");
+
+			// Performance comparison
+			const speedupRatio = (
+				parseFloat(durationOpenAI) / parseFloat(durationFaster)
+			).toFixed(2);
+			const timeDiff = (
+				parseFloat(durationOpenAI) - parseFloat(durationFaster)
+			).toFixed(2);
+
+			logger.debug(`⏱️  Performance:`);
+			logger.debug(`   OpenAI Whisper:   ${durationOpenAI}s`);
+			logger.debug(`   Faster Whisper:   ${durationFaster}s`);
+			logger.debug(
+				`   Speedup:          ${speedupRatio}x ${parseFloat(timeDiff) > 0 ? "faster" : "slower"} (${Math.abs(parseFloat(timeDiff))}s difference)`
+			);
+
+			// Length comparison
+			const lengthOpenAI = finalTextOpenAI.length;
+			const lengthFaster = finalTextFaster.length;
+			const lengthDiff = Math.abs(lengthOpenAI - lengthFaster);
+			const lengthDiffPercent = (
+				(lengthDiff / Math.max(lengthOpenAI, lengthFaster)) *
+				100
+			).toFixed(1);
+
+			logger.debug(`\n📏 Text Length:`);
+			logger.debug(`   OpenAI Whisper:   ${lengthOpenAI} chars`);
+			logger.debug(`   Faster Whisper:   ${lengthFaster} chars`);
+			logger.debug(
+				`   Difference:       ${lengthDiff} chars (${lengthDiffPercent}%)`
+			);
+
+			// Word count comparison
+			const wordsOpenAI = finalTextOpenAI.trim().split(/\s+/).length;
+			const wordsFaster = finalTextFaster.trim().split(/\s+/).length;
+			const wordsDiff = Math.abs(wordsOpenAI - wordsFaster);
+
+			logger.debug(`\n📝 Word Count:`);
+			logger.debug(`   OpenAI Whisper:   ${wordsOpenAI} words`);
+			logger.debug(`   Faster Whisper:   ${wordsFaster} words`);
+			logger.debug(`   Difference:       ${wordsDiff} words`);
+
+			// Similarity analysis
+			const similarity = this.calculateSimilarity(
+				finalTextOpenAI,
+				finalTextFaster
+			);
+			const similarityPercent = (similarity * 100).toFixed(1);
+
+			logger.debug(`\n🎯 Similarity:`);
+			logger.debug(`   Text similarity:  ${similarityPercent}% match`);
+
+			// Show transcription results
+			logger.debug(`\n📄 Transcription Results:`);
+			logger.debug(`   OpenAI Whisper:`);
+			logger.debug(`   "${finalTextOpenAI}"`);
+			logger.debug(`\n   Faster Whisper:`);
+			logger.debug(`   "${finalTextFaster}"`);
+
+			// Show differences if texts are different
+			if (finalTextOpenAI !== finalTextFaster) {
+				logger.debug(`\n⚠️  Differences detected:`);
+				this.logTextDifferences(finalTextOpenAI, finalTextFaster);
+			} else {
+				logger.debug(
+					`\n✅ Perfect match! Both transcriptions are identical.`
+				);
+			}
+
+			logger.debug("====================================");
 
 			await this.systemTrayService.setState(TrayState.IDLE);
 		} catch (error) {
 			logger.error(`Processing error: ${error}`);
 			await this.systemTrayService.setState(TrayState.IDLE);
+		}
+	}
+
+	/**
+	 * Calculate similarity between two strings using Levenshtein distance
+	 */
+	private calculateSimilarity(str1: string, str2: string): number {
+		const longer = str1.length > str2.length ? str1 : str2;
+		const shorter = str1.length > str2.length ? str2 : str1;
+
+		if (longer.length === 0) return 1.0;
+
+		const distance = this.levenshteinDistance(
+			longer.toLowerCase(),
+			shorter.toLowerCase()
+		);
+		return (longer.length - distance) / longer.length;
+	}
+
+	/**
+	 * Calculate Levenshtein distance between two strings
+	 */
+	private levenshteinDistance(str1: string, str2: string): number {
+		const matrix: number[][] = [];
+
+		for (let i = 0; i <= str2.length; i++) {
+			matrix[i] = [i];
+		}
+
+		for (let j = 0; j <= str1.length; j++) {
+			if (matrix[0]) {
+				matrix[0][j] = j;
+			}
+		}
+
+		for (let i = 1; i <= str2.length; i++) {
+			for (let j = 1; j <= str1.length; j++) {
+				if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+					matrix[i][j] = matrix[i - 1]?.[j - 1] ?? 0;
+				} else {
+					matrix[i][j] = Math.min(
+						(matrix[i - 1]?.[j - 1] ?? 0) + 1,
+						(matrix[i]?.[j - 1] ?? 0) + 1,
+						(matrix[i - 1]?.[j] ?? 0) + 1
+					);
+				}
+			}
+		}
+
+		return matrix[str2.length]?.[str1.length] ?? 0;
+	}
+
+	/**
+	 * Log differences between two texts
+	 */
+	private logTextDifferences(text1: string, text2: string): void {
+		const words1 = text1.split(/\s+/);
+		const words2 = text2.split(/\s+/);
+		const maxWords = Math.max(words1.length, words2.length);
+
+		let diffCount = 0;
+		for (let i = 0; i < Math.min(10, maxWords); i++) {
+			const word1 = words1[i] || "(missing)";
+			const word2 = words2[i] || "(missing)";
+
+			if (word1 !== word2) {
+				diffCount++;
+				logger.debug(`   Position ${i + 1}: "${word1}" vs "${word2}"`);
+			}
+		}
+
+		if (diffCount === 0 && maxWords > 0) {
+			logger.debug(
+				`   First 10 words are identical, differences later in text`
+			);
+		}
+
+		if (maxWords > 10) {
+			logger.debug(
+				`   ... (showing first 10 words only, ${maxWords} total)`
+			);
 		}
 	}
 
@@ -276,6 +442,13 @@ export class VoiceTranscriberApp {
 
 // Main entry point
 async function main() {
+	// Check for --debug flag
+	const args = process.argv.slice(2);
+	if (args.includes("--debug") || args.includes("-d")) {
+		logger.setLogLevel(LogLevel.DEBUG);
+		logger.info("Debug mode enabled");
+	}
+
 	const app = new VoiceTranscriberApp();
 
 	logger.info("Starting Voice Transcriber...");
