@@ -56,6 +56,11 @@ export class AudioProcessor {
 					await this.formatterService.formatText(finalText);
 				if (formatResult.success && formatResult.text) {
 					finalText = formatResult.text;
+				} else {
+					logger.warn(
+						`Formatting failed: ${formatResult.error || "Unknown error"}`
+					);
+					logger.warn("Using unformatted transcription");
 				}
 			}
 
@@ -64,7 +69,7 @@ export class AudioProcessor {
 			const clipboardResult =
 				await this.clipboardService.writeText(finalText);
 			if (!clipboardResult.success) {
-				logger.error(`Clipboard failed: ${clipboardResult.error}`);
+				logger.warn(`Clipboard failed: ${clipboardResult.error}`);
 			} else {
 				logger.info("Text copied to clipboard successfully");
 			}
@@ -271,7 +276,7 @@ export class AudioProcessor {
 		const clipboardResult =
 			await this.clipboardService.writeText(finalText);
 		if (!clipboardResult.success) {
-			logger.error(`Clipboard failed: ${clipboardResult.error}`);
+			logger.warn(`Clipboard failed: ${clipboardResult.error}`);
 		} else {
 			logger.info(
 				`✅ Text copied to clipboard successfully (${chosenBackend})`

@@ -1,7 +1,8 @@
 export enum LogLevel {
 	DEBUG = 0,
 	INFO = 1,
-	ERROR = 2,
+	WARN = 2,
+	ERROR = 3,
 }
 
 export class Logger {
@@ -36,6 +37,13 @@ export class Logger {
 		if (this.logLevel <= LogLevel.INFO) {
 			const timestamp = new Date().toISOString();
 			console.info(`${timestamp} [INFO] ${message}`);
+		}
+	}
+
+	public warn(message: string): void {
+		if (this.logLevel <= LogLevel.WARN) {
+			const timestamp = new Date().toISOString();
+			console.warn(`${timestamp} [WARN] ${message}`);
 		}
 	}
 

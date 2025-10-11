@@ -232,4 +232,20 @@ export class TranscriptionService {
 			};
 		}
 	}
+
+	/**
+	 * Preload model at startup for faster first transcription
+	 * Call this after creating the service if using Speaches backend or benchmark mode
+	 */
+	public async warmup(
+		forceSpeaches = false
+	): Promise<{ success: boolean; error?: string }> {
+		// Preload Speaches if:
+		// 1. Speaches is the configured backend, OR
+		// 2. Caller explicitly requests it (e.g., benchmark mode)
+		if (this.config.backend === "speaches" || forceSpeaches) {
+			return await this.initializeSpeaches();
+		}
+		return { success: true };
+	}
 }

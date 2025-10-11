@@ -53,6 +53,7 @@ export class VoiceTranscriberApp {
 			});
 
 			// Notify user about model preloading for Speaches
+			// Preload Speaches model if needed (Speaches backend or Benchmark mode)
 			if (
 				transcriptionConfig.backend === "speaches" ||
 				this.config.benchmarkMode
@@ -60,6 +61,15 @@ export class VoiceTranscriberApp {
 				logger.info(
 					`⏳ Preloading Speaches model: ${transcriptionConfig.model}...`
 				);
+				const warmupResult = await this.transcriptionService.warmup(
+					this.config.benchmarkMode
+				);
+				if (!warmupResult.success) {
+					logger.warn(
+						`⚠️  Failed to preload model: ${warmupResult.error}`
+					);
+					logger.warn("First transcription may be slower");
+				}
 			}
 
 			const formatterConfig = this.config.getFormatterConfig();
