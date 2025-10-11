@@ -2,12 +2,26 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+export interface TranscriptionBackendConfig {
+	backend: "openai" | "speaches";
+	openai?: {
+		apiKey?: string;
+		model?: string;
+	};
+	speaches?: {
+		url: string;
+		apiKey?: string;
+		model?: string;
+	};
+}
+
 export interface ConfigData {
 	openaiApiKey: string;
 	language: string;
 	formatterEnabled: boolean;
 	transcriptionPrompt?: string | null;
 	formattingPrompt?: string | null;
+	transcription?: TranscriptionBackendConfig;
 }
 
 export class Config {
@@ -16,6 +30,14 @@ export class Config {
 	public formatterEnabled: boolean = true;
 	public transcriptionPrompt: string | null = null;
 	public formattingPrompt: string | null = null;
+
+	// Transcription backend configuration
+	public transcriptionBackend: "openai" | "speaches" = "openai";
+	public openaiModel: string = "whisper-1";
+	public speachesUrl: string = "http://localhost:8000/v1";
+	public speachesApiKey: string = "none";
+	public speachesModel: string = "Systran/faster-whisper-base";
+
 	private readonly configPath: string;
 
 	constructor(configPath?: string) {
@@ -40,6 +62,31 @@ export class Config {
 				this.formatterEnabled = data.formatterEnabled ?? true;
 				this.transcriptionPrompt = data.transcriptionPrompt ?? null;
 				this.formattingPrompt = data.formattingPrompt ?? null;
+
+				// Load transcription backend config
+				if (data.transcription) {
+					this.transcriptionBackend =
+						data.transcription.backend || "openai";
+
+					if (data.transcription.openai) {
+						this.openaiApiKey =
+							data.transcription.openai.apiKey ||
+							this.openaiApiKey;
+						this.openaiModel =
+							data.transcription.openai.model || "whisper-1";
+					}
+
+					if (data.transcription.speaches) {
+						this.speachesUrl =
+							data.transcription.speaches.url ||
+							"http://localhost:8000/v1";
+						this.speachesApiKey =
+							data.transcription.speaches.apiKey || "none";
+						this.speachesModel =
+							data.transcription.speaches.model ||
+							"Systran/faster-whisper-base";
+					}
+				}
 			}
 		} catch {
 			// Use defaults if config fails to load
@@ -117,6 +164,18 @@ export class Config {
 			formatterEnabled: this.formatterEnabled,
 			transcriptionPrompt: this.transcriptionPrompt,
 			formattingPrompt: this.formattingPrompt,
+			transcription: {
+				backend: this.transcriptionBackend,
+				openai: {
+					apiKey: this.openaiApiKey,
+					model: this.openaiModel,
+				},
+				speaches: {
+					url: this.speachesUrl,
+					apiKey: this.speachesApiKey,
+					model: this.speachesModel,
+				},
+			},
 		};
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));
 	}
@@ -157,19 +216,57 @@ export class Config {
 	}
 
 	/**
+	 * Validates Speaches URL format
+	 */
+	private validateSpeachesUrl(url: string): boolean {
+		try {
+			const parsedUrl = new URL(url);
+			return (
+				parsedUrl.protocol === "http:" ||
+				parsedUrl.protocol === "https:"
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	/**
 	 * Gets transcription service configuration
 	 */
 	public getTranscriptionConfig(): {
 		apiKey: string;
 		language: string;
 		prompt: string;
+		backend: "openai" | "speaches";
+		model: string;
+		speachesUrl?: string;
 	} {
+		// Validate Speaches URL if using Speaches backend
+		if (this.transcriptionBackend === "speaches") {
+			if (!this.validateSpeachesUrl(this.speachesUrl)) {
+				throw new Error(`Invalid Speaches URL: ${this.speachesUrl}`);
+			}
+		}
+
+		const apiKey =
+			this.transcriptionBackend === "openai"
+				? this.openaiApiKey
+				: this.speachesApiKey;
+
+		const model =
+			this.transcriptionBackend === "openai"
+				? this.openaiModel
+				: this.speachesModel;
+
 		return {
-			apiKey: this.openaiApiKey,
+			apiKey,
 			language: this.language,
 			prompt:
 				this.transcriptionPrompt ||
 				this.buildTranscriptionPrompt(this.language),
+			backend: this.transcriptionBackend,
+			model,
+			speachesUrl: this.speachesUrl,
 		};
 	}
 
