@@ -12,11 +12,11 @@ A lightweight desktop voice transcription application that records audio from yo
 
 **Complete documentation available at: [nouuu.github.io/voice-transcriber](https://nouuu.github.io/voice-transcriber/)**
 
-- [Installation Guide](https://nouuu.github.io/voice-transcriber/getting-started/installation/)
-- [Configuration](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
-- [User Guide](https://nouuu.github.io/voice-transcriber/user-guide/basic-usage/)
-- [Development Guide](https://nouuu.github.io/voice-transcriber/development/development-guide/)
-- [Speaches Self-Hosting](https://nouuu.github.io/voice-transcriber/advanced/speaches-integration/)
+- [Installation Guide](https://nouuu.github.io/voice-transcriber/latest/getting-started/installation/)
+- [Configuration](https://nouuu.github.io/voice-transcriber/latest/getting-started/configuration/)
+- [User Guide](https://nouuu.github.io/voice-transcriber/latest/user-guide/basic-usage/)
+- [Development Guide](https://nouuu.github.io/voice-transcriber/latest/development/development-guide/)
+- [Speaches Self-Hosting](https://nouuu.github.io/voice-transcriber/latest/advanced/speaches-integration/)
 
 ## ✨ Features
 
@@ -78,7 +78,7 @@ Add your OpenAI API key and configure language:
 
 **Get your OpenAI API key:** https://platform.openai.com/api-keys
 
-**For detailed configuration options**, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
+**For detailed configuration options**, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/latest/getting-started/configuration/)
 
 **Step 4: Install globally (optional)**
 ```bash
@@ -151,7 +151,7 @@ Right-click the tray icon for additional options:
 - **⚙️ Settings** - Configuration via ~/.config/voice-transcriber/config.json
 - **❌ Quit** - Exit the application
 
-**For detailed configuration**, language support, backends (OpenAI vs Speaches), and benchmark mode, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
+**For detailed configuration**, language support, backends (OpenAI vs Speaches), and benchmark mode, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/latest/getting-started/configuration/)
 
 ## 🛠️ Development
 
