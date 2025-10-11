@@ -299,12 +299,13 @@ class TranscriptionService {
 
 ### FormatterService
 
-Optional text enhancement using OpenAI GPT API.
+Optional text enhancement using ChatGPT API.
 
 ```typescript
 interface FormatterConfig {
   apiKey: string;
   enabled: boolean;
+  language: string;
   prompt?: string;
 }
 
@@ -318,16 +319,17 @@ class FormatterService {
   constructor(config: FormatterConfig)
 
   // Public Methods
-  formatText(text: string): Promise<FormatResult>
+  formatText(text: string, language: string): Promise<FormatResult>
 }
 ```
 
 #### Methods
 
-**`formatText(text: string)`**
+**`formatText(text: string, language: string)`**
 - Returns original text if formatting disabled
 - Validates input text is not empty
-- Calls OpenAI GPT API for text enhancement
+- Calls ChatGPT API for text enhancement
+- Uses language-specific prompt to preserve original language
 - Returns formatted text or error
 
 #### Configuration
@@ -335,10 +337,16 @@ class FormatterService {
 **Default Settings**:
 ```typescript
 {
-  prompt: "Please format this transcribed text with proper grammar and punctuation. The text may be in French or English - preserve the original language:",
-  enabled: true
+  prompt: null,  // Uses auto-generated language-aware prompt
+  enabled: true,
+  language: "en" // Supported: en, fr, es, de, it
 }
 ```
+
+**Auto-generated prompts** (when prompt is null):
+- Maintains the specified language
+- Prevents translation to other languages
+- Preserves original meaning and tone
 
 **API Parameters**:
 - **Model**: `gpt-3.5-turbo` (fast and cost-effective)
@@ -348,8 +356,8 @@ class FormatterService {
 #### Text Enhancement
 - **Grammar**: Corrects grammatical errors
 - **Punctuation**: Adds proper punctuation
-- **Language Preservation**: Maintains original language
-- **Tone**: Preserves original speaking style
+- **Language Preservation**: Maintains original language (French/English/Spanish/German/Italian)
+- **Structure**: Improves text structure and flow
 
 ## Clipboard Service
 

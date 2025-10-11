@@ -126,11 +126,11 @@ sudo apt-get install alsa-utils
 ```
 
 ### Formatter Service (`src/services/formatter.ts`)
-**Purpose**: Optional text enhancement using OpenAI GPT API.
+**Purpose**: Optional text enhancement using ChatGPT API.
 
 **Features**:
 - Grammar and punctuation improvement
-- Language preservation (French/English)
+- Language preservation (French/English/Spanish/German/Italian)
 - Configurable enable/disable
 - Temperature-controlled generation (0.3 for consistency)
 
@@ -170,15 +170,17 @@ sudo apt-get install alsa-utils
    ↓
 5. System tray → PROCESSING state
    ↓
-6. Audio file saved to temp directory
+6. Audio file saved to temp directory (WAV format)
    ↓
-7. Transcription service → OpenAI Whisper API
+7. MP3 Encoder converts WAV to MP3 (~75% compression)
    ↓
-8. [Optional] Formatter service → OpenAI GPT API
+8. Transcription service → Whisper API (OpenAI or Speaches)
    ↓
-9. Clipboard service writes final text
+9. [Optional] Formatter service → ChatGPT API
    ↓
-10. System tray → IDLE state
+10. Clipboard service writes final text
+   ↓
+11. System tray → IDLE state
 ```
 
 ### Error Handling Flow
