@@ -1,0 +1,60 @@
+name: Documentation Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'documentation/**'
+      - 'mkdocs.yml'
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        if: github.event.action != 'closed'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: |
+          pip install mkdocs-material mkdocs-minify-plugin mkdocs-git-revision-date-localized-plugin
+
+      - name: Add dev version banner
+        if: github.event.action != 'closed'
+        run: |
+          # Ajouter un banner "DEV" en haut de la page d'accueil
+          cat > documentation/.dev-banner.md << 'EOF'
+          !!! warning "Development Preview"
+              This is a **preview** of the documentation from PR #${{ github.event.pull_request.number }}.
+              
+              For the stable documentation, visit [nouuu.github.io/voice-transcriber](https://nouuu.github.io/voice-transcriber/)
+          
+          EOF
+          
+          # Insérer le banner au début de index.md
+          cat documentation/.dev-banner.md documentation/index.md > documentation/index.tmp
+          mv documentation/index.tmp documentation/index.md
+
+      - name: Build
+        if: github.event.action != 'closed'
+        run: mkdocs build
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./site/
