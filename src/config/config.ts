@@ -16,23 +16,24 @@ export interface TranscriptionBackendConfig {
 }
 
 export interface ConfigData {
-	openaiApiKey: string;
 	language: string;
 	formatterEnabled: boolean;
 	transcriptionPrompt?: string | null;
 	formattingPrompt?: string | null;
+	benchmarkMode?: boolean;
 	transcription?: TranscriptionBackendConfig;
 }
 
 export class Config {
-	public openaiApiKey: string = "";
 	public language: string = "en";
 	public formatterEnabled: boolean = true;
 	public transcriptionPrompt: string | null = null;
 	public formattingPrompt: string | null = null;
+	public benchmarkMode: boolean = false;
 
 	// Transcription backend configuration
 	public transcriptionBackend: "openai" | "speaches" = "openai";
+	public openaiApiKey: string = "";
 	public openaiModel: string = "whisper-1";
 	public speachesUrl: string = "http://localhost:8000/v1";
 	public speachesApiKey: string = "none";
@@ -57,11 +58,12 @@ export class Config {
 			if (existsSync(this.configPath)) {
 				const fileContent = readFileSync(this.configPath, "utf8");
 				const data = JSON.parse(fileContent) as Partial<ConfigData>;
-				this.openaiApiKey = data.openaiApiKey || "";
+
 				this.language = data.language || "en";
 				this.formatterEnabled = data.formatterEnabled ?? true;
 				this.transcriptionPrompt = data.transcriptionPrompt ?? null;
 				this.formattingPrompt = data.formattingPrompt ?? null;
+				this.benchmarkMode = data.benchmarkMode ?? false;
 
 				// Load transcription backend config
 				if (data.transcription) {
@@ -70,8 +72,7 @@ export class Config {
 
 					if (data.transcription.openai) {
 						this.openaiApiKey =
-							data.transcription.openai.apiKey ||
-							this.openaiApiKey;
+							data.transcription.openai.apiKey || "";
 						this.openaiModel =
 							data.transcription.openai.model || "whisper-1";
 					}
@@ -126,13 +127,11 @@ export class Config {
 		this.openaiApiKey = apiKey;
 		this.language = "en";
 		this.formatterEnabled = true;
+		this.transcriptionBackend = "openai";
 
-		const configData: ConfigData = {
-			openaiApiKey: apiKey,
-			language: "en",
-			formatterEnabled: true,
-		};
-		writeFileSync(this.configPath, JSON.stringify(configData, null, 2));
+		// Save using the new structure
+		await this.save();
+
 		console.log("");
 		console.log("✅ Configuration saved!");
 		console.log(`Config file: ${this.configPath}`);
@@ -159,7 +158,6 @@ export class Config {
 		}
 
 		const data: ConfigData = {
-			openaiApiKey: this.openaiApiKey,
 			language: this.language,
 			formatterEnabled: this.formatterEnabled,
 			transcriptionPrompt: this.transcriptionPrompt,
