@@ -63,8 +63,16 @@ jobs:
           umbrella-dir: pr-previews
           action: ${{ github.event.action }}
 
+      - name: Debug outputs
+        if: github.event.action != 'closed'
+        run: |
+          echo "Deployment action: ${{ steps.deploy.outputs.deployment-action }}"
+          echo "Preview URL: ${{ steps.deploy.outputs.preview-url }}"
+          echo "Preview URL path: ${{ steps.deploy.outputs.preview-url-path }}"
+          echo "Event action: ${{ github.event.action }}"
+
       - name: Post comment with preview link
-        if: github.event.action != 'closed' && steps.deploy.outputs.deployment-action == 'deploy'
+        if: github.event.action != 'closed'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: pr-preview
