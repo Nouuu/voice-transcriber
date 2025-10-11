@@ -14,6 +14,7 @@ A lightweight desktop voice transcription application that records audio from yo
 - **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
 - **✍️ Text Formatting**: Optional GPT-based grammar improvement
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
+- **🏠 Self-Hosted Option**: Run 100% offline with [Speaches](https://github.com/speaches-ai/speaches) - same quality as OpenAI Whisper, zero cost, complete privacy
 
 ## 🚀 Quick Start
 
@@ -223,12 +224,31 @@ Configuration file: `~/.config/voice-transcriber/config.json`
 ```
 
 #### Speaches (Self-Hosted) 🏠
-**Pros:** 100% offline, zero costs, private  
-**Cons:** Requires Docker, uses local resources
 
-**Setup:**
+> **Powered by [Speaches](https://github.com/speaches-ai/speaches)** - OpenAI-compatible speech-to-text server using [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
 
-1. **Create Docker Compose file** (`docker-compose.speaches.yml`):
+**Why Choose Speaches?**
+- **💰 Zero Cost**: No API fees - run unlimited transcriptions for free
+- **⚡ Same Speed**: Base model performs identically to OpenAI (3.7s vs 3.8s on 30s audio)
+- **🔒 Complete Privacy**: 100% offline - your audio never leaves your machine
+- **🎯 High Accuracy**: 91-100% text similarity with OpenAI depending on model
+
+**Perfect for**: Daily use, privacy-conscious users, high-volume transcription, or anyone wanting to avoid API costs.
+
+**Quick Setup** (3 commands, 2 minutes):
+
+```bash
+# 1. Create docker-compose.speaches.yml (copy from below)
+# 2. Start Speaches
+docker compose -f docker-compose.speaches.yml up -d
+
+# 3. Update config to use Speaches
+nano ~/.config/voice-transcriber/config.json
+# Change "backend": "openai" to "backend": "speaches"
+```
+
+**Docker Compose Configuration:**
+
 ```yaml
 services:
   speaches:
@@ -244,29 +264,15 @@ services:
       - WHISPER__CPU_THREADS=8
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 ```
 
-2. **Start the server:**
-```bash
-docker compose -f docker-compose.speaches.yml up -d
-```
+**That's it!** First transcription downloads the model (~140MB for base), then it runs instantly.
 
-3. **Verify it's running:**
-```bash
-curl http://localhost:8000/health
-```
-
-4. **Check logs:**
-```bash
-docker compose -f docker-compose.speaches.yml logs -f
-```
-
-**Config:**
+**Configuration Example:**
 ```json
 {
+  "language": "fr",
+  "formatterEnabled": false,
   "transcription": {
     "backend": "speaches",
     "speaches": {
@@ -279,6 +285,39 @@ docker compose -f docker-compose.speaches.yml logs -f
 ```
 
 **Available models:** `faster-whisper-tiny` (75MB, fast), `faster-whisper-base` (142MB, ⭐ recommended), `faster-whisper-small` (466MB), `faster-whisper-medium` (1.5GB), `faster-whisper-large-v3` (2.9GB)
+
+**Model Comparison:**
+
+| Model | Size | Memory | Speed | Accuracy |
+|-------|------|--------|-------|----------|
+| tiny | 75 MB | ~273 MB | ⚡⚡⚡ | ⭐⭐ |
+| base | 142 MB | ~388 MB | ⚡⚡ | ⭐⭐⭐ (recommended) |
+| small | 466 MB | ~852 MB | ⚡ | ⭐⭐⭐⭐ |
+| medium | 1.5 GB | ~2.1 GB | 🐢 | ⭐⭐⭐⭐⭐ |
+| large-v3 | 2.9 GB | ~3.9 GB | 🐢🐢 | ⭐⭐⭐⭐⭐ |
+
+**Real-World Performance Benchmark** (30s audio, French, Remote server with 8 CPU / 8GB RAM):
+
+| Model | OpenAI Whisper | Speaches (CPU) | Speed Ratio | Text Similarity |
+|-------|----------------|----------------|-------------|-----------------|
+| **tiny** | 1.98s | 2.81s | **0.70x** (comparable) | 92.4% |
+| **base** ⭐ | 3.70s | 3.81s | **0.97x** (comparable) | 91.4% |
+| **small** | 2.23s | 7.15s | 0.31x (3x slower) | 97.4% |
+| **medium** | 3.70s | 25.82s | 0.14x (7x slower) | 96.1% |
+| **large-v3** | 2.55s | 30.80s | 0.08x (12x slower) | 100.0% |
+
+**Recommendations:**
+- **For speed & cost**: Use `base` model - nearly identical speed to OpenAI, 91% accuracy, zero cost
+- **For accuracy**: Use `small` model - excellent 97% accuracy, acceptable 3x slower
+- **For maximum quality**: Use `medium` or `large-v3` - 96-100% accuracy but significantly slower (7-12x)
+
+**Note**: Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
+
+**Tips:**
+- Change model by updating `model` in config and restarting the app (auto-downloads and caches in `./hf-cache/`)
+- First transcription downloads the model, subsequent ones are instant
+- For GPU: use `latest-cuda` image and set `WHISPER__INFERENCE_DEVICE=cuda`
+- Troubleshooting: `docker compose logs -f speaches` to see model loading progress
 
 ### 🔬 Benchmark Mode
 

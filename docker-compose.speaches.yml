@@ -6,12 +6,18 @@ services:
       - "8000:8000"
     volumes:
       - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
-    env_file:
-      - .env
+    environment:
+      # Keep model loaded in memory forever (zero-latency transcription)
+      - STT_MODEL_TTL=-1
+      # CPU inference configuration
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=8
+      - WHISPER__USE_BATCHED_MODE=true
     deploy:
       resources:
         limits:
-          cpus: 8
+          cpus: '8'
           memory: 4G
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
@@ -19,5 +25,3 @@ services:
       timeout: 10s
       retries: 3
 
-#volumes:
-#  hf-cache:
