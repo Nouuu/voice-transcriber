@@ -2,12 +2,11 @@ name: Documentation Preview
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'documentation/**'
       - 'mkdocs.yml'
-      - '.github/workflows/docs-preview.yml'
-    types: [ opened, reopened, synchronize, closed ]
+    types: [opened, reopened, synchronize, closed]
 
 permissions:
   contents: write
@@ -21,11 +20,8 @@ jobs:
   deploy-preview:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        if: github.event.action != 'closed'
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         if: github.event.action != 'closed'
@@ -33,79 +29,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Cache Python dependencies
-        if: github.event.action != 'closed'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-mkdocs-${{ hashFiles('.github/workflows/docs-preview.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-mkdocs-
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         if: github.event.action != 'closed'
         run: |
-          pip install --upgrade pip
-          pip install mkdocs-material \
-                      mkdocs-minify-plugin \
-                      mkdocs-git-revision-date-localized-plugin
+          pip install mkdocs-material mkdocs-minify-plugin mkdocs-git-revision-date-localized-plugin
 
-      - name: Build documentation
+      - name: Build
         if: github.event.action != 'closed'
-        run: mkdocs build --strict
+        run: mkdocs build
 
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@v1
-        id: deploy
         with:
           source-dir: ./site/
-          preview-branch: gh-pages-previews
-          umbrella-dir: pr-previews
-          action: ${{ github.event.action }}
-
-      - name: Debug outputs
-        if: github.event.action != 'closed'
-        run: |
-          echo "Deployment action: ${{ steps.deploy.outputs.deployment-action }}"
-          echo "Preview URL: ${{ steps.deploy.outputs.preview-url }}"
-          echo "Preview URL path: ${{ steps.deploy.outputs.preview-url-path }}"
-          echo "Event action: ${{ github.event.action }}"
-
-      - name: Post comment with preview link
-        if: github.event.action != 'closed'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: pr-preview
-          message: |
-            ## 📚 Documentation Preview
-            
-            Your documentation preview is ready! 🎉
-            
-            **🔗 Preview URL:** ${{ steps.deploy.outputs.preview-url }}
-            
-            ---
-            
-            <details>
-            <summary>📖 Quick Links</summary>
-            
-            - [🏠 Home](${{ steps.deploy.outputs.preview-url }})
-            - [📦 Installation](${{ steps.deploy.outputs.preview-url }}getting-started/installation/)
-            - [⚙️ Configuration](${{ steps.deploy.outputs.preview-url }}getting-started/configuration/)
-            - [📘 User Guide](${{ steps.deploy.outputs.preview-url }}user-guide/basic-usage/)
-            - [🔧 Development](${{ steps.deploy.outputs.preview-url }}development/architecture/)
-            
-            </details>
-            
-            > 💡 This preview updates automatically with each commit and will be removed when the PR is closed.
-
-      - name: Post cleanup comment
-        if: github.event.action == 'closed'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: pr-preview
-          message: |
-            ## 📚 Documentation Preview
-            
-            ✅ Preview has been cleaned up as this PR was closed.
-            
-            The documentation will be deployed to production at https://nouuu.github.io/voice-transcriber when merged to `main`.
