@@ -6,6 +6,9 @@ export interface TranscriptionConfig {
 	apiKey: string;
 	language?: string;
 	prompt?: string;
+	backend: "openai" | "speaches";
+	model: string;
+	speachesUrl?: string;
 }
 
 export interface TranscriptionResult {
@@ -15,46 +18,129 @@ export interface TranscriptionResult {
 }
 
 export class TranscriptionService {
-	private openai: OpenAI;
-	private fasterWhispper: OpenAI;
-	private readonly fasterWhisperURL = "http://localhost:8000/v1/";
-	private readonly fasterWhisperModel = "Systran/faster-whisper-base";
+	private openaiClient: OpenAI | null = null;
+	private speachesClient: OpenAI | null = null;
+	private speachesModelLoaded = false;
 	private config: TranscriptionConfig;
 
 	constructor(config: TranscriptionConfig) {
 		this.config = { ...config };
-
-		this.openai = new OpenAI({
-			apiKey: this.config.apiKey,
-		});
-		this.fasterWhispper = new OpenAI({
-			apiKey: this.fasterWhisperAPIKey,
-			baseURL: this.fasterWhisperURL,
-		});
-		// Note: For local deployment of Faster Whisper, we need to call POST http://localhost:8000/v1/models/{model_id} to load the model first
-		// Model is Systran/faster-whisper-small
-		const request = new Request(
-			`${this.fasterWhisperURL}models/${this.fasterWhisperModel}`,
-			{
-				headers: {
-					Authorization: `Bearer ${this.fasterWhisperAPIKey}`,
-				},
-				method: "POST",
-			}
-		);
-		fetch(request).then(response => {
-			if (!response.ok) {
-				logger.error(
-					`Failed to load Faster Whisper model: ${response.status} ${response.statusText}`
-				);
-			} else {
-				logger.info("Faster Whisper model loaded successfully");
-			}
-		});
 	}
 
 	/**
-	 * Transcribes audio file using OpenAI Whisper API
+	 * Gets or creates the appropriate OpenAI client based on backend configuration
+	 * Uses lazy initialization to avoid unnecessary setup
+	 */
+	private async getClient(
+		backend: "openai" | "speaches"
+	): Promise<
+		{ success: true; client: OpenAI } | { success: false; error: string }
+	> {
+		if (backend === "openai") {
+			if (!this.openaiClient) {
+				this.openaiClient = new OpenAI({
+					apiKey: this.config.apiKey,
+				});
+				logger.debug("OpenAI client initialized");
+			}
+			return { success: true, client: this.openaiClient };
+		}
+
+		// Speaches backend
+		if (!this.speachesClient) {
+			const initResult = await this.initializeSpeaches();
+			if (!initResult.success) {
+				return {
+					success: false,
+					error: initResult.error || "Unknown error",
+				};
+			}
+		}
+
+		if (!this.speachesClient) {
+			return {
+				success: false,
+				error: "Speaches client failed to initialize",
+			};
+		}
+
+		return { success: true, client: this.speachesClient };
+	}
+
+	/**
+	 * Initializes Speaches client and preloads the model
+	 */
+	private async initializeSpeaches(): Promise<{
+		success: boolean;
+		error?: string;
+	}> {
+		if (!this.config.speachesUrl) {
+			return { success: false, error: "Speaches URL not configured" };
+		}
+
+		this.speachesClient = new OpenAI({
+			apiKey: this.config.apiKey,
+			baseURL: this.config.speachesUrl,
+		});
+
+		logger.debug(
+			`Speaches client initialized with URL: ${this.config.speachesUrl}`
+		);
+
+		// Preload the model - this is critical
+		return await this.loadSpeachesModel();
+	}
+
+	/**
+	 * Preloads the Speaches model for faster transcription
+	 * This keeps the model in memory for zero-latency transcription
+	 */
+	private async loadSpeachesModel(): Promise<{
+		success: boolean;
+		error?: string;
+	}> {
+		if (!this.config.speachesUrl || !this.speachesClient) {
+			return { success: false, error: "Speaches client not initialized" };
+		}
+
+		if (this.speachesModelLoaded) {
+			return { success: true };
+		}
+
+		try {
+			const modelUrl = `${this.config.speachesUrl.replace(/\/v1\/?$/, "")}/v1/models/${this.config.model}`;
+			logger.debug(`Preloading Speaches model: ${this.config.model}`);
+
+			const response = await fetch(modelUrl, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${this.config.apiKey}`,
+				},
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				return {
+					success: false,
+					error: `Failed to preload Speaches model: ${response.status} ${response.statusText} - ${errorText}`,
+				};
+			}
+
+			this.speachesModelLoaded = true;
+			logger.info(
+				`Speaches model preloaded successfully: ${this.config.model}`
+			);
+			return { success: true };
+		} catch (error) {
+			return {
+				success: false,
+				error: `Failed to preload Speaches model: ${error instanceof Error ? error.message : String(error)}`,
+			};
+		}
+	}
+
+	/**
+	 * Transcribes audio file using the configured backend (OpenAI or Speaches)
 	 * Uses language and prompt from config to prevent language switching
 	 */
 	public async transcribe(filePath: string): Promise<TranscriptionResult> {
@@ -69,92 +155,34 @@ export class TranscriptionService {
 			const fileSize = statSync(filePath).size;
 			const fileSizeMB = (fileSize / 1024 / 1024).toFixed(2);
 
-			logger.debug(`Starting OpenAI transcription for file: ${filePath}`);
+			const backendName =
+				this.config.backend === "openai" ? "OpenAI" : "Speaches";
+			logger.debug(
+				`Starting ${backendName} transcription for file: ${filePath}`
+			);
 			logger.debug(`File size: ${fileSizeMB} MB (${fileSize} bytes)`);
+			logger.debug(`Model: ${this.config.model}`);
 
-			const audioFile = createReadStream(filePath);
-			const startTime = Date.now();
-			const uploadStartTime = Date.now();
-
-			const response = await this.openai.audio.transcriptions.create({
-				file: audioFile,
-				model: "whisper-1",
-				language: this.config.language,
-				prompt: this.config.prompt,
-			});
-
-			const endTime = Date.now();
-			const totalDuration = ((endTime - startTime) / 1000).toFixed(2);
-
-			// Estimation : ~80% du temps pour upload/traitement, reste pour réception
-			const estimatedUploadTime = (
-				((endTime - uploadStartTime) * 0.3) /
-				1000
-			).toFixed(2);
-			const estimatedProcessingTime = (
-				((endTime - uploadStartTime) * 0.6) /
-				1000
-			).toFixed(2);
-			const estimatedReceiveTime = (
-				((endTime - uploadStartTime) * 0.1) /
-				1000
-			).toFixed(2);
-
-			if (!response.text || response.text.trim().length === 0) {
+			const clientResult = await this.getClient(this.config.backend);
+			if (!clientResult.success) {
 				return {
 					success: false,
-					error: "No transcription text received",
+					error: clientResult.error,
 				};
 			}
 
-			logger.info(`OpenAI transcription completed in ${totalDuration}s`);
-			logger.debug(
-				`  └─ Estimated breakdown: upload ~${estimatedUploadTime}s, processing ~${estimatedProcessingTime}s, receive ~${estimatedReceiveTime}s`
-			);
-			logger.debug(
-				`  └─ Transcription length: ${response.text.length} characters`
-			);
-
-			return {
-				success: true,
-				text: response.text.trim(),
-			};
-		} catch (error) {
-			return {
-				success: false,
-				error: `Failed to transcribe audio: ${error}`,
-			};
-		}
-	}
-
-	public async transcribeFaster(
-		filePath: string
-	): Promise<TranscriptionResult> {
-		if (!filePath || !existsSync(filePath)) {
-			return {
-				success: false,
-				error: "Audio file does not exist",
-			};
-		}
-
-		try {
-			const fileSize = statSync(filePath).size;
-			const fileSizeMB = (fileSize / 1024 / 1024).toFixed(2);
-
-			logger.debug(
-				`Starting Faster Whisper transcription for file: ${filePath}`
-			);
-			logger.debug(`File size: ${fileSizeMB} MB (${fileSize} bytes)`);
-
 			const audioFile = createReadStream(filePath);
 			const startTime = Date.now();
-			const uploadStartTime = Date.now();
 
 			const response =
-				await this.fasterWhispper.audio.transcriptions.create({
+				await clientResult.client.audio.transcriptions.create({
 					file: audioFile,
-					model: this.fasterWhisperModel,
+					model: this.config.model,
 					language: this.config.language,
+					...(this.config.prompt &&
+						this.config.backend === "openai" && {
+							prompt: this.config.prompt,
+						}),
 				});
 
 			const endTime = Date.now();
@@ -162,15 +190,15 @@ export class TranscriptionService {
 
 			// Estimation : ~30% upload, ~60% processing, ~10% receive
 			const estimatedUploadTime = (
-				((endTime - uploadStartTime) * 0.3) /
+				((endTime - startTime) * 0.3) /
 				1000
 			).toFixed(2);
 			const estimatedProcessingTime = (
-				((endTime - uploadStartTime) * 0.6) /
+				((endTime - startTime) * 0.6) /
 				1000
 			).toFixed(2);
 			const estimatedReceiveTime = (
-				((endTime - uploadStartTime) * 0.1) /
+				((endTime - startTime) * 0.1) /
 				1000
 			).toFixed(2);
 
@@ -182,7 +210,7 @@ export class TranscriptionService {
 			}
 
 			logger.info(
-				`Faster Whisper transcription completed in ${totalDuration}s`
+				`${backendName} transcription completed in ${totalDuration}s`
 			);
 			logger.debug(
 				`  └─ Estimated breakdown: upload ~${estimatedUploadTime}s, processing ~${estimatedProcessingTime}s, receive ~${estimatedReceiveTime}s`
@@ -196,9 +224,11 @@ export class TranscriptionService {
 				text: response.text.trim(),
 			};
 		} catch (error) {
+			const backendName =
+				this.config.backend === "openai" ? "OpenAI" : "Speaches";
 			return {
 				success: false,
-				error: `Failed to transcribe audio: ${error}`,
+				error: `Failed to transcribe audio with ${backendName}: ${error}`,
 			};
 		}
 	}

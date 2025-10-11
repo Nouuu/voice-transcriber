@@ -19,10 +19,12 @@ describe("TranscriptionService", () => {
 
 		service = new TranscriptionService({
 			apiKey: "test-key",
+			backend: "openai",
+			model: "whisper-1",
 		});
 
 		// Inject mock OpenAI
-		(service as any).openai = mockOpenAI;
+		(service as any).openaiClient = mockOpenAI;
 	});
 
 	describe("transcribe", () => {
