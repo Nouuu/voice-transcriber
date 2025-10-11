@@ -16,8 +16,15 @@ describe("Config", () => {
 	describe("load", () => {
 		it("should load config from file", async () => {
 			const testData = {
-				openaiApiKey: "test-key",
+				language: "en",
 				formatterEnabled: false,
+				transcription: {
+					backend: "openai" as const,
+					openai: {
+						apiKey: "test-key",
+						model: "whisper-1",
+					},
+				},
 			};
 
 			writeFileSync(testConfigPath, JSON.stringify(testData));
@@ -49,7 +56,7 @@ describe("Config", () => {
 			expect(existsSync(testConfigPath)).toBe(true);
 
 			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
-			expect(savedData.openaiApiKey).toBe("saved-key");
+			expect(savedData.transcription?.openai?.apiKey).toBe("saved-key");
 			expect(savedData.formatterEnabled).toBe(false);
 		});
 	});
@@ -57,8 +64,15 @@ describe("Config", () => {
 	describe("loadWithSetup", () => {
 		it("should load existing config without running setup", async () => {
 			const existingConfig = {
-				openaiApiKey: "existing-key",
+				language: "en",
 				formatterEnabled: false,
+				transcription: {
+					backend: "openai" as const,
+					openai: {
+						apiKey: "existing-key",
+						model: "whisper-1",
+					},
+				},
 			};
 
 			writeFileSync(
@@ -76,8 +90,15 @@ describe("Config", () => {
 		it("should not overwrite existing config with real API key", async () => {
 			const realApiKey = "sk-real-api-key-that-should-be-preserved";
 			const existingConfig = {
-				openaiApiKey: realApiKey,
+				language: "en",
 				formatterEnabled: false,
+				transcription: {
+					backend: "openai" as const,
+					openai: {
+						apiKey: realApiKey,
+						model: "whisper-1",
+					},
+				},
 			};
 
 			writeFileSync(
@@ -91,7 +112,7 @@ describe("Config", () => {
 			const configContent = readFileSync(testConfigPath, "utf8");
 			const savedConfig = JSON.parse(configContent);
 
-			expect(savedConfig.openaiApiKey).toBe(realApiKey);
+			expect(savedConfig.transcription?.openai?.apiKey).toBe(realApiKey);
 			expect(savedConfig.formatterEnabled).toBe(false);
 		});
 	});
@@ -188,9 +209,15 @@ describe("Config", () => {
 	describe("language field migration", () => {
 		it("should load language from config file", async () => {
 			const testData = {
-				openaiApiKey: "test-key",
 				language: "fr",
 				formatterEnabled: true,
+				transcription: {
+					backend: "openai" as const,
+					openai: {
+						apiKey: "test-key",
+						model: "whisper-1",
+					},
+				},
 			};
 
 			writeFileSync(testConfigPath, JSON.stringify(testData));
@@ -203,8 +230,14 @@ describe("Config", () => {
 
 		it("should default to 'en' when language not specified", async () => {
 			const testData = {
-				openaiApiKey: "test-key",
 				formatterEnabled: true,
+				transcription: {
+					backend: "openai" as const,
+					openai: {
+						apiKey: "test-key",
+						model: "whisper-1",
+					},
+				},
 			};
 
 			writeFileSync(testConfigPath, JSON.stringify(testData));

@@ -3,5 +3,18 @@
   "language": "en",
   "formatterEnabled": true,
   "transcriptionPrompt": null,
-  "formattingPrompt": null
+  "formattingPrompt": null,
+  "benchmarkMode": false,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "your-openai-api-key-here",
+      "model": "whisper-1"
+    },
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
 }

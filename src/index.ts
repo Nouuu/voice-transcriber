@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 import { Config } from "./config/config";
 import { AudioRecorder } from "./services/audio-recorder";
+import { AudioProcessor } from "./services/audio-processor";
 import { ClipboardService } from "./services/clipboard";
 import { FormatterService } from "./services/formatter";
 import { SystemTrayService, TrayState } from "./services/system-tray";
 import { TranscriptionService } from "./services/transcription";
-import { logger } from "./utils/logger";
+import { logger, LogLevel } from "./utils/logger";
 
 export class VoiceTranscriberApp {
 	private config: Config;
 	private audioRecorder: AudioRecorder;
+	private audioProcessor: AudioProcessor;
 	private transcriptionService: TranscriptionService;
 	private formatterService: FormatterService;
 	private clipboardService: ClipboardService;
@@ -21,6 +23,7 @@ export class VoiceTranscriberApp {
 		this.clipboardService = new ClipboardService();
 
 		// These will be initialized after config loads
+		this.audioProcessor = null as any;
 		this.transcriptionService = null as any;
 		this.formatterService = null as any;
 		this.systemTrayService = null as any;
@@ -38,13 +41,36 @@ export class VoiceTranscriberApp {
 				};
 			}
 
-			// Initialize OpenAI services
+			// Initialize transcription service with full config
 			const transcriptionConfig = this.config.getTranscriptionConfig();
 			this.transcriptionService = new TranscriptionService({
 				apiKey: transcriptionConfig.apiKey,
 				language: transcriptionConfig.language,
 				prompt: transcriptionConfig.prompt,
+				backend: transcriptionConfig.backend,
+				model: transcriptionConfig.model,
+				speachesUrl: transcriptionConfig.speachesUrl,
 			});
+
+			// Notify user about model preloading for Speaches
+			// Preload Speaches model if needed (Speaches backend or Benchmark mode)
+			if (
+				transcriptionConfig.backend === "speaches" ||
+				this.config.benchmarkMode
+			) {
+				logger.info(
+					`⏳ Preloading Speaches model: ${transcriptionConfig.model}...`
+				);
+				const warmupResult = await this.transcriptionService.warmup(
+					this.config.benchmarkMode
+				);
+				if (!warmupResult.success) {
+					logger.warn(
+						`⚠️  Failed to preload model: ${warmupResult.error}`
+					);
+					logger.warn("First transcription may be slower");
+				}
+			}
 
 			const formatterConfig = this.config.getFormatterConfig();
 			this.formatterService = new FormatterService({
@@ -52,6 +78,14 @@ export class VoiceTranscriberApp {
 				enabled: formatterConfig.enabled,
 				language: formatterConfig.language,
 				prompt: formatterConfig.prompt,
+			});
+
+			// Initialize audio processor
+			this.audioProcessor = new AudioProcessor({
+				config: this.config,
+				transcriptionService: this.transcriptionService,
+				formatterService: this.formatterService,
+				clipboardService: this.clipboardService,
 			});
 
 			// Initialize system tray
@@ -72,6 +106,13 @@ export class VoiceTranscriberApp {
 			}
 
 			logger.info("Voice Transcriber initialized successfully");
+			logger.info(
+				`Transcription backend: ${transcriptionConfig.backend}`
+			);
+			logger.info(`Model: ${transcriptionConfig.model}`);
+			if (this.config.benchmarkMode) {
+				logger.info("🔬 Benchmark mode enabled");
+			}
 			return { success: true };
 		} catch (error) {
 			return { success: false, error: `Failed to initialize: ${error}` };
@@ -113,54 +154,17 @@ export class VoiceTranscriberApp {
 				await this.systemTrayService.setState(TrayState.IDLE);
 				return;
 			}
-			// Process the audio file
-			await this.processAudioFile(stopResult.filePath);
+
+			// Use benchmark mode if enabled, otherwise use normal processing
+			if (this.config.benchmarkMode) {
+				await this.audioProcessor.processBenchmark(stopResult.filePath);
+			} else {
+				await this.audioProcessor.processAudioFile(stopResult.filePath);
+			}
+
+			await this.systemTrayService.setState(TrayState.IDLE);
 		} catch (error) {
 			logger.error(`Recording stop error: ${error}`);
-			await this.systemTrayService.setState(TrayState.IDLE);
-		}
-	}
-
-	private async processAudioFile(filePath: string): Promise<void> {
-		try {
-			logger.info("Transcribing audio...");
-
-			// Transcribe audio
-			const transcriptionResult =
-				await this.transcriptionService.transcribe(filePath);
-			if (!transcriptionResult.success || !transcriptionResult.text) {
-				logger.error(
-					`Transcription failed: ${transcriptionResult.error}`
-				);
-				await this.systemTrayService.setState(TrayState.IDLE);
-				return;
-			}
-
-			let finalText = transcriptionResult.text;
-
-			// Format text if enabled
-			if (this.config.formatterEnabled) {
-				logger.info("Formatting text...");
-				const formatResult =
-					await this.formatterService.formatText(finalText);
-				if (formatResult.success && formatResult.text) {
-					finalText = formatResult.text;
-				}
-			}
-
-			// Copy to clipboard
-			logger.info("Copying to clipboard...");
-			const clipboardResult =
-				await this.clipboardService.writeText(finalText);
-			if (!clipboardResult.success) {
-				logger.error(`Clipboard failed: ${clipboardResult.error}`);
-			} else {
-				logger.info("Text copied to clipboard successfully");
-			}
-
-			await this.systemTrayService.setState(TrayState.IDLE);
-		} catch (error) {
-			logger.error(`Processing error: ${error}`);
 			await this.systemTrayService.setState(TrayState.IDLE);
 		}
 	}
@@ -190,6 +194,13 @@ export class VoiceTranscriberApp {
 
 // Main entry point
 async function main() {
+	// Check for --debug flag
+	const args = process.argv.slice(2);
+	if (args.includes("--debug") || args.includes("-d")) {
+		logger.setLogLevel(LogLevel.DEBUG);
+		logger.info("Debug mode enabled");
+	}
+
 	const app = new VoiceTranscriberApp();
 
 	logger.info("Starting Voice Transcriber...");
