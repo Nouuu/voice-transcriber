@@ -2,10 +2,21 @@
 
 [![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
 [![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
+[![Documentation](https://img.shields.io/badge/docs-MkDocs-blue)](https://nouuu.github.io/voice-transcriber/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
 
 A lightweight desktop voice transcription application that records audio from your microphone and transcribes it using OpenAI's Whisper API, with optional GPT-based text formatting.
+
+## 📚 Documentation
+
+**Complete documentation available at: [nouuu.github.io/voice-transcriber](https://nouuu.github.io/voice-transcriber/)**
+
+- [Installation Guide](https://nouuu.github.io/voice-transcriber/getting-started/installation/)
+- [Configuration](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
+- [User Guide](https://nouuu.github.io/voice-transcriber/user-guide/basic-usage/)
+- [Development Guide](https://nouuu.github.io/voice-transcriber/development/development-guide/)
+- [Speaches Self-Hosting](https://nouuu.github.io/voice-transcriber/advanced/speaches-integration/)
 
 ## ✨ Features
 
@@ -67,9 +78,7 @@ Add your OpenAI API key and configure language:
 
 **Get your OpenAI API key:** https://platform.openai.com/api-keys
 
-**Supported languages**: `fr` (French), `en` (English), `es` (Spanish), `de` (German), `it` (Italian)
-
-**For detailed configuration options**, see [Configuration Guide](docs/CONFIGURATION.md)
+**For detailed configuration options**, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
 
 **Step 4: Install globally (optional)**
 ```bash
@@ -142,265 +151,7 @@ Right-click the tray icon for additional options:
 - **⚙️ Settings** - Configuration via ~/.config/voice-transcriber/config.json
 - **❌ Quit** - Exit the application
 
-### Language Support
-
-Configure your primary language in `config.json` with the `language` setting:
-
-**Supported languages**:
-- `"fr"` - French
-- `"en"` - English (default)
-- `"es"` - Spanish
-- `"de"` - German
-- `"it"` - Italian
-
-**How it works**:
-- Strong language-specific prompts prevent Whisper from switching languages mid-transcription
-- Both transcription (Whisper) and formatting (GPT) maintain your configured language
-- Perfect for long recordings where language consistency is crucial
-
-**Example transcriptions**:
-- **English**: "Can you please send me the meeting notes?"
-- **French**: "Bonjour, j'aimerais prendre rendez-vous pour demain"
-- **Spanish**: "Buenos días, necesito información sobre el producto"
-
-**Note**: For mixed-language support or custom behavior, see [Configuration Guide](docs/CONFIGURATION.md)
-
-### Text Formatting (Optional)
-
-When `formatterEnabled: true`:
-
-**Raw**: "um so basically the meeting went really well and uh we should schedule another one"
-**Formatted**: "The meeting went really well, and we should schedule another one."
-
-## ⚙️ Configuration
-
-Configuration file: `~/.config/voice-transcriber/config.json`
-
-### Full Configuration Example
-
-```json
-{
-  "openaiApiKey": "sk-your-api-key-here",
-  "language": "en",
-  "formatterEnabled": true,
-  "transcriptionPrompt": null,
-  "formattingPrompt": null,
-  "benchmarkMode": false,
-  "transcription": {
-    "backend": "openai",
-    "openai": {
-      "apiKey": "sk-your-api-key-here",
-      "model": "whisper-1"
-    },
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "apiKey": "none",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
-}
-```
-
-### Main Options
-
-- **`openaiApiKey`**: Your OpenAI API key (required for OpenAI backend and formatting)
-- **`language`**: Language code (`en`, `fr`, `es`, `de`, `it`)
-- **`formatterEnabled`**: Enable GPT text formatting (`true`/`false`)
-- **`benchmarkMode`**: Compare OpenAI vs Speaches side-by-side (`true`/`false`)
-- **`transcription.backend`**: Backend to use: `"openai"` (cloud) or `"speaches"` (self-hosted)
-
-### Transcription Backends
-
-#### OpenAI Whisper (Cloud) ☁️
-**Pros:** Zero setup, high accuracy, no local resources  
-**Cons:** Requires internet, API costs
-
-```json
-{
-  "transcription": {
-    "backend": "openai"
-  }
-}
-```
-
-#### Speaches (Self-Hosted) 🏠
-
-> **Powered by [Speaches](https://github.com/speaches-ai/speaches)** - OpenAI-compatible speech-to-text server using [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-
-**Why Choose Speaches?**
-- **💰 Zero Cost**: No API fees - run unlimited transcriptions for free
-- **⚡ Same Speed**: Base model performs identically to OpenAI (3.7s vs 3.8s on 30s audio)
-- **🔒 Complete Privacy**: 100% offline - your audio never leaves your machine
-- **🎯 High Accuracy**: 91-100% text similarity with OpenAI depending on model
-
-**Perfect for**: Daily use, privacy-conscious users, high-volume transcription, or anyone wanting to avoid API costs.
-
-**Quick Setup** (3 commands, 2 minutes):
-
-```bash
-# 1. Create docker-compose.speaches.yml (copy from below)
-# 2. Start Speaches
-docker compose -f docker-compose.speaches.yml up -d
-
-# 3. Update config to use Speaches
-nano ~/.config/voice-transcriber/config.json
-# Change "backend": "openai" to "backend": "speaches"
-```
-
-**Docker Compose Configuration:**
-
-```yaml
-services:
-  speaches:
-    image: ghcr.io/speaches-ai/speaches:latest-cpu
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
-    environment:
-      - STT_MODEL_TTL=-1  # Keep model in memory
-      - WHISPER__INFERENCE_DEVICE=cpu
-      - WHISPER__COMPUTE_TYPE=int8
-      - WHISPER__CPU_THREADS=8
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-```
-
-**That's it!** First transcription downloads the model (~140MB for base), then it runs instantly.
-
-**Configuration Example:**
-```json
-{
-  "language": "fr",
-  "formatterEnabled": false,
-  "transcription": {
-    "backend": "speaches",
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "apiKey": "none",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
-}
-```
-
-**Available models:** `faster-whisper-tiny` (75MB, fast), `faster-whisper-base` (142MB, ⭐ recommended), `faster-whisper-small` (466MB), `faster-whisper-medium` (1.5GB), `faster-whisper-large-v3` (2.9GB)
-
-**Model Comparison:**
-
-| Model | Size | Memory | Speed | Accuracy |
-|-------|------|--------|-------|----------|
-| tiny | 75 MB | ~273 MB | ⚡⚡⚡ | ⭐⭐ |
-| base | 142 MB | ~388 MB | ⚡⚡ | ⭐⭐⭐ (recommended) |
-| small | 466 MB | ~852 MB | ⚡ | ⭐⭐⭐⭐ |
-| medium | 1.5 GB | ~2.1 GB | 🐢 | ⭐⭐⭐⭐⭐ |
-| large-v3 | 2.9 GB | ~3.9 GB | 🐢🐢 | ⭐⭐⭐⭐⭐ |
-
-**Real-World Performance Benchmark** (30s audio, French, Remote server with 8 CPU / 8GB RAM):
-
-| Model | OpenAI Whisper | Speaches (CPU) | Speed Ratio | Text Similarity |
-|-------|----------------|----------------|-------------|-----------------|
-| **tiny** | 1.98s | 2.81s | **0.70x** (comparable) | 92.4% |
-| **base** ⭐ | 3.70s | 3.81s | **0.97x** (comparable) | 91.4% |
-| **small** | 2.23s | 7.15s | 0.31x (3x slower) | 97.4% |
-| **medium** | 3.70s | 25.82s | 0.14x (7x slower) | 96.1% |
-| **large-v3** | 2.55s | 30.80s | 0.08x (12x slower) | 100.0% |
-
-**Recommendations:**
-- **For speed & cost**: Use `base` model - nearly identical speed to OpenAI, 91% accuracy, zero cost
-- **For accuracy**: Use `small` model - excellent 97% accuracy, acceptable 3x slower
-- **For maximum quality**: Use `medium` or `large-v3` - 96-100% accuracy but significantly slower (7-12x)
-
-**Note**: Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
-
-**Tips:**
-- Change model by updating `model` in config and restarting the app (auto-downloads and caches in `./hf-cache/`)
-- First transcription downloads the model, subsequent ones are instant
-- For GPU: use `latest-cuda` image and set `WHISPER__INFERENCE_DEVICE=cuda`
-- Troubleshooting: `docker compose logs -f speaches` to see model loading progress
-
-### 🔬 Benchmark Mode
-
-Compare both backends side-by-side. Requires both OpenAI and Speaches configured.
-
-```json
-{
-  "benchmarkMode": true,
-  "transcription": {
-    "backend": "speaches",
-    "openai": {
-      "apiKey": "sk-...",
-      "model": "whisper-1"
-    },
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "apiKey": "none",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
-}
-```
-
-Run with `--debug` to see comparison stats:
-```bash
-voice-transcriber --debug
-```
-
-**Output example:**
-```
-🔬 BENCHMARK: Comparing OpenAI and Speaches
-⏱️  Performance:
-   OpenAI Whisper:   2.45s
-   Speaches:         0.87s
-   Speedup:          2.82x faster
-
-📏 Text Length:
-   OpenAI:   142 chars
-   Speaches: 145 chars
-   Difference: 3 chars (2.1%)
-
-🎯 Similarity: 97.2% match
-```
-
-### Quick Config Examples
-
-**1. Simple OpenAI:**
-```json
-{
-  "openaiApiKey": "sk-...",
-  "language": "fr",
-  "formatterEnabled": true
-}
-```
-
-**2. Self-hosted transcription:**
-```json
-{
-  "openaiApiKey": "sk-...",
-  "formatterEnabled": true,
-  "transcription": {
-    "backend": "speaches",
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
-}
-```
-
-**3. Fully offline:**
-```json
-{
-  "formatterEnabled": false,
-  "transcription": {
-    "backend": "speaches",
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
-}
-```
+**For detailed configuration**, language support, backends (OpenAI vs Speaches), and benchmark mode, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/getting-started/configuration/)
 
 ## 🛠️ Development
 
