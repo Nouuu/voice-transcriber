@@ -90,15 +90,6 @@ describe("VoiceTranscriberApp", () => {
 	describe("workflow integration", () => {
 		it("should handle complete transcription workflow", async () => {
 			// Mock all services for complete workflow test
-			const mockRecorder = {
-				isRecording: mock().mockReturnValue(false),
-				startRecording: mock().mockResolvedValue({ success: true }),
-				stopRecording: mock().mockResolvedValue({
-					success: true,
-					filePath: "/tmp/test.wav",
-				}),
-			};
-
 			const mockTranscription = {
 				transcribe: mock().mockResolvedValue({
 					success: true,
@@ -117,20 +108,23 @@ describe("VoiceTranscriberApp", () => {
 				writeText: mock().mockResolvedValue({ success: true }),
 			};
 
-			const mockTray = {
-				setState: mock().mockResolvedValue({ success: true }),
+			const mockConfig = {
+				formatterEnabled: true,
 			};
 
-			// Inject mocks
-			(app as any).audioRecorder = mockRecorder;
-			(app as any).transcriptionService = mockTranscription;
-			(app as any).formatterService = mockFormatter;
-			(app as any).clipboardService = mockClipboard;
-			(app as any).systemTrayService = mockTray;
-			(app as any).config = { formatterEnabled: true };
+			// Create AudioProcessor instance with mocks
+			const { AudioProcessor } = await import(
+				"./services/audio-processor"
+			);
+			const audioProcessor = new AudioProcessor({
+				config: mockConfig as any,
+				transcriptionService: mockTranscription as any,
+				formatterService: mockFormatter as any,
+				clipboardService: mockClipboard as any,
+			});
 
-			// Test the complete workflow by calling processAudioFile directly
-			await (app as any).processAudioFile("/tmp/test.wav");
+			// Test the complete workflow
+			await audioProcessor.processAudioFile("/tmp/test.wav");
 
 			expect(mockTranscription.transcribe).toHaveBeenCalledWith(
 				"/tmp/test.wav"
@@ -159,17 +153,21 @@ describe("VoiceTranscriberApp", () => {
 				writeText: mock().mockResolvedValue({ success: true }),
 			};
 
-			const mockTray = {
-				setState: mock().mockResolvedValue({ success: true }),
+			const mockConfig = {
+				formatterEnabled: false,
 			};
 
-			(app as any).transcriptionService = mockTranscription;
-			(app as any).formatterService = mockFormatter;
-			(app as any).clipboardService = mockClipboard;
-			(app as any).systemTrayService = mockTray;
-			(app as any).config = { formatterEnabled: false };
+			const { AudioProcessor } = await import(
+				"./services/audio-processor"
+			);
+			const audioProcessor = new AudioProcessor({
+				config: mockConfig as any,
+				transcriptionService: mockTranscription as any,
+				formatterService: mockFormatter as any,
+				clipboardService: mockClipboard as any,
+			});
 
-			await (app as any).processAudioFile("/tmp/test.wav");
+			await audioProcessor.processAudioFile("/tmp/test.wav");
 
 			expect(mockTranscription.transcribe).toHaveBeenCalled();
 			expect(mockFormatter.formatText).not.toHaveBeenCalled();

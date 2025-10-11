@@ -41,3 +41,14 @@ tmp/
 
 # Configuration files with sensitive data
 config.json
+
+hf-cache/
+
+.serena/
+
+# Internal documentation (for AI agent and engineer only, never committed)
+docs/
+
+# MkDocs documentation build artifacts
+site/
+.cache/
