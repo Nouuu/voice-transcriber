@@ -14,6 +14,7 @@ A lightweight desktop voice transcription application that records audio from yo
 - **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
 - **✍️ Text Formatting**: Optional GPT-based grammar improvement
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
+- **🏠 Self-Hosted Option**: Run 100% offline with [Speaches](https://github.com/speaches-ai/speaches) - same quality as OpenAI Whisper, zero cost, complete privacy
 
 ## 🚀 Quick Start
 
@@ -84,6 +85,31 @@ voice-transcriber
 
 # Or from project directory
 make run
+
+# Enable debug mode for detailed logging (benchmarks, file sizes, timings)
+voice-transcriber --debug
+# or
+make run ARGS="--debug"
+```
+
+### Debug Mode
+
+Enable debug mode to see detailed information about:
+- **File sizes**: WAV and MP3 file sizes with compression ratios
+- **Audio format**: Sample rate, channels, conversion details
+- **Processing times**: Breakdown of upload, processing, and response times
+- **Transcription details**: Character count, duration metrics
+
+**Example debug output:**
+```
+2025-10-11T10:30:15.123Z [DEBUG] WAV file size: 2.45 MB (2569216 bytes)
+2025-10-11T10:30:15.125Z [DEBUG] WAV format: 2 channel(s), 44100 Hz sample rate
+2025-10-11T10:30:15.234Z [DEBUG] MP3 file size: 0.62 MB (650240 bytes)
+2025-10-11T10:30:15.234Z [DEBUG] Compression ratio: 74.7% size reduction
+2025-10-11T10:30:15.234Z [DEBUG] WAV to MP3 conversion completed in 0.11 seconds
+2025-10-11T10:30:16.789Z [INFO] OpenAI transcription completed in 1.55s
+2025-10-11T10:30:16.789Z [DEBUG]   └─ Estimated breakdown: upload ~0.47s, processing ~0.93s, receive ~0.16s
+2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
 ```
 
 ### Usage
@@ -145,6 +171,236 @@ When `formatterEnabled: true`:
 
 **Raw**: "um so basically the meeting went really well and uh we should schedule another one"
 **Formatted**: "The meeting went really well, and we should schedule another one."
+
+## ⚙️ Configuration
+
+Configuration file: `~/.config/voice-transcriber/config.json`
+
+### Full Configuration Example
+
+```json
+{
+  "openaiApiKey": "sk-your-api-key-here",
+  "language": "en",
+  "formatterEnabled": true,
+  "transcriptionPrompt": null,
+  "formattingPrompt": null,
+  "benchmarkMode": false,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here",
+      "model": "whisper-1"
+    },
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+### Main Options
+
+- **`openaiApiKey`**: Your OpenAI API key (required for OpenAI backend and formatting)
+- **`language`**: Language code (`en`, `fr`, `es`, `de`, `it`)
+- **`formatterEnabled`**: Enable GPT text formatting (`true`/`false`)
+- **`benchmarkMode`**: Compare OpenAI vs Speaches side-by-side (`true`/`false`)
+- **`transcription.backend`**: Backend to use: `"openai"` (cloud) or `"speaches"` (self-hosted)
+
+### Transcription Backends
+
+#### OpenAI Whisper (Cloud) ☁️
+**Pros:** Zero setup, high accuracy, no local resources  
+**Cons:** Requires internet, API costs
+
+```json
+{
+  "transcription": {
+    "backend": "openai"
+  }
+}
+```
+
+#### Speaches (Self-Hosted) 🏠
+
+> **Powered by [Speaches](https://github.com/speaches-ai/speaches)** - OpenAI-compatible speech-to-text server using [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+
+**Why Choose Speaches?**
+- **💰 Zero Cost**: No API fees - run unlimited transcriptions for free
+- **⚡ Same Speed**: Base model performs identically to OpenAI (3.7s vs 3.8s on 30s audio)
+- **🔒 Complete Privacy**: 100% offline - your audio never leaves your machine
+- **🎯 High Accuracy**: 91-100% text similarity with OpenAI depending on model
+
+**Perfect for**: Daily use, privacy-conscious users, high-volume transcription, or anyone wanting to avoid API costs.
+
+**Quick Setup** (3 commands, 2 minutes):
+
+```bash
+# 1. Create docker-compose.speaches.yml (copy from below)
+# 2. Start Speaches
+docker compose -f docker-compose.speaches.yml up -d
+
+# 3. Update config to use Speaches
+nano ~/.config/voice-transcriber/config.json
+# Change "backend": "openai" to "backend": "speaches"
+```
+
+**Docker Compose Configuration:**
+
+```yaml
+services:
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
+    environment:
+      - STT_MODEL_TTL=-1  # Keep model in memory
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=8
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+```
+
+**That's it!** First transcription downloads the model (~140MB for base), then it runs instantly.
+
+**Configuration Example:**
+```json
+{
+  "language": "fr",
+  "formatterEnabled": false,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+**Available models:** `faster-whisper-tiny` (75MB, fast), `faster-whisper-base` (142MB, ⭐ recommended), `faster-whisper-small` (466MB), `faster-whisper-medium` (1.5GB), `faster-whisper-large-v3` (2.9GB)
+
+**Model Comparison:**
+
+| Model | Size | Memory | Speed | Accuracy |
+|-------|------|--------|-------|----------|
+| tiny | 75 MB | ~273 MB | ⚡⚡⚡ | ⭐⭐ |
+| base | 142 MB | ~388 MB | ⚡⚡ | ⭐⭐⭐ (recommended) |
+| small | 466 MB | ~852 MB | ⚡ | ⭐⭐⭐⭐ |
+| medium | 1.5 GB | ~2.1 GB | 🐢 | ⭐⭐⭐⭐⭐ |
+| large-v3 | 2.9 GB | ~3.9 GB | 🐢🐢 | ⭐⭐⭐⭐⭐ |
+
+**Real-World Performance Benchmark** (30s audio, French, Remote server with 8 CPU / 8GB RAM):
+
+| Model | OpenAI Whisper | Speaches (CPU) | Speed Ratio | Text Similarity |
+|-------|----------------|----------------|-------------|-----------------|
+| **tiny** | 1.98s | 2.81s | **0.70x** (comparable) | 92.4% |
+| **base** ⭐ | 3.70s | 3.81s | **0.97x** (comparable) | 91.4% |
+| **small** | 2.23s | 7.15s | 0.31x (3x slower) | 97.4% |
+| **medium** | 3.70s | 25.82s | 0.14x (7x slower) | 96.1% |
+| **large-v3** | 2.55s | 30.80s | 0.08x (12x slower) | 100.0% |
+
+**Recommendations:**
+- **For speed & cost**: Use `base` model - nearly identical speed to OpenAI, 91% accuracy, zero cost
+- **For accuracy**: Use `small` model - excellent 97% accuracy, acceptable 3x slower
+- **For maximum quality**: Use `medium` or `large-v3` - 96-100% accuracy but significantly slower (7-12x)
+
+**Note**: Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
+
+**Tips:**
+- Change model by updating `model` in config and restarting the app (auto-downloads and caches in `./hf-cache/`)
+- First transcription downloads the model, subsequent ones are instant
+- For GPU: use `latest-cuda` image and set `WHISPER__INFERENCE_DEVICE=cuda`
+- Troubleshooting: `docker compose logs -f speaches` to see model loading progress
+
+### 🔬 Benchmark Mode
+
+Compare both backends side-by-side. Requires both OpenAI and Speaches configured.
+
+```json
+{
+  "benchmarkMode": true,
+  "transcription": {
+    "backend": "speaches",
+    "openai": {
+      "apiKey": "sk-...",
+      "model": "whisper-1"
+    },
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+Run with `--debug` to see comparison stats:
+```bash
+voice-transcriber --debug
+```
+
+**Output example:**
+```
+🔬 BENCHMARK: Comparing OpenAI and Speaches
+⏱️  Performance:
+   OpenAI Whisper:   2.45s
+   Speaches:         0.87s
+   Speedup:          2.82x faster
+
+📏 Text Length:
+   OpenAI:   142 chars
+   Speaches: 145 chars
+   Difference: 3 chars (2.1%)
+
+🎯 Similarity: 97.2% match
+```
+
+### Quick Config Examples
+
+**1. Simple OpenAI:**
+```json
+{
+  "openaiApiKey": "sk-...",
+  "language": "fr",
+  "formatterEnabled": true
+}
+```
+
+**2. Self-hosted transcription:**
+```json
+{
+  "openaiApiKey": "sk-...",
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+**3. Fully offline:**
+```json
+{
+  "formatterEnabled": false,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
 
 ## 🛠️ Development
 
@@ -285,7 +541,7 @@ make test-file FILE=src/services/system-tray.test.ts
 - Configuration system with API key management (37 lines, simplified from 164)
 - Logging system with console output (37 lines, simplified from 280)
 
-**Phase 2: Core Services** ✅  
+**Phase 2: Core Services** ✅
 - Audio recording with arecord backend (80 lines, simplified from 280)
 - OpenAI Whisper transcription service (73 lines, simplified from complex)
 - OpenAI GPT formatting service (70 lines, simplified from complex)
@@ -297,7 +553,7 @@ make test-file FILE=src/services/system-tray.test.ts
 **Phase 4: Main Application** ✅
 - Complete workflow: Record → Transcribe → Format → Clipboard
 - Graceful shutdown handling and error management
-- **All 47 tests passing** with comprehensive coverage (9 new config tests added)
+- **All 49 tests passing** with comprehensive coverage (including MP3 encoder tests)
 
 ### 🎯 Implementation Philosophy
 - **KEEP IT SIMPLE** - No overengineering
@@ -322,9 +578,9 @@ make test-file FILE=src/services/system-tray.test.ts
 11. ✅ **French→English Language Switching**: FIXED - Strong language-specific prompts prevent Whisper from switching languages during long transcriptions
 12. ✅ **Configuration Architecture**: FIXED - Centralized config system with single source of truth and clear documentation
 
-#### Medium Priority
-1. **Audio compression**: Current audio files are heavy - needs compression
-2. **Long audio handling**: Need proper handling for long audio files
+#### Low Priority (✅ Recently Addressed)
+1. ✅ **Audio compression**: WAV to MP3 conversion implemented with lamejs (mono 16kHz at 64kbps for voice optimization)
+2. **Long audio handling**: Need proper handling for long audio files (still pending)
 
 ## 🛣️ Future Roadmap
 
@@ -340,9 +596,9 @@ make test-file FILE=src/services/system-tray.test.ts
 ### Phase 6: Core Improvements 🔧
 - ✅ **🖥️ System Tray Library**: COMPLETED - Migrated from systray2 to node-systray-v2 for better reliability and binary distribution
 - ✅ **🌍 Mixed Language Support**: COMPLETED - Enhanced Whisper prompt for better French/English mixed speech preservation
+- ✅ **🗜️ Audio Optimization**: COMPLETED - WAV to MP3 conversion with lamejs (mono 16kHz, 64kbps voice optimization)
 - **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
-- **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
 
 ### Phase 7: User Interface & Platform 🖥️

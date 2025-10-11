@@ -1,17 +1,28 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, statSync } from "node:fs";
 import * as lamejs from "@breezystack/lamejs";
+import { logger } from "./logger";
 
 /**
  * Simple MP3 encoder utility
  * Converts WAV to MP3 with mono 16kHz optimization for voice transcription
  */
 export function convertWavToMp3(wavPath: string, mp3Path: string): void {
+	const startTime = Date.now();
+
 	const wavBuffer = readFileSync(wavPath);
+	const wavSize = statSync(wavPath).size;
+	const wavSizeMB = (wavSize / 1024 / 1024).toFixed(2);
+
+	logger.debug(`WAV file size: ${wavSizeMB} MB (${wavSize} bytes)`);
 
 	// Parse WAV header
 	const channels = wavBuffer.readUInt16LE(22);
 	const sampleRate = wavBuffer.readUInt32LE(24);
 	const dataOffset = 44;
+
+	logger.debug(
+		`WAV format: ${channels} channel(s), ${sampleRate} Hz sample rate`
+	);
 
 	// Extract PCM data as Int16Array
 	const pcmData = new Int16Array(
@@ -24,6 +35,10 @@ export function convertWavToMp3(wavPath: string, mp3Path: string): void {
 	const targetSampleRate = 16000;
 	const monoData = convertToMono(pcmData, channels);
 	const downsampled = downsample(monoData, sampleRate, targetSampleRate);
+
+	logger.debug(
+		`Audio downsampled from ${sampleRate} Hz to ${targetSampleRate} Hz`
+	);
 
 	// MP3 encoder: mono 16kHz at 64kbps (optimal for voice transcription)
 	const mp3encoder = new lamejs.Mp3Encoder(1, targetSampleRate, 64);
@@ -54,6 +69,17 @@ export function convertWavToMp3(wavPath: string, mp3Path: string): void {
 	}
 
 	writeFileSync(mp3Path, Buffer.from(finalMp3));
+
+	const mp3Size = statSync(mp3Path).size;
+	const mp3SizeMB = (mp3Size / 1024 / 1024).toFixed(2);
+	const compressionRatio = ((1 - mp3Size / wavSize) * 100).toFixed(1);
+	const conversionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+	logger.debug(`MP3 file size: ${mp3SizeMB} MB (${mp3Size} bytes)`);
+	logger.debug(`Compression ratio: ${compressionRatio}% size reduction`);
+	logger.debug(
+		`WAV to MP3 conversion completed in ${conversionTime} seconds`
+	);
 }
 
 /**
