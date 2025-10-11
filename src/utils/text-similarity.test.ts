@@ -63,5 +63,59 @@ describe("text-similarity", () => {
 			const result = findTextDifferences(text1, text2, 5);
 			expect(result).toHaveLength(5);
 		});
+
+		it("should compare all words even with maxDifferences limit", () => {
+			// Tests that we iterate through ALL words, not just maxDifferences words
+			const text1 = "same same same same different1";
+			const text2 = "same same same same different2";
+			const result = findTextDifferences(text1, text2, 10);
+
+			expect(result).toHaveLength(1);
+			expect(result[0]).toEqual({
+				position: 5,
+				word1: "different1",
+				word2: "different2",
+			});
+		});
+
+		it("should stop collecting differences after reaching maxDifferences", () => {
+			const text1 = "a b c d e f g h i j";
+			const text2 = "1 2 3 4 5 6 7 8 9 10";
+			const result = findTextDifferences(text1, text2, 3);
+
+			// Should only return first 3 differences
+			expect(result).toHaveLength(3);
+			expect(result[0]?.position).toBe(1);
+			expect(result[1]?.position).toBe(2);
+			expect(result[2]?.position).toBe(3);
+		});
+
+		it("should handle extra words in second text", () => {
+			const result = findTextDifferences("hello", "hello world");
+			expect(result).toHaveLength(1);
+			expect(result[0]).toEqual({
+				position: 2,
+				word1: "(missing)",
+				word2: "world",
+			});
+		});
+
+		it("should handle multiple differences", () => {
+			const text1 = "the quick brown fox";
+			const text2 = "the slow white fox";
+			const result = findTextDifferences(text1, text2);
+
+			expect(result).toHaveLength(2);
+			expect(result[0]).toEqual({
+				position: 2,
+				word1: "quick",
+				word2: "slow",
+			});
+			expect(result[1]).toEqual({
+				position: 3,
+				word1: "brown",
+				word2: "white",
+			});
+		});
 	});
 });

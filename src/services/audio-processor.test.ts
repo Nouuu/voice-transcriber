@@ -199,5 +199,113 @@ describe("AudioProcessor", () => {
 			// Restore original method
 			TranscriptionService.prototype.transcribe = originalTranscribe;
 		});
+
+		it("should choose Speaches result when similarity is higher", async () => {
+			const originalTranscribe =
+				TranscriptionService.prototype.transcribe;
+			let callCount = 0;
+
+			TranscriptionService.prototype.transcribe = mock(() => {
+				callCount++;
+				return Promise.resolve({
+					success: true,
+					text:
+						callCount === 1
+							? "Short"
+							: "This is a much longer and more detailed transcription result",
+				});
+			});
+
+			await audioProcessor.processBenchmark(testAudioFile);
+
+			// Should copy the Speaches result (longer text)
+			const calls = (mockClipboardService.writeText as any).mock.calls;
+			expect(calls[0][0]).toContain("longer and more detailed");
+
+			// Restore original method
+			TranscriptionService.prototype.transcribe = originalTranscribe;
+		});
+
+		it("should choose OpenAI result when both have equal length", async () => {
+			const originalTranscribe =
+				TranscriptionService.prototype.transcribe;
+			let callCount = 0;
+
+			TranscriptionService.prototype.transcribe = mock(() => {
+				callCount++;
+				return Promise.resolve({
+					success: true,
+					text:
+						callCount === 1
+							? "Same length text"
+							: "Same length text",
+				});
+			});
+
+			await audioProcessor.processBenchmark(testAudioFile);
+
+			// Should copy either result (they're identical)
+			const calls = (mockClipboardService.writeText as any).mock.calls;
+			expect(calls[0][0]).toBe("Same length text");
+
+			// Restore original method
+			TranscriptionService.prototype.transcribe = originalTranscribe;
+		});
+
+		it("should handle OpenAI transcription failure gracefully", async () => {
+			const originalTranscribe =
+				TranscriptionService.prototype.transcribe;
+			let callCount = 0;
+
+			TranscriptionService.prototype.transcribe = mock(() => {
+				callCount++;
+				if (callCount === 1) {
+					return Promise.resolve({
+						success: false,
+						error: "OpenAI failed",
+					});
+				}
+				return Promise.resolve({
+					success: true,
+					text: "Speaches result",
+				});
+			});
+
+			await audioProcessor.processBenchmark(testAudioFile);
+
+			// Should not copy if OpenAI fails
+			expect(mockClipboardService.writeText).not.toHaveBeenCalled();
+
+			// Restore original method
+			TranscriptionService.prototype.transcribe = originalTranscribe;
+		});
+
+		it("should handle Speaches transcription failure gracefully", async () => {
+			const originalTranscribe =
+				TranscriptionService.prototype.transcribe;
+			let callCount = 0;
+
+			TranscriptionService.prototype.transcribe = mock(() => {
+				callCount++;
+				if (callCount === 2) {
+					return Promise.resolve({
+						success: false,
+						error: "Speaches failed",
+					});
+				}
+				return Promise.resolve({
+					success: true,
+					text: "OpenAI result",
+				});
+			});
+
+			await audioProcessor.processBenchmark(testAudioFile);
+
+			// Should not copy if Speaches fails
+			expect(mockClipboardService.writeText).not.toHaveBeenCalled();
+
+			// Restore original method
+			TranscriptionService.prototype.transcribe = originalTranscribe;
+		});
 	});
 });

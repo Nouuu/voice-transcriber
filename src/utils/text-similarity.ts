@@ -72,7 +72,7 @@ export function findTextDifferences(
 		word2: string;
 	}> = [];
 
-	for (let i = 0; i < Math.min(maxDifferences, maxWords); i++) {
+	for (let i = 0; i < maxWords && differences.length < maxDifferences; i++) {
 		const word1 = words1[i] || "(missing)";
 		const word2 = words2[i] || "(missing)";
 

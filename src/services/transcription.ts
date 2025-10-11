@@ -108,7 +108,9 @@ export class TranscriptionService {
 		}
 
 		try {
-			const modelUrl = `${this.config.speachesUrl.replace(/\/v1\/?$/, "")}/v1/models/${this.config.model}`;
+			const baseUrl = this.config.speachesUrl;
+			const modelPath = `/v1/models/${this.config.model}`;
+			const modelUrl = new URL(modelPath, baseUrl).toString();
 			logger.debug(`Preloading Speaches model: ${this.config.model}`);
 
 			const response = await fetch(modelUrl, {
