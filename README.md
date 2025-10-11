@@ -171,6 +171,198 @@ When `formatterEnabled: true`:
 **Raw**: "um so basically the meeting went really well and uh we should schedule another one"
 **Formatted**: "The meeting went really well, and we should schedule another one."
 
+## ⚙️ Configuration
+
+Configuration file: `~/.config/voice-transcriber/config.json`
+
+### Full Configuration Example
+
+```json
+{
+  "openaiApiKey": "sk-your-api-key-here",
+  "language": "en",
+  "formatterEnabled": true,
+  "transcriptionPrompt": null,
+  "formattingPrompt": null,
+  "benchmarkMode": false,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here",
+      "model": "whisper-1"
+    },
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+### Main Options
+
+- **`openaiApiKey`**: Your OpenAI API key (required for OpenAI backend and formatting)
+- **`language`**: Language code (`en`, `fr`, `es`, `de`, `it`)
+- **`formatterEnabled`**: Enable GPT text formatting (`true`/`false`)
+- **`benchmarkMode`**: Compare OpenAI vs Speaches side-by-side (`true`/`false`)
+- **`transcription.backend`**: Backend to use: `"openai"` (cloud) or `"speaches"` (self-hosted)
+
+### Transcription Backends
+
+#### OpenAI Whisper (Cloud) ☁️
+**Pros:** Zero setup, high accuracy, no local resources  
+**Cons:** Requires internet, API costs
+
+```json
+{
+  "transcription": {
+    "backend": "openai"
+  }
+}
+```
+
+#### Speaches (Self-Hosted) 🏠
+**Pros:** 100% offline, zero costs, private  
+**Cons:** Requires Docker, uses local resources
+
+**Setup:**
+
+1. **Create Docker Compose file** (`docker-compose.speaches.yml`):
+```yaml
+services:
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
+    environment:
+      - STT_MODEL_TTL=-1  # Keep model in memory
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=8
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+2. **Start the server:**
+```bash
+docker compose -f docker-compose.speaches.yml up -d
+```
+
+3. **Verify it's running:**
+```bash
+curl http://localhost:8000/health
+```
+
+4. **Check logs:**
+```bash
+docker compose -f docker-compose.speaches.yml logs -f
+```
+
+**Config:**
+```json
+{
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+**Available models:** `faster-whisper-tiny` (75MB, fast), `faster-whisper-base` (142MB, ⭐ recommended), `faster-whisper-small` (466MB), `faster-whisper-medium` (1.5GB), `faster-whisper-large-v3` (2.9GB)
+
+### 🔬 Benchmark Mode
+
+Compare both backends side-by-side. Requires both OpenAI and Speaches configured.
+
+```json
+{
+  "benchmarkMode": true,
+  "transcription": {
+    "backend": "speaches",
+    "openai": {
+      "apiKey": "sk-...",
+      "model": "whisper-1"
+    },
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+Run with `--debug` to see comparison stats:
+```bash
+voice-transcriber --debug
+```
+
+**Output example:**
+```
+🔬 BENCHMARK: Comparing OpenAI and Speaches
+⏱️  Performance:
+   OpenAI Whisper:   2.45s
+   Speaches:         0.87s
+   Speedup:          2.82x faster
+
+📏 Text Length:
+   OpenAI:   142 chars
+   Speaches: 145 chars
+   Difference: 3 chars (2.1%)
+
+🎯 Similarity: 97.2% match
+```
+
+### Quick Config Examples
+
+**1. Simple OpenAI:**
+```json
+{
+  "openaiApiKey": "sk-...",
+  "language": "fr",
+  "formatterEnabled": true
+}
+```
+
+**2. Self-hosted transcription:**
+```json
+{
+  "openaiApiKey": "sk-...",
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+**3. Fully offline:**
+```json
+{
+  "formatterEnabled": false,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
 ## 🛠️ Development
 
 ### Available Make Commands

@@ -4,6 +4,7 @@
   "formatterEnabled": true,
   "transcriptionPrompt": null,
   "formattingPrompt": null,
+  "benchmarkMode": false,
   "transcription": {
     "backend": "openai",
     "openai": {
