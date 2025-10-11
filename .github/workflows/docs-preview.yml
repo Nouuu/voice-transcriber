@@ -2,12 +2,12 @@ name: Documentation Preview
 
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
     paths:
       - 'documentation/**'
       - 'mkdocs.yml'
       - '.github/workflows/docs-preview.yml'
-    types: [opened, reopened, synchronize, closed]
+    types: [ opened, reopened, synchronize, closed ]
 
 permissions:
   contents: write
@@ -56,9 +56,48 @@ jobs:
 
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@v1
+        id: deploy
         with:
           source-dir: ./site/
           preview-branch: gh-pages-previews
           umbrella-dir: pr-previews
           action: ${{ github.event.action }}
-          comment: true
+
+      - name: Post comment with preview link
+        if: github.event.action != 'closed' && steps.deploy.outputs.deployment-action == 'deploy'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            ## 📚 Documentation Preview
+            
+            Your documentation preview is ready! 🎉
+            
+            **🔗 Preview URL:** ${{ steps.deploy.outputs.preview-url }}
+            
+            ---
+            
+            <details>
+            <summary>📖 Quick Links</summary>
+            
+            - [🏠 Home](${{ steps.deploy.outputs.preview-url }})
+            - [📦 Installation](${{ steps.deploy.outputs.preview-url }}getting-started/installation/)
+            - [⚙️ Configuration](${{ steps.deploy.outputs.preview-url }}getting-started/configuration/)
+            - [📘 User Guide](${{ steps.deploy.outputs.preview-url }}user-guide/basic-usage/)
+            - [🔧 Development](${{ steps.deploy.outputs.preview-url }}development/architecture/)
+            
+            </details>
+            
+            > 💡 This preview updates automatically with each commit and will be removed when the PR is closed.
+
+      - name: Post cleanup comment
+        if: github.event.action == 'closed'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            ## 📚 Documentation Preview
+            
+            ✅ Preview has been cleaned up as this PR was closed.
+            
+            The documentation will be deployed to production at https://nouuu.github.io/voice-transcriber when merged to `main`.
