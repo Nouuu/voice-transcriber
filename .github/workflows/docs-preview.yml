@@ -34,6 +34,22 @@ jobs:
         run: |
           pip install mkdocs-material mkdocs-minify-plugin mkdocs-git-revision-date-localized-plugin
 
+      - name: Add dev version banner
+        if: github.event.action != 'closed'
+        run: |
+          # Ajouter un banner "DEV" en haut de la page d'accueil
+          cat > documentation/.dev-banner.md << 'EOF'
+          !!! warning "Development Preview"
+              This is a **preview** of the documentation from PR #${{ github.event.pull_request.number }}.
+              
+              For the stable documentation, visit [nouuu.github.io/voice-transcriber](https://nouuu.github.io/voice-transcriber/)
+          
+          EOF
+          
+          # Insérer le banner au début de index.md
+          cat documentation/.dev-banner.md documentation/index.md > documentation/index.tmp
+          mv documentation/index.tmp documentation/index.md
+
       - name: Build
         if: github.event.action != 'closed'
         run: mkdocs build

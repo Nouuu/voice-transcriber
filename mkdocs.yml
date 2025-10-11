@@ -123,6 +123,9 @@ nav:
   - Migration Guide: MIGRATION_GUIDE.md
 
 extra:
+  version:
+    provider: mike
+    default: latest
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Nouuu/voice-transcriber
@@ -130,8 +133,6 @@ extra:
     - icon: fontawesome/brands/npm
       link: https://www.npmjs.com/package/voice-transcriber
       name: NPM Package
-  version:
-    provider: mike
   analytics:
     feedback:
       title: Was this page helpful?

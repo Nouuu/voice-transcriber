@@ -1,13 +1,16 @@
 # Voice Transcriber Documentation
 
-<div align="center">
-  <h1>🎤 Voice Transcriber</h1>
-  <p>Lightweight desktop voice-to-text transcription with OpenAI Whisper and system tray integration</p>
+<div align="center" markdown="1">
 
-  [![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
-  [![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nouuu/voice-transcriber/blob/main/LICENSE)
-  [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
+# 🎤 Voice Transcriber
+
+Lightweight desktop voice-to-text transcription with OpenAI Whisper and system tray integration
+
+[![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
+[![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nouuu/voice-transcriber/blob/main/LICENSE)
+[![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
+
 </div>
 
 ---
@@ -94,9 +97,9 @@ Get started in under 5 minutes:
     ```
 
 !!! tip "Next Steps"
-    - [Installation Guide](getting-started/installation.md) - Detailed setup instructions
-    - [Configuration](getting-started/configuration.md) - Configure languages and backends
-    - [Basic Usage](user-guide/basic-usage.md) - Learn how to use the app
+    - [Installation Guide](getting-started/installation/) - Detailed setup instructions
+    - [Configuration](getting-started/configuration/) - Configure languages and backends
+    - [Basic Usage](user-guide/basic-usage/) - Learn how to use the app
 
 ## How It Works
 
@@ -154,19 +157,19 @@ sequenceDiagram
 
 <div class="grid cards" markdown>
 
--   [**Getting Started**](getting-started/installation.md)
+-   [**Getting Started**](getting-started/installation/)
 
     Installation, configuration, and first-run setup
 
--   [**User Guide**](user-guide/basic-usage.md)
+-   [**User Guide**](user-guide/basic-usage/)
 
     Basic usage, language support, and troubleshooting
 
--   [**Development**](development/architecture.md)
+-   [**Development**](development/architecture/)
 
     Architecture, development guide, and API reference
 
--   [**Advanced**](advanced/speaches-integration.md)
+-   [**Advanced**](advanced/speaches-integration/)
 
     Self-hosted setup, whisper models, and local inference
 
