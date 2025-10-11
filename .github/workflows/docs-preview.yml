@@ -1,0 +1,63 @@
+name: Documentation Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'documentation/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs-preview.yml'
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        if: github.event.action != 'closed'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        if: github.event.action != 'closed'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache Python dependencies
+        if: github.event.action != 'closed'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-mkdocs-${{ hashFiles('.github/workflows/docs-preview.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-mkdocs-
+
+      - name: Install Python dependencies
+        if: github.event.action != 'closed'
+        run: |
+          pip install --upgrade pip
+          pip install mkdocs-material \
+                      mkdocs-minify-plugin \
+                      mkdocs-git-revision-date-localized-plugin
+
+      - name: Build documentation
+        if: github.event.action != 'closed'
+        run: mkdocs build --strict
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./site/
+          preview-branch: gh-pages-previews
+          umbrella-dir: pr-previews
+          action: ${{ github.event.action }}
