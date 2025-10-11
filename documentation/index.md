@@ -61,39 +61,44 @@ Voice Transcriber is a **lightweight desktop application** that provides seamles
 
 Get started in under 5 minutes:
 
-=== "Automated Setup"
+=== "Automated Setup (Recommended)"
 
     ```bash
-    # Clone and setup
+    # Clone the repository
     git clone https://github.com/Nouuu/voice-transcriber.git
     cd voice-transcriber
+    
+    # One-command setup (checks deps, installs, creates config)
     make setup
-
-    # Configure API key
+    
+    # Configure your OpenAI API key
     nano ~/.config/voice-transcriber/config.json
-
-    # Run
+    
+    # Run the application
     make run
     ```
 
-=== "Manual Setup"
+=== "Step-by-Step Setup"
 
     ```bash
-    # Install Bun runtime
-    curl -fsSL https://bun.sh/install | bash
-
-    # Install system dependencies
-    sudo apt-get install alsa-utils xsel
-
-    # Clone repository
+    # Clone the repository
     git clone https://github.com/Nouuu/voice-transcriber.git
     cd voice-transcriber
-
-    # Install dependencies
-    bun install
-
-    # Initialize config
+    
+    # Check system dependencies (Bun, arecord, xsel)
+    make check-system-deps
+    
+    # Install Bun dependencies
+    make install
+    
+    # Initialize configuration file
     make init-config
+    
+    # Configure your OpenAI API key
+    nano ~/.config/voice-transcriber/config.json
+    
+    # Run the application
+    make run
     ```
 
 !!! tip "Next Steps"
@@ -142,6 +147,15 @@ sequenceDiagram
 3. **Transcription** - Sends to OpenAI Whisper or self-hosted Speaches
 4. **Optional Formatting** - Improves grammar/punctuation with ChatGPT (if enabled)
 5. **Clipboard** - Automatically copies result for instant pasting
+
+!!! tip "System Tray Menu"
+    Right-click the tray icon to access:
+    
+    - **🎙️ Start Recording** - Begin voice capture
+    - **⏹️ Stop Recording** - End recording and transcribe  
+    - **❌ Exit** - Exit the application
+    
+    Menu items are automatically enabled/disabled based on current state.
 
 ## Popular Use Cases
 

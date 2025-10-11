@@ -1,12 +1,11 @@
 # 🎤 Voice Transcriber
 
+Lightweight desktop voice-to-text transcription with OpenAI Whisper and system tray integration
+
 [![Build](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/build.yml)
 [![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
-[![Documentation](https://img.shields.io/badge/docs-MkDocs-blue)](https://nouuu.github.io/voice-transcriber/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nouuu/voice-transcriber/blob/main/LICENSE)
 [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
-
-A lightweight desktop voice transcription application that records audio from your microphone and transcribes it using OpenAI's Whisper API, with optional GPT-based text formatting.
 
 ## 📚 Documentation
 
@@ -46,28 +45,26 @@ Before installing, ensure you have:
 
 ### Installation
 
-**Step 1: Clone the repository**
+**One-Command Setup (Recommended)**
+
 ```bash
+# Clone and setup everything
 git clone https://github.com/Nouuu/voice-transcriber.git
 cd voice-transcriber
-```
-
-**Step 2: Run automated setup**
-```bash
 make setup
 ```
 
 This command will:
-- Check all system dependencies (Bun, arecord, xsel)
-- Install Bun dependencies
-- Create configuration file at `~/.config/voice-transcriber/config.json`
+- ✅ Check all system dependencies (Bun, arecord, xsel)
+- ✅ Install Bun dependencies
+- ✅ Create configuration file at `~/.config/voice-transcriber/config.json`
 
-**Step 3: Configure OpenAI API key**
+**Configure OpenAI API key**
 ```bash
 nano ~/.config/voice-transcriber/config.json
 ```
 
-Add your OpenAI API key and configure language:
+Add your OpenAI API key:
 ```json
 {
   "openaiApiKey": "sk-your-api-key-here",
@@ -80,14 +77,18 @@ Add your OpenAI API key and configure language:
 
 **For detailed configuration options**, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/latest/getting-started/configuration/)
 
-**Step 4: Install globally (optional)**
+### Global Installation (Optional)
+
+Install the `voice-transcriber` command globally:
+
 ```bash
 make install-global
 ```
 
-This installs the `voice-transcriber` command globally, allowing you to run it from anywhere.
+This allows you to run the application from anywhere.
 
-**Step 5: Run the application**
+### Running the Application
+
 ```bash
 # If installed globally
 voice-transcriber
@@ -121,7 +122,11 @@ Enable debug mode to see detailed information about:
 2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
 ```
 
-### Usage
+### Usage{
+"openaiApiKey": "sk-...",
+"language": "fr",
+"formatterEnabled": true
+}
 
 1. Look for the system tray icon (green circle when idle)
 2. Click the tray icon or menu to start/stop recording
@@ -143,13 +148,21 @@ make uninstall-global
    Click to start              Speaking...          AI transcribing
 ```
 
-### Menu Options
+### System Tray Menu
 
-Right-click the tray icon for additional options:
-- **🎤 Start Recording** - Begin voice capture
-- **⏹️ Stop Recording** - End recording and transcribe
-- **⚙️ Settings** - Configuration via ~/.config/voice-transcriber/config.json
-- **❌ Quit** - Exit the application
+Right-click the tray icon for menu options:
+
+```
+🎤 Voice Transcriber
+├── 🎙️ Start Recording - Begin voice capture
+├── ⏹️ Stop Recording  - End recording and transcribe
+└── ❌ Exit           - Exit the application
+```
+
+**Menu Behavior:**
+- When **idle** (🟢): "Start Recording" is enabled, "Stop Recording" is disabled
+- When **recording** (🔴): "Start Recording" is disabled, "Stop Recording" is enabled
+- When **processing** (🟣): Both recording options are disabled
 
 **For detailed configuration**, language support, backends (OpenAI vs Speaches), and benchmark mode, see the [Configuration Guide](https://nouuu.github.io/voice-transcriber/latest/getting-started/configuration/)
 
@@ -161,6 +174,8 @@ Right-click the tray icon for additional options:
 make help          # Show all available commands
 
 # 🚀 Setup & Installation
+make install-global     # Install voice-transcriber command globally
+make uninstall-global   # Uninstall global voice-transcriber command
 make setup              # Complete setup (system deps + bun deps + config)
 make check-system-deps  # Check system dependencies (Bun, arecord, xsel)
 make init-config        # Initialize config file in ~/.config/voice-transcriber/
@@ -169,15 +184,20 @@ make install            # Install bun dependencies only
 # ▶️ Running
 make run                # Run the application
 make dev                # Run in development mode with watch
-
+make test-file FILE=... # Run specific test file
 # 🧪 Testing & Quality
 make test               # Run all tests
 make test-watch         # Run tests in watch mode
 make test-file          # Run specific test (usage: make test-file FILE=path/to/test.ts)
+# 📚 Documentation
+make docs-install       # Install MkDocs and required plugins
+make docs-build         # Build documentation site
+make docs-serve         # Serve documentation locally at http://127.0.0.1:8000
+make docs-deploy        # Deploy documentation to GitHub Pages
+
 make lint               # Run ESLint linting
 make format             # Format code with Prettier
 make format-check       # Check code formatting and linting
-
 # 🛠️ Utilities
 make clean              # Clean build artifacts and temporary files
 make build              # Build for production
@@ -202,13 +222,13 @@ voice-transcriber/
 │   ├── services/
 │   │   ├── audio-recorder.ts # Audio recording service
 │   │   ├── transcription.ts  # OpenAI Whisper integration
-│   │   ├── formatter.ts      # OpenAI GPT formatting
+│       ├── logger.ts         # Simple logging utility
+│       └── mp3-encoder.ts    # MP3 audio compression
 │   │   ├── clipboard.ts      # Cross-platform clipboard
 │   │   └── system-tray.ts    # System tray management
 │   └── utils/
 │       └── logger.ts         # Simple logging utility
-├── assets/
-│   ├── icon-idle.png         # Tray icon (idle state)
+├── documentation/            # MkDocs documentation source
 │   ├── icon-recording.png    # Tray icon (recording)
 │   └── icon-processing.png   # Tray icon (processing)
 ├── dist/                     # Built application (generated)
@@ -217,7 +237,7 @@ voice-transcriber/
 ├── config.example.json       # Configuration template
 └── package.json
 ```
-
+# First-time setup
 ### Development Workflow
 
 ```bash
