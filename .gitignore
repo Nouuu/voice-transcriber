@@ -41,3 +41,7 @@ tmp/
 
 # Configuration files with sensitive data
 config.json
+
+hf-cache/
+
+.serena/

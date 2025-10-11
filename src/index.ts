@@ -114,7 +114,10 @@ export class VoiceTranscriberApp {
 				return;
 			}
 			// Process the audio file
-			await this.processAudioFile(stopResult.filePath);
+			// await this.processAudioFile(stopResult.filePath);
+			logger.info("====================================");
+			await this.processBothWhispers(stopResult.filePath);
+			logger.info("====================================");
 		} catch (error) {
 			logger.error(`Recording stop error: ${error}`);
 			await this.systemTrayService.setState(TrayState.IDLE);
@@ -137,6 +140,7 @@ export class VoiceTranscriberApp {
 			}
 
 			let finalText = transcriptionResult.text;
+			logger.info(`Transcription result: ${finalText}`);
 
 			// Format text if enabled
 			if (this.config.formatterEnabled) {
@@ -157,6 +161,88 @@ export class VoiceTranscriberApp {
 			} else {
 				logger.info("Text copied to clipboard successfully");
 			}
+
+			await this.systemTrayService.setState(TrayState.IDLE);
+		} catch (error) {
+			logger.error(`Processing error: ${error}`);
+			await this.systemTrayService.setState(TrayState.IDLE);
+		}
+	}
+
+	private async processAudioFileFaster(filePath: string): Promise<void> {
+		try {
+			logger.info("Transcribing audio with Faster Whisper...");
+			// Transcribe audio
+			const transcriptionResult =
+				await this.transcriptionService.transcribeFaster(filePath);
+			if (!transcriptionResult.success || !transcriptionResult.text) {
+				logger.error(
+					`Transcription failed: ${transcriptionResult.error}`
+				);
+				await this.systemTrayService.setState(TrayState.IDLE);
+				return;
+			}
+
+			const finalText = transcriptionResult.text;
+
+			logger.info(`Transcription result: ${finalText}`);
+
+			// Copy to clipboard
+			logger.info("Copying to clipboard...");
+			const clipboardResult =
+				await this.clipboardService.writeText(finalText);
+			if (!clipboardResult.success) {
+				logger.error(`Clipboard failed: ${clipboardResult.error}`);
+			} else {
+				logger.info("Text copied to clipboard successfully");
+			}
+
+			await this.systemTrayService.setState(TrayState.IDLE);
+		} catch (error) {
+			logger.error(`Processing error: ${error}`);
+			await this.systemTrayService.setState(TrayState.IDLE);
+		}
+	}
+
+	private async processBothWhispers(filePath: string): Promise<void> {
+		try {
+			logger.info("Transcribing audio with both Whisper models...");
+			// Transcribe audio
+			const transcriptionResultOpenAI =
+				await this.transcriptionService.transcribe(filePath);
+			if (
+				!transcriptionResultOpenAI.success ||
+				!transcriptionResultOpenAI.text
+			) {
+				logger.error(
+					`Transcription failed: ${transcriptionResultOpenAI.error}`
+				);
+				await this.systemTrayService.setState(TrayState.IDLE);
+				return;
+			}
+
+			const finalTextOpenAI = transcriptionResultOpenAI.text;
+
+			logger.info(`Transcription result: ${finalTextOpenAI}`);
+			logger.info("====================================");
+
+			// Transcribe audio
+			const transcriptionResultFaster =
+				await this.transcriptionService.transcribeFaster(filePath);
+			if (
+				!transcriptionResultFaster.success ||
+				!transcriptionResultFaster.text
+			) {
+				logger.error(
+					`Transcription failed: ${transcriptionResultFaster.error}`
+				);
+				await this.systemTrayService.setState(TrayState.IDLE);
+				return;
+			}
+
+			const finalTextFaster = transcriptionResultFaster.text;
+
+			logger.info(`Transcription result: ${finalTextFaster}`);
 
 			await this.systemTrayService.setState(TrayState.IDLE);
 		} catch (error) {

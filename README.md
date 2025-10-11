@@ -285,7 +285,7 @@ make test-file FILE=src/services/system-tray.test.ts
 - Configuration system with API key management (37 lines, simplified from 164)
 - Logging system with console output (37 lines, simplified from 280)
 
-**Phase 2: Core Services** ✅  
+**Phase 2: Core Services** ✅
 - Audio recording with arecord backend (80 lines, simplified from 280)
 - OpenAI Whisper transcription service (73 lines, simplified from complex)
 - OpenAI GPT formatting service (70 lines, simplified from complex)
@@ -297,7 +297,7 @@ make test-file FILE=src/services/system-tray.test.ts
 **Phase 4: Main Application** ✅
 - Complete workflow: Record → Transcribe → Format → Clipboard
 - Graceful shutdown handling and error management
-- **All 47 tests passing** with comprehensive coverage (9 new config tests added)
+- **All 49 tests passing** with comprehensive coverage (including MP3 encoder tests)
 
 ### 🎯 Implementation Philosophy
 - **KEEP IT SIMPLE** - No overengineering
@@ -322,9 +322,9 @@ make test-file FILE=src/services/system-tray.test.ts
 11. ✅ **French→English Language Switching**: FIXED - Strong language-specific prompts prevent Whisper from switching languages during long transcriptions
 12. ✅ **Configuration Architecture**: FIXED - Centralized config system with single source of truth and clear documentation
 
-#### Medium Priority
-1. **Audio compression**: Current audio files are heavy - needs compression
-2. **Long audio handling**: Need proper handling for long audio files
+#### Low Priority (✅ Recently Addressed)
+1. ✅ **Audio compression**: WAV to MP3 conversion implemented with lamejs (mono 16kHz at 64kbps for voice optimization)
+2. **Long audio handling**: Need proper handling for long audio files (still pending)
 
 ## 🛣️ Future Roadmap
 
@@ -340,9 +340,9 @@ make test-file FILE=src/services/system-tray.test.ts
 ### Phase 6: Core Improvements 🔧
 - ✅ **🖥️ System Tray Library**: COMPLETED - Migrated from systray2 to node-systray-v2 for better reliability and binary distribution
 - ✅ **🌍 Mixed Language Support**: COMPLETED - Enhanced Whisper prompt for better French/English mixed speech preservation
+- ✅ **🗜️ Audio Optimization**: COMPLETED - WAV to MP3 conversion with lamejs (mono 16kHz, 64kbps voice optimization)
 - **🚀 Local Inference Support**: Add faster-whisper integration for offline transcription (4x faster, no API costs)
 - **💾 File Saving**: Add option to save transcriptions to file instead of just clipboard
-- **🗜️ Audio Optimization**: Implement audio compression to reduce file sizes
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
 
 ### Phase 7: User Interface & Platform 🖥️
