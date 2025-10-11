@@ -61,3 +61,4 @@ jobs:
           preview-branch: gh-pages-previews
           umbrella-dir: pr-previews
           action: ${{ github.event.action }}
+          comment: true
