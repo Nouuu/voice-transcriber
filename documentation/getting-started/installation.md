@@ -101,9 +101,14 @@ Add your OpenAI API key:
 
 ```json
 {
-  "openaiApiKey": "sk-your-api-key-here",
   "language": "en",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
+  }
 }
 ```
 

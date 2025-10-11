@@ -116,10 +116,16 @@ Models are **auto-downloaded** on first use.
 
 ```json
 {
-  "openaiApiKey": "not-needed-for-speaches",
-  "inferenceBaseUrl": "http://localhost:8000/v1",
   "language": "en",
-  "whisperModel": "base"
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
 }
 ```
 

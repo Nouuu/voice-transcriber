@@ -67,9 +67,14 @@ nano ~/.config/voice-transcriber/config.json
 Add your OpenAI API key:
 ```json
 {
-  "openaiApiKey": "sk-your-api-key-here",
   "language": "en",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
+  }
 }
 ```
 
@@ -122,11 +127,7 @@ Enable debug mode to see detailed information about:
 2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
 ```
 
-### Usage{
-"openaiApiKey": "sk-...",
-"language": "fr",
-"formatterEnabled": true
-}
+### Usage
 
 1. Look for the system tray icon (green circle when idle)
 2. Click the tray icon or menu to start/stop recording

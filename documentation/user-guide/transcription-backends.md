@@ -158,9 +158,13 @@ nano ~/.config/voice-transcriber/config.json
 Change:
 ```json
 {
-  "openaiApiKey": "sk-...",
+  "language": "en",
+  "formatterEnabled": true,
   "transcription": {
-    "backend": "openai"
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
   }
 }
 ```
@@ -184,7 +188,7 @@ Compare both backends side-by-side. Requires both OpenAI and Speaches configured
     },
     "speaches": {
       "url": "http://localhost:8000/v1",
-      "apiKey": "none", // Or your actual key if set
+      "apiKey": "none",
       "model": "Systran/faster-whisper-base"
     }
   }

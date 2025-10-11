@@ -137,9 +137,14 @@ Change language to French:
 
 ```json
 {
-  "openaiApiKey": "sk-...",
   "language": "fr",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-..."
+    }
+  }
 }
 ```
 
