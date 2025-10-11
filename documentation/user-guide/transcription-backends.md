@@ -169,7 +169,9 @@ Change:
 
 ## Benchmark Mode
 
-Compare both backends side-by-side:
+Compare both backends side-by-side. Requires both OpenAI and Speaches configured.
+
+### Configuration
 
 ```json
 {
@@ -182,18 +184,24 @@ Compare both backends side-by-side:
     },
     "speaches": {
       "url": "http://localhost:8000/v1",
+      "apiKey": "none", // Or your actual key if set
       "model": "Systran/faster-whisper-base"
     }
   }
 }
 ```
 
-Run with debug mode:
+### Running Benchmarks
+
+Run with `--debug` flag to see detailed comparison:
+
 ```bash
 voice-transcriber --debug
 ```
 
-**Output example**:
+### Benchmark Output
+
+**Example output**:
 ```
 🔬 BENCHMARK: Comparing OpenAI and Speaches
 ⏱️  Performance:
@@ -208,6 +216,39 @@ voice-transcriber --debug
 
 🎯 Similarity: 97.2% match
 ```
+
+### What Benchmark Mode Does
+
+When enabled, the application:
+
+1. **Transcribes with both backends** simultaneously
+2. **Measures performance** - Processing time for each backend
+3. **Compares accuracy** - Text similarity calculation between results
+4. **Shows differences** - Character count and text length comparison
+5. **Uses primary backend result** - The configured `backend` result is copied to clipboard
+
+### Use Cases
+
+!!! tip "When to Use Benchmark Mode"
+    - **Evaluate models**: Test different Speaches models against OpenAI
+    - **Verify accuracy**: Ensure Speaches meets your quality requirements
+    - **Optimize performance**: Find the best speed/accuracy balance
+    - **Document results**: Generate comparison data for your use case
+
+### Disabling Benchmark Mode
+
+Set to `false` in config:
+
+```json
+{
+  "benchmarkMode": false
+}
+```
+
+**Restart the application** for changes to take effect.
+
+!!! warning "Benchmark Mode Costs"
+    Benchmark mode calls both OpenAI and Speaches, so you'll incur OpenAI API costs even when using Speaches as your primary backend. Use only for testing and evaluation.
 
 ## Next Steps
 

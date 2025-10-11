@@ -81,7 +81,7 @@ See [Contributing Guide](https://nouuu.github.io/voice-transcriber/contributing/
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file.
+MIT License - see [LICENSE](https://github.com/Nouuu/voice-transcriber/blob/main/LICENSE) file.
 ```
 
 **What to remove from README**:

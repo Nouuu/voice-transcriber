@@ -117,13 +117,30 @@ voice-transcriber
 
 **Benchmark**: 30s French audio, Remote server (8 CPU / 8GB RAM)
 
-```
-Model: base
-OpenAI:   3.70s
-Speaches: 3.81s
-Speedup:  0.97x (nearly identical!)
-Accuracy: 91.4%
-```
+**Real-World Performance Benchmark:**
+
+| Model | OpenAI Whisper | Speaches (CPU) | Speed Ratio | Text Similarity |
+|-------|----------------|----------------|-------------|-----------------|
+| **tiny** | 1.98s | 2.81s | **0.70x** (comparable) | 92.4% |
+| **base** ⭐ | 3.70s | 3.81s | **0.97x** (comparable) | 91.4% |
+| **small** | 2.23s | 7.15s | 0.31x (3x slower) | 97.4% |
+| **medium** | 3.70s | 25.82s | 0.14x (7x slower) | 96.1% |
+| **large-v3** | 2.55s | 30.80s | 0.08x (12x slower) | 100.0% |
+
+**Key Insights:**
+
+- **Base model**: Nearly identical speed to OpenAI (0.97x), 91% accuracy - **best for daily use**
+- **Small model**: Excellent 97% accuracy, acceptable 3x slowdown
+- **Medium/Large**: Maximum quality (96-100%) but significantly slower (7-12x)
+
+**Recommendations:**
+
+- **For speed & cost**: Use `base` model - nearly identical speed to OpenAI, 91% accuracy, zero cost
+- **For accuracy**: Use `small` model - excellent 97% accuracy, acceptable 3x slower
+- **For maximum quality**: Use `medium` or `large-v3` - 96-100% accuracy but significantly slower (7-12x)
+
+!!! note "Performance Context"
+    Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
 
 ## Changing Models
 

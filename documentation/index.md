@@ -97,9 +97,9 @@ Get started in under 5 minutes:
     ```
 
 !!! tip "Next Steps"
-    - [Installation Guide](getting-started/installation/) - Detailed setup instructions
-    - [Configuration](getting-started/configuration/) - Configure languages and backends
-    - [Basic Usage](user-guide/basic-usage/) - Learn how to use the app
+    - [Installation Guide](getting-started/installation.md) - Detailed setup instructions
+    - [Configuration](getting-started/configuration.md) - Configure languages and backends
+    - [Basic Usage](user-guide/basic-usage.md) - Learn how to use the app
 
 ## How It Works
 
@@ -108,8 +108,9 @@ sequenceDiagram
     participant User
     participant SystemTray
     participant AudioRecorder
-    participant Whisper as OpenAI Whisper
-    participant GPT as OpenAI GPT
+    participant MP3Encoder
+    participant Backend as Whisper API<br/>(OpenAI or Speaches)
+    participant GPT as ChatGPT<br/>(optional)
     participant Clipboard
 
     User->>SystemTray: Click tray icon
@@ -119,9 +120,12 @@ sequenceDiagram
     User->>SystemTray: Click again to stop
     SystemTray->>SystemTray: State: PROCESSING (🟣)
     AudioRecorder->>AudioRecorder: Save WAV file
-    AudioRecorder->>Whisper: Upload audio
-    Whisper->>Whisper: Transcribe audio
-    Whisper-->>AudioRecorder: Return text
+    AudioRecorder->>MP3Encoder: Convert to MP3
+    Note over MP3Encoder: Compress audio<br/>~75% size reduction<br/>(mono 16kHz 64kbps)
+    MP3Encoder-->>AudioRecorder: MP3 file
+    AudioRecorder->>Backend: Upload MP3
+    Backend->>Backend: Transcribe audio
+    Backend-->>AudioRecorder: Return text
     opt Formatting Enabled
         AudioRecorder->>GPT: Format text
         GPT-->>AudioRecorder: Formatted text
@@ -130,6 +134,14 @@ sequenceDiagram
     Clipboard-->>User: Paste transcription
     SystemTray->>SystemTray: State: IDLE (🟢)
 ```
+
+**Key Steps:**
+
+1. **Audio Capture** - Records in WAV format (CD quality: 44.1kHz, 16-bit)
+2. **MP3 Compression** - Converts to mono 16kHz 64kbps MP3 (~75% size reduction)
+3. **Transcription** - Sends to OpenAI Whisper or self-hosted Speaches
+4. **Optional Formatting** - Improves grammar/punctuation with ChatGPT (if enabled)
+5. **Clipboard** - Automatically copies result for instant pasting
 
 ## Popular Use Cases
 
@@ -157,19 +169,19 @@ sequenceDiagram
 
 <div class="grid cards" markdown>
 
--   [**Getting Started**](getting-started/installation/)
+-   [**Getting Started**](getting-started/installation.md)
 
     Installation, configuration, and first-run setup
 
--   [**User Guide**](user-guide/basic-usage/)
+-   [**User Guide**](user-guide/basic-usage.md)
 
     Basic usage, language support, and troubleshooting
 
--   [**Development**](development/architecture/)
+-   [**Development**](development/architecture.md)
 
     Architecture, development guide, and API reference
 
--   [**Advanced**](advanced/speaches-integration/)
+-   [**Advanced**](advanced/speaches-integration.md)
 
     Self-hosted setup, whisper models, and local inference
 
