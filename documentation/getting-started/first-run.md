@@ -1,18 +1,22 @@
 # First Run Guide
 
-This guide walks you through your first experience with Voice Transcriber.
+This guide walks you through your first recording with Voice Transcriber.
 
 ## Prerequisites
 
-Before starting, ensure you have:
+Before starting, ensure you've completed the [Installation Guide](installation.md):
 
-- ✅ [Installed Voice Transcriber](installation.md)
-- ✅ Obtained an [OpenAI API key](https://platform.openai.com/api-keys)
-- ✅ Verified system dependencies with `make check-system-deps`
+- ✅ Bun runtime installed
+- ✅ System dependencies (arecord, xsel) installed
+- ✅ Voice Transcriber installed (`make setup`)
+- ✅ Configuration file created with OpenAI API key
 
-## Step 1: Launch the Application
+!!! tip "Quick Setup Reminder"
+    ```bash
+    make setup  # One command to install everything
+    ```
 
-Start Voice Transcriber for the first time:
+## Step 1: Start the Application
 
 === "Global Installation"
 
@@ -25,6 +29,16 @@ Start Voice Transcriber for the first time:
     ```bash
     cd voice-transcriber
     make run
+    ```
+
+=== "Debug Mode (Recommended for First Run)"
+
+    ```bash
+    # Global
+    voice-transcriber --debug
+    
+    # Local
+    make run ARGS="--debug"
     ```
 
 ## Step 2: Configuration Wizard
@@ -123,9 +137,14 @@ Change language to French:
 
 ```json
 {
-  "openaiApiKey": "sk-...",
   "language": "fr",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-..."
+    }
+  }
 }
 ```
 
@@ -147,16 +166,19 @@ Right-click the system tray icon to see available options:
 🎤 Voice Transcriber
 ├── 🎙️ Start Recording
 ├── ⏹️ Stop Recording
-├── ⚙️ Settings
-└── ❌ Quit
+└── ❌ Exit
 ```
 
 ### Menu Actions
 
-- **Start Recording**: Begin audio capture
-- **Stop Recording**: End recording and transcribe
-- **Settings**: Opens config file in default text editor
-- **Quit**: Exit the application gracefully
+- **Start Recording**: Begin audio capture (disabled while recording)
+- **Stop Recording**: End recording and transcribe (enabled only while recording)
+- **Exit**: Exit the application gracefully
+
+!!! note "Menu State"
+    The menu items change state automatically:
+    - When idle: "Start Recording" is enabled, "Stop Recording" is disabled
+    - When recording: "Start Recording" is disabled, "Stop Recording" is enabled
 
 ## Common First-Run Issues
 
@@ -246,10 +268,12 @@ Now that you've completed your first recording, explore more features:
 
 ```bash
 # Run application
-voice-transcriber              # or: make run
+make run                       # From project directory
+voice-transcriber              # If installed globally
 
 # Enable debug mode
-voice-transcriber --debug
+make run ARGS="--debug"        # From project directory
+voice-transcriber --debug      # If installed globally
 
 # Edit configuration
 nano ~/.config/voice-transcriber/config.json
@@ -259,6 +283,9 @@ make check-system-deps
 
 # Test audio devices
 arecord -l
+
+# View all available commands
+make help
 ```
 
 ### Recording Workflow

@@ -110,29 +110,41 @@ Once processing completes:
 
 ## Context Menu Options
 
-Right-click the tray icon for additional actions:
+Right-click the tray icon for available actions:
 
 ```
 🎤 Voice Transcriber
 ├── 🎙️ Start Recording
 ├── ⏹️ Stop Recording
-├── ⚙️ Settings
-└── ❌ Quit
+└── ❌ Exit
 ```
 
 ### Menu Actions
 
 **Start Recording**
-: Begin audio capture (same as left-click when idle)
+: Begin audio capture (disabled while recording)
+: Same as left-click when idle
 
 **Stop Recording**
-: End recording and transcribe (same as left-click when recording)
+: End recording and transcribe (enabled only while recording)
+: Same as left-click when recording
 
-**Settings**
-: Opens `~/.config/voice-transcriber/config.json` in your default text editor
-
-**Quit**
+**Exit**
 : Exit the application gracefully
+
+!!! note "Menu Behavior"
+    Menu items automatically enable/disable based on state:
+    
+    - **Idle** (🟢): "Start Recording" enabled, "Stop Recording" disabled
+    - **Recording** (🔴): "Start Recording" disabled, "Stop Recording" enabled
+    - **Processing** (🟣): Both recording options disabled
+
+!!! tip "Editing Configuration"
+    To edit settings, manually open the config file:
+    ```bash
+    nano ~/.config/voice-transcriber/config.json
+    ```
+    Then restart the application for changes to take effect.
 
 ## Debug Mode
 

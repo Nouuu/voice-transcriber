@@ -1,9 +1,4 @@
 {
-  "openaiApiKey": "your-openai-api-key-here",
-  "language": "en",
-  "formatterEnabled": true,
-  "transcriptionPrompt": null,
-  "formattingPrompt": null,
   "benchmarkMode": false,
   "transcription": {
     "backend": "openai",

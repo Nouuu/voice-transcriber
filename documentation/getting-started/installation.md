@@ -1,24 +1,26 @@
 # Installation Guide
 
+This guide will help you install Voice Transcriber on your Linux system.
+
 ## Prerequisites
 
 Before installing Voice Transcriber, ensure you have the following:
 
-### 1. Bun Runtime (≥1.2.0)
+### 1. Bun Runtime
 
-Install Bun runtime for development and local usage:
+Voice Transcriber requires **Bun ≥1.2.0**:
 
 ```bash
+# Install Bun
 curl -fsSL https://bun.sh/install | bash
+
+# Verify installation
+bun --version  # Should output ≥1.2.0
 ```
 
-Verify installation:
-```bash
-bun --version
-# Should output: 1.2.0 or higher
-```
+**Bun documentation**: [https://bun.sh](https://bun.sh)
 
-### 2. System Dependencies (Ubuntu/Linux)
+### 2. System Dependencies
 
 Install required system packages:
 
@@ -39,11 +41,17 @@ which arecord  # Should output: /usr/bin/arecord
 which xsel     # Should output: /usr/bin/xsel
 ```
 
+!!! tip "Quick Check"
+    You can verify all prerequisites at once with:
+    ```bash
+    make check-system-deps
+    ```
+
 ## Installation Methods
 
 ### Automated Setup (Recommended)
 
-The fastest way to get started:
+The fastest way to get started - one command does everything:
 
 ```bash
 # Step 1: Clone the repository
@@ -54,11 +62,12 @@ cd voice-transcriber
 make setup
 ```
 
-This command will:
+**What `make setup` does**:
 
-- ✅ Check all system dependencies (Bun, arecord, xsel)
-- ✅ Install Bun dependencies
-- ✅ Create configuration file at `~/.config/voice-transcriber/config.json`
+- ✅ Checks all system dependencies (Bun, arecord, xsel)
+- ✅ Installs Bun dependencies
+- ✅ Creates configuration file at `~/.config/voice-transcriber/config.json`
+- ✅ Displays next steps
 
 ### Manual Setup
 
@@ -92,9 +101,14 @@ Add your OpenAI API key:
 
 ```json
 {
-  "openaiApiKey": "sk-your-api-key-here",
   "language": "en",
-  "formatterEnabled": true
+  "formatterEnabled": true,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
+  }
 }
 ```
 
@@ -131,14 +145,6 @@ make uninstall-global
 
 ## Running the Application
 
-### Development Mode
-
-Run with auto-reload for development:
-
-```bash
-make dev
-```
-
 ### Production Mode
 
 Run the application normally:
@@ -149,6 +155,14 @@ voice-transcriber
 
 # Or from project directory
 make run
+```
+
+### Development Mode
+
+Run with auto-reload for development:
+
+```bash
+make dev
 ```
 
 ### Debug Mode
@@ -175,10 +189,10 @@ make run ARGS="--debug"
 Verify your installation:
 
 ```bash
-# 1. Check system dependencies
+# 1. Check all system dependencies at once
 make check-system-deps
 
-# 2. Verify configuration
+# 2. Verify configuration exists
 cat ~/.config/voice-transcriber/config.json
 
 # 3. Test audio recording
@@ -258,11 +272,35 @@ sudo usermod -a -G audio $USER
 If config file isn't created automatically:
 
 ```bash
-# Create directory manually
-mkdir -p ~/.config/voice-transcriber
-
-# Initialize config
+# Create directory and initialize config manually
 make init-config
+```
+
+## Available Make Commands
+
+Voice Transcriber includes many helpful make commands:
+
+```bash
+# View all available commands
+make help
+
+# Setup & Installation
+make setup              # Complete automated setup
+make check-system-deps  # Verify system dependencies
+make install            # Install Bun dependencies only
+make init-config        # Create config file
+
+# Running
+make run                # Run the application
+make dev                # Development mode with watch
+
+# Testing & Quality
+make test               # Run all tests
+make lint               # Run ESLint linting
+make format             # Format code with Prettier
+
+# Documentation
+make docs-serve         # Serve documentation locally
 ```
 
 ## Next Steps

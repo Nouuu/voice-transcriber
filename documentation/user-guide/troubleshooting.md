@@ -331,8 +331,13 @@ crontab -e
 # Disable text formatting to reduce API calls
 # Edit ~/.config/voice-transcriber/config.json:
 {
-  "openaiApiKey": "your-key",
-  "formatterEnabled": false
+  "formatterEnabled": false,
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "your-key"
+    }
+  }
 }
 ```
 
