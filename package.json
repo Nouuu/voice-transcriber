@@ -1,6 +1,6 @@
 {
 	"name": "voice-transcriber",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Lightweight desktop voice transcription with OpenAI Whisper and system tray integration",
 	"license": "MIT",
 	"repository": {
