@@ -35,6 +35,10 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
 
+      - name: Fetch gh-pages branch
+        run: |
+          git fetch origin gh-pages --depth=1 || true
+
       - name: Deploy with mike
         run: |
           # Déployer la version actuelle depuis package.json
