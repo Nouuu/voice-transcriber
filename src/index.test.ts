@@ -31,12 +31,25 @@ describe("VoiceTranscriberApp", () => {
 				openaiApiKey: "",
 				formatterEnabled: true,
 				loadWithSetup: mock().mockResolvedValue(undefined),
+				getTranscriptionConfig: mock().mockReturnValue({
+					apiKey: "",
+					language: "en",
+					prompt: "test prompt",
+					backend: "openai",
+					model: "whisper-1",
+				}),
+				getFormatterConfig: mock().mockReturnValue({
+					apiKey: "",
+					enabled: true,
+					language: "en",
+					prompt: "test prompt",
+				}),
 			};
 
 			const result = await app.initialize();
 
 			expect(result.success).toBe(false);
-			expect(result.error).toContain("OpenAI API key not configured");
+			expect(result.error).toContain("API key not configured for openai backend");
 		});
 
 		it("should require valid API key for initialization", async () => {

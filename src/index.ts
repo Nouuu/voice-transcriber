@@ -34,15 +34,16 @@ export class VoiceTranscriberApp {
 			// Load configuration
 			await this.config.loadWithSetup();
 
-			if (!this.config.openaiApiKey) {
-				return {
-					success: false,
-					error: "OpenAI API key not configured. Please add it to config.json",
-				};
-			}
-
 			// Initialize transcription service with full config
 			const transcriptionConfig = this.config.getTranscriptionConfig();
+
+			// Validate API key for the selected backend
+			if (!transcriptionConfig.apiKey) {
+				return {
+					success: false,
+					error: `API key not configured for ${transcriptionConfig.backend} backend. Please add it to config.json`,
+				};
+			}
 			this.transcriptionService = new TranscriptionService({
 				apiKey: transcriptionConfig.apiKey,
 				language: transcriptionConfig.language,
