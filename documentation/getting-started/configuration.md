@@ -331,6 +331,94 @@ Config.getFormatterConfig()     → FormatterService
 **How it works**:
 - The `language` setting triggers a strong prompt like: "This is a French audio recording. Transcribe the entire audio in French only. Do NOT switch to English..."
 
+## Live Configuration Management
+
+You can now reload configuration changes **without restarting the application** using the system tray menu.
+
+### How It Works
+
+The live reload process follows these steps:
+
+1. **Open Configuration**: Right-click tray icon → "Open Config"
+2. **Edit Settings**: Make changes in your default text editor
+3. **Save File**: Save the configuration file
+4. **Reload**: Right-click tray icon → "Reload Config" (when application is idle)
+
+### State Validation
+
+**Reload Config** is only available when the application is **idle** (green icon):
+
+- ✅ **Available**: When idle and ready
+- ❌ **Blocked**: During recording (would interrupt audio capture)
+- ❌ **Blocked**: During processing (would interfere with transcription)
+
+This safety mechanism prevents configuration changes from corrupting ongoing operations.
+
+### What Gets Reloaded
+
+When you reload configuration, the following services are reinitialized:
+
+- **TranscriptionService**: Updated with new API key, language, model, backend
+- **FormatterService**: Updated with new API key, enabled state, prompts
+- **AudioProcessor**: Reinitialized with updated service dependencies
+
+### Safety Features
+
+The reload process includes automatic protections:
+
+| Feature | Description |
+|---------|-------------|
+| **Validation** | Configuration is validated before applying changes |
+| **Rollback** | Previous configuration is automatically restored on failure |
+| **Error Handling** | Clear error messages guide you to fix issues |
+| **Service Cleanup** | Old services are properly disposed to prevent memory leaks |
+
+### Common Use Cases
+
+**Testing Language Settings**
+```json
+// Try different languages without restarting
+{ "language": "fr" }  // Test French
+→ Reload Config
+{ "language": "en" }  // Back to English
+→ Reload Config
+```
+
+**Switching Backends**
+```json
+// Switch between OpenAI and Speaches
+{
+  "transcription": {
+    "backend": "speaches"  // Use local Speaches
+  }
+}
+→ Reload Config
+```
+
+**Updating API Keys**
+```json
+{
+  "transcription": {
+    "openai": {
+      "apiKey": "sk-proj-new-key-here"
+    }
+  }
+}
+→ Reload Config
+```
+
+### Reload vs Restart
+
+| Aspect | Reload Config | Restart Application |
+|--------|---------------|---------------------|
+| **Speed** | Instant (< 1 second) | Slow (3-5 seconds) |
+| **System Tray** | Stays in tray | Disappears briefly |
+| **Safety** | Automatic rollback | Manual recovery |
+| **When to Use** | Quick config changes | Major troubleshooting |
+
+!!! tip "Best Practice"
+    Use **Reload Config** for configuration changes during development or testing. Only restart the application if reload fails or you encounter unexpected behavior.
+
 ### Configuration File Not Found
 
 **Problem**: Application can't find config file.

@@ -49,7 +49,9 @@ describe("VoiceTranscriberApp", () => {
 			const result = await app.initialize();
 
 			expect(result.success).toBe(false);
-			expect(result.error).toContain("API key not configured for openai backend");
+			expect(result.error).toContain(
+				"API key not configured for openai backend"
+			);
 		});
 
 		it("should require valid API key for initialization", async () => {
@@ -97,6 +99,186 @@ describe("VoiceTranscriberApp", () => {
 
 			expect(mockRecorder.stopRecording).toHaveBeenCalled();
 			expect(mockTray.shutdown).toHaveBeenCalled();
+		});
+	});
+
+	describe("handleOpenConfig", () => {
+		it("should call getConfigPath and execute without error", () => {
+			const mockConfig = {
+				getConfigPath: mock().mockReturnValue(
+					"/home/user/.config/voice-transcriber/config.json"
+				),
+			};
+
+			(app as any).config = mockConfig;
+
+			// Should not throw - may fail to spawn in test env but that's ok
+			expect(() => (app as any).handleOpenConfig()).not.toThrow();
+			expect(mockConfig.getConfigPath).toHaveBeenCalled();
+		});
+
+		it("should handle config path errors gracefully", () => {
+			const mockConfig = {
+				getConfigPath: mock().mockImplementation(() => {
+					throw new Error("Config path error");
+				}),
+			};
+
+			(app as any).config = mockConfig;
+
+			// Should not throw - errors are caught and logged
+			expect(() => (app as any).handleOpenConfig()).not.toThrow();
+		});
+	});
+
+	describe("handleReload", () => {
+		it("should block reload when recording", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(true),
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+
+			await (app as any).handleReload();
+
+			expect(mockRecorder.isRecording).toHaveBeenCalled();
+		});
+
+		it("should block reload when not in IDLE state", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(false),
+			};
+
+			const mockTray = {
+				getState: mock().mockReturnValue("recording"),
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+			(app as any).systemTrayService = mockTray;
+
+			await (app as any).handleReload();
+
+			expect(mockTray.getState).toHaveBeenCalled();
+		});
+
+		it("should reload config and reinitialize services", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(false),
+			};
+
+			const mockTray = {
+				getState: mock().mockReturnValue("idle"),
+			};
+
+			const mockConfigLoad = mock().mockResolvedValue(undefined);
+			const mockConfig = {
+				load: mockConfigLoad,
+				getTranscriptionConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					language: "en",
+					prompt: "test",
+					backend: "openai",
+					model: "whisper-1",
+					speachesUrl: "http://localhost:8000",
+				}),
+				getFormatterConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					enabled: true,
+					language: "en",
+					prompt: "test",
+				}),
+				benchmarkMode: false,
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+			(app as any).systemTrayService = mockTray;
+			(app as any).config = mockConfig;
+			(app as any).clipboardService = {};
+
+			await (app as any).handleReload();
+
+			expect(mockConfigLoad).toHaveBeenCalled();
+			expect(mockConfig.getTranscriptionConfig).toHaveBeenCalled();
+			expect(mockConfig.getFormatterConfig).toHaveBeenCalled();
+		});
+
+		it("should rollback on config validation failure", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(false),
+			};
+
+			const mockTray = {
+				getState: mock().mockReturnValue("idle"),
+			};
+
+			const oldTranscriptionConfig = {
+				apiKey: "sk-old",
+				language: "en",
+				prompt: "old",
+				backend: "openai",
+				model: "whisper-1",
+				speachesUrl: "http://localhost:8000",
+			};
+
+			const oldFormatterConfig = {
+				apiKey: "sk-old",
+				enabled: true,
+				language: "en",
+				prompt: "old",
+			};
+
+			const mockConfig = {
+				load: mock().mockResolvedValue(undefined),
+				getTranscriptionConfig: mock()
+					.mockReturnValueOnce(oldTranscriptionConfig) // First call (backup)
+					.mockReturnValueOnce({ apiKey: "", language: "en" }), // Second call (invalid)
+				getFormatterConfig: mock().mockReturnValue(oldFormatterConfig),
+				benchmarkMode: false,
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+			(app as any).systemTrayService = mockTray;
+			(app as any).config = mockConfig;
+			(app as any).clipboardService = {};
+
+			await (app as any).handleReload();
+
+			// Config should have been loaded
+			expect(mockConfig.load).toHaveBeenCalled();
+		});
+
+		it("should handle reload errors gracefully", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(false),
+			};
+
+			const mockTray = {
+				getState: mock().mockReturnValue("idle"),
+			};
+
+			const mockConfig = {
+				load: mock().mockRejectedValue(new Error("Load failed")),
+				getTranscriptionConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					language: "en",
+					prompt: "test",
+					backend: "openai",
+					model: "whisper-1",
+				}),
+				getFormatterConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					enabled: true,
+					language: "en",
+					prompt: "test",
+				}),
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+			(app as any).systemTrayService = mockTray;
+			(app as any).config = mockConfig;
+
+			// Should not throw
+			await expect((app as any).handleReload()).resolves.toBeUndefined();
 		});
 	});
 

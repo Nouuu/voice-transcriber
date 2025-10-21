@@ -45,6 +45,10 @@ export class Config {
 		this.configPath = configPath ?? this.getUserConfigPath();
 	}
 
+	public getConfigPath(): string {
+		return this.configPath;
+	}
+
 	private getUserConfigPath(): string {
 		return join(homedir(), ".config", "voice-transcriber", "config.json");
 	}
@@ -74,8 +78,7 @@ export class Config {
 					data.transcription.backend || "openai";
 
 				if (data.transcription.openai) {
-					this.openaiApiKey =
-						data.transcription.openai.apiKey || "";
+					this.openaiApiKey = data.transcription.openai.apiKey || "";
 					this.openaiModel =
 						data.transcription.openai.model || "whisper-1";
 				}
