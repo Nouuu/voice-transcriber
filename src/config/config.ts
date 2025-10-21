@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { logger } from "../utils/logger";
 
 export interface TranscriptionBackendConfig {
 	backend: "openai" | "speaches";
@@ -45,6 +46,10 @@ export class Config {
 		this.configPath = configPath ?? this.getUserConfigPath();
 	}
 
+	public getConfigPath(): string {
+		return this.configPath;
+	}
+
 	private getUserConfigPath(): string {
 		return join(homedir(), ".config", "voice-transcriber", "config.json");
 	}
@@ -54,43 +59,49 @@ export class Config {
 	}
 
 	public async load(): Promise<void> {
+		if (!existsSync(this.configPath)) {
+			logger.warn(
+				`Config file not found at ${this.configPath}. Using default configuration values.`
+			);
+			return;
+		}
+
 		try {
-			if (existsSync(this.configPath)) {
-				const fileContent = readFileSync(this.configPath, "utf8");
-				const data = JSON.parse(fileContent) as Partial<ConfigData>;
+			const fileContent = readFileSync(this.configPath, "utf8");
+			const data = JSON.parse(fileContent) as Partial<ConfigData>;
 
-				this.language = data.language || "en";
-				this.formatterEnabled = data.formatterEnabled ?? true;
-				this.transcriptionPrompt = data.transcriptionPrompt ?? null;
-				this.formattingPrompt = data.formattingPrompt ?? null;
-				this.benchmarkMode = data.benchmarkMode ?? false;
+			this.language = data.language || "en";
+			this.formatterEnabled = data.formatterEnabled ?? true;
+			this.transcriptionPrompt = data.transcriptionPrompt ?? null;
+			this.formattingPrompt = data.formattingPrompt ?? null;
+			this.benchmarkMode = data.benchmarkMode ?? false;
 
-				// Load transcription backend config
-				if (data.transcription) {
-					this.transcriptionBackend =
-						data.transcription.backend || "openai";
+			// Load transcription backend config
+			if (data.transcription) {
+				this.transcriptionBackend =
+					data.transcription.backend || "openai";
 
-					if (data.transcription.openai) {
-						this.openaiApiKey =
-							data.transcription.openai.apiKey || "";
-						this.openaiModel =
-							data.transcription.openai.model || "whisper-1";
-					}
+				if (data.transcription.openai) {
+					this.openaiApiKey = data.transcription.openai.apiKey || "";
+					this.openaiModel =
+						data.transcription.openai.model || "whisper-1";
+				}
 
-					if (data.transcription.speaches) {
-						this.speachesUrl =
-							data.transcription.speaches.url ||
-							"http://localhost:8000/v1";
-						this.speachesApiKey =
-							data.transcription.speaches.apiKey || "none";
-						this.speachesModel =
-							data.transcription.speaches.model ||
-							"Systran/faster-whisper-base";
-					}
+				if (data.transcription.speaches) {
+					this.speachesUrl =
+						data.transcription.speaches.url ||
+						"http://localhost:8000/v1";
+					this.speachesApiKey =
+						data.transcription.speaches.apiKey || "none";
+					this.speachesModel =
+						data.transcription.speaches.model ||
+						"Systran/faster-whisper-base";
 				}
 			}
-		} catch {
-			// Use defaults if config fails to load
+		} catch (error) {
+			throw new Error(
+				`Failed to parse config file ${this.configPath}: ${error instanceof Error ? error.message : String(error)}`
+			);
 		}
 	}
 
@@ -162,6 +173,7 @@ export class Config {
 			formatterEnabled: this.formatterEnabled,
 			transcriptionPrompt: this.transcriptionPrompt,
 			formattingPrompt: this.formattingPrompt,
+			benchmarkMode: this.benchmarkMode,
 			transcription: {
 				backend: this.transcriptionBackend,
 				openai: {

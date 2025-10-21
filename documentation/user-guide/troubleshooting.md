@@ -414,6 +414,247 @@ cat dist/index.js | grep -i icon
 node dist/index.js
 ```
 
+## Configuration Management Issues
+
+### 🔧 "Open Config" Button Does Nothing
+
+#### Symptom
+Clicking "Open Config" in the system tray menu has no visible effect.
+
+**Solution 1: Default Text Editor Not Configured**
+```bash
+# Check if xdg-open is working
+xdg-open ~/.config/voice-transcriber/config.json
+
+# If it fails, set default text editor
+xdg-mime default org.gnome.gedit.desktop text/plain
+# Or for other editors:
+xdg-mime default code.desktop text/plain  # VS Code
+```
+
+**Solution 2: Configuration File Missing**
+```bash
+# Check if file exists
+ls -la ~/.config/voice-transcriber/config.json
+
+# If missing, run setup wizard
+rm -rf ~/.config/voice-transcriber/
+make run  # Triggers first-run setup
+```
+
+**Solution 3: File Permissions**
+```bash
+# Check file permissions
+ls -la ~/.config/voice-transcriber/
+
+# Fix if needed
+chmod 644 ~/.config/voice-transcriber/config.json
+chmod 755 ~/.config/voice-transcriber/
+```
+
+### 🔄 "Reload Config" Button Always Disabled
+
+#### Symptom
+The "Reload Config" menu item is always grayed out.
+
+**Solution: Application Not in Idle State**
+
+The reload button is **only enabled when idle** (green icon). It's disabled during:
+
+- **Recording** (🔴): Would interrupt audio capture
+- **Processing** (🟣): Would interfere with transcription
+
+**How to enable reload**:
+1. Wait for current operation to complete
+2. Ensure tray icon is green (idle)
+3. Right-click and check if "Reload Config" is now enabled
+
+**Check application state**:
+```bash
+# Run in debug mode to see state changes
+voice-transcriber --debug
+# Watch for: "State changed from X to idle"
+```
+
+### ❌ Reload Failed: Invalid Configuration
+
+#### Symptom
+```
+Failed to reload configuration: API key not configured for openai backend
+```
+
+**Solution: Validate Configuration Before Reload**
+
+**Validation Checklist**:
+```json
+{
+  "language": "en",              // ✅ Required
+  "formatterEnabled": true,      // ✅ Required
+  "transcription": {             // ✅ Required
+    "backend": "openai",         // ✅ Required: "openai" or "speaches"
+    "openai": {
+      "apiKey": "sk-proj-..."    // ✅ Required if backend=openai
+    }
+  }
+}
+```
+
+**Common validation errors**:
+
+1. **Missing API Key**
+   ```json
+   // ❌ Wrong
+   { "transcription": { "backend": "openai" } }
+   
+   // ✅ Correct
+   {
+     "transcription": {
+       "backend": "openai",
+       "openai": { "apiKey": "sk-proj-..." }
+     }
+   }
+   ```
+
+2. **Invalid Backend**
+   ```json
+   // ❌ Wrong
+   { "transcription": { "backend": "whisper" } }
+   
+   // ✅ Correct
+   { "transcription": { "backend": "openai" } }
+   // or
+   { "transcription": { "backend": "speaches" } }
+   ```
+
+3. **Invalid JSON Syntax**
+   ```bash
+   # Validate JSON before reload
+   cat ~/.config/voice-transcriber/config.json | jq .
+   # If it shows errors, fix syntax
+   ```
+
+### 🔁 Configuration Reloaded But Changes Not Taking Effect
+
+#### Symptom
+Changed configuration and reloaded, but application still uses old settings.
+
+**Solution 1: Check Configuration Syntax**
+```bash
+# Verify your changes were saved
+cat ~/.config/voice-transcriber/config.json
+
+# Validate JSON
+jq . ~/.config/voice-transcriber/config.json
+```
+
+**Solution 2: Invalid Configuration Values**
+
+Some values may be ignored if invalid:
+```json
+// ❌ Invalid language (will use default "en")
+{ "language": "japanese" }
+
+// ✅ Supported languages only
+{ "language": "fr" }  // fr, en, es, de, it
+```
+
+**Solution 3: Service Initialization Failed**
+
+Check console for errors:
+```bash
+# Run in debug mode
+voice-transcriber --debug
+
+# Look for error messages like:
+# "Failed to reload configuration: ..."
+# "Rolling back to previous configuration..."
+```
+
+**Solution 4: Reload Was Rolled Back**
+
+If configuration validation failed, the reload was automatically rolled back:
+
+1. Check console logs for error message
+2. Fix the configuration issue
+3. Save the file
+4. Try reload again
+
+### 💥 Application Crashes After Reload
+
+#### Symptom
+Application exits unexpectedly after clicking "Reload Config".
+
+**Solution 1: Check Recent Changes**
+
+Reload automatically rolls back on error, but if crash persists:
+
+```bash
+# Restore backup if you have one
+cp ~/.config/voice-transcriber/config.json.bak \
+   ~/.config/voice-transcriber/config.json
+
+# Or reset to defaults
+rm ~/.config/voice-transcriber/config.json
+make run  # Triggers setup wizard
+```
+
+**Solution 2: Debug the Crash**
+```bash
+# Run with debug logging
+voice-transcriber --debug 2>&1 | tee crash.log
+
+# Try reload
+# After crash, check crash.log for error details
+```
+
+**Solution 3: Report the Bug**
+
+If crash persists with valid configuration:
+
+1. Save your configuration file
+2. Save debug logs
+3. Report issue at: [GitHub Issues](https://github.com/yourusername/transcriber/issues)
+4. Include:
+   - Configuration file (remove API keys!)
+   - Debug logs
+   - Steps to reproduce
+
+### 📝 Best Practices for Configuration Changes
+
+To avoid issues when modifying configuration:
+
+1. **Test Changes Incrementally**
+   ```bash
+   # Change one setting at a time
+   # Reload and test
+   # If works, change next setting
+   ```
+
+2. **Validate JSON Before Reload**
+   ```bash
+   # Always validate after editing
+   jq . ~/.config/voice-transcriber/config.json
+   ```
+
+3. **Keep Backups**
+   ```bash
+   # Backup before major changes
+   cp ~/.config/voice-transcriber/config.json \
+      ~/.config/voice-transcriber/config.json.bak
+   ```
+
+4. **Use Reload During Idle**
+   - Wait for green icon (idle state)
+   - Don't reload during recording or processing
+   - Check console for reload success message
+
+5. **Monitor Logs**
+   ```bash
+   # Watch logs during reload
+   voice-transcriber --debug
+   # Look for: "✅ Configuration reloaded successfully"
+   ```
+
 ## Advanced Troubleshooting
 
 ### Debug Mode

@@ -10,6 +10,8 @@ export interface TrayConfig {
 	callbacks: {
 		onRecordingStart: () => void;
 		onRecordingStop: () => void;
+		onOpenConfig: () => void;
+		onReload: () => Promise<void>;
 		onQuit: () => void;
 	};
 }
@@ -61,6 +63,18 @@ export class SystemTrayService {
 							enabled: false, // Disabled initially
 						},
 						{
+							title: "⚙️ Open Config",
+							tooltip: "Open configuration file",
+							checked: false,
+							enabled: true,
+						},
+						{
+							title: "🔄 Reload Config",
+							tooltip: "Reload configuration",
+							checked: false,
+							enabled: true, // Enabled in IDLE state
+						},
+						{
 							title: "❌ Exit",
 							tooltip: "Exit application",
 							checked: false,
@@ -76,7 +90,7 @@ export class SystemTrayService {
 			systray.onClick(action => {
 				console.log(`Menu item clicked:`, action.item.title);
 
-				// Route based on seq_id (0=start, 1=stop, 2=quit)
+				// Route based on seq_id (0=start, 1=stop, 2=open config, 3=reload, 4=quit)
 				switch (action.seq_id) {
 					case 0:
 						console.log("Start Recording clicked");
@@ -87,6 +101,14 @@ export class SystemTrayService {
 						this.callbacks.onRecordingStop();
 						break;
 					case 2:
+						console.log("Open Config clicked");
+						this.callbacks.onOpenConfig();
+						break;
+					case 3:
+						console.log("Reload Config clicked");
+						this.callbacks.onReload();
+						break;
+					case 4:
 						console.log("Exit clicked");
 						this.callbacks.onQuit();
 						break;
@@ -106,6 +128,10 @@ export class SystemTrayService {
 		} catch (error) {
 			return { success: false, error: `Failed to initialize: ${error}` };
 		}
+	}
+
+	public getState(): TrayState {
+		return this.currentState;
 	}
 
 	private getIconBase64(state: TrayState): string {
@@ -153,6 +179,18 @@ export class SystemTrayService {
 							enabled: state === TrayState.RECORDING,
 						},
 						{
+							title: "⚙️ Open Config",
+							tooltip: "Open configuration file",
+							checked: false,
+							enabled: true,
+						},
+						{
+							title: "🔄 Reload Config",
+							tooltip: "Reload configuration",
+							checked: false,
+							enabled: state === TrayState.IDLE,
+						},
+						{
 							title: "❌ Exit",
 							tooltip: "Exit application",
 							checked: false,
@@ -165,7 +203,7 @@ export class SystemTrayService {
 
 			// Also update individual items to ensure state consistency
 			if (state === TrayState.RECORDING) {
-				// Disable Start, Enable Stop
+				// Disable Start, Enable Stop, Disable Reload
 				this.systray.sendAction({
 					type: "update-item",
 					item: {
@@ -186,8 +224,19 @@ export class SystemTrayService {
 					},
 					seq_id: 1,
 				});
+				this.systray.sendAction({
+					type: "update-item",
+					item: {
+						title: "🔄 Reload Config",
+						tooltip:
+							"Reload configuration (disabled while recording)",
+						checked: false,
+						enabled: false,
+					},
+					seq_id: 3,
+				});
 			} else {
-				// Enable Start, Disable Stop
+				// Enable Start, Disable Stop, Enable Reload (if IDLE)
 				this.systray.sendAction({
 					type: "update-item",
 					item: {
@@ -204,9 +253,22 @@ export class SystemTrayService {
 						title: "⏹️ Stop Recording",
 						tooltip: "Stop voice recording",
 						checked: false,
-						enabled: false, // Disabled when not recording
+						enabled: false,
 					},
 					seq_id: 1,
+				});
+				this.systray.sendAction({
+					type: "update-item",
+					item: {
+						title: "🔄 Reload Config",
+						tooltip:
+							state === TrayState.IDLE
+								? "Reload configuration"
+								: "Reload configuration (disabled while processing)",
+						checked: false,
+						enabled: state === TrayState.IDLE,
+					},
+					seq_id: 3,
 				});
 			}
 

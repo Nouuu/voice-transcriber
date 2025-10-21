@@ -116,6 +116,8 @@ Right-click the tray icon for available actions:
 🎤 Voice Transcriber
 ├── 🎙️ Start Recording
 ├── ⏹️ Stop Recording
+├── ⚙️ Open Config
+├── 🔄 Reload Config
 └── ❌ Exit
 ```
 
@@ -129,22 +131,69 @@ Right-click the tray icon for available actions:
 : End recording and transcribe (enabled only while recording)
 : Same as left-click when recording
 
+**Open Config**
+: Opens configuration file in your default text editor
+: Always available
+
+**Reload Config**
+: Reloads configuration without restarting the application
+: Only available when idle (not recording or processing)
+
 **Exit**
 : Exit the application gracefully
 
 !!! note "Menu Behavior"
     Menu items automatically enable/disable based on state:
     
-    - **Idle** (🟢): "Start Recording" enabled, "Stop Recording" disabled
-    - **Recording** (🔴): "Start Recording" disabled, "Stop Recording" enabled
-    - **Processing** (🟣): Both recording options disabled
+    | Menu Item | Idle (🟢) | Recording (🔴) | Processing (🟣) |
+    |-----------|-----------|----------------|-----------------|
+    | Start Recording | ✅ Enabled | ❌ Disabled | ❌ Disabled |
+    | Stop Recording | ❌ Disabled | ✅ Enabled | ❌ Disabled |
+    | Open Config | ✅ Enabled | ✅ Enabled | ✅ Enabled |
+    | Reload Config | ✅ Enabled | ❌ Disabled | ❌ Disabled |
+    | Exit | ✅ Enabled | ✅ Enabled | ✅ Enabled |
 
-!!! tip "Editing Configuration"
-    To edit settings, manually open the config file:
-    ```bash
-    nano ~/.config/voice-transcriber/config.json
-    ```
-    Then restart the application for changes to take effect.
+## Configuration Management
+
+You can now manage configuration directly from the system tray menu without restarting the application.
+
+### Quick Configuration Workflow
+
+1. **Open Config**: Right-click tray icon → "Open Config"
+2. **Edit**: Make your changes in the text editor
+3. **Save**: Save the configuration file
+4. **Reload**: Right-click tray icon → "Reload Config" (when idle)
+
+### When to Use Reload Config
+
+**Reload Config** is useful when you want to:
+
+- Switch between transcription backends (OpenAI ↔ Speaches)
+- Test different language settings
+- Update API keys
+- Change transcription or formatting prompts
+- Enable/disable the formatter
+
+!!! success "Live Configuration Updates"
+    Changes take effect immediately after reload - no need to restart the application!
+
+!!! warning "Reload Restrictions"
+    **Reload Config** is disabled during:
+    
+    - **Recording** (🔴): Would interrupt audio capture
+    - **Processing** (🟣): Would interfere with transcription
+    
+    Wait for the icon to turn green (idle) before reloading configuration.
+
+### Configuration Reload Safety
+
+The reload process includes automatic safety checks:
+
+- **Validation**: Configuration is validated before applying
+- **Rollback**: Previous configuration is restored if reload fails
+- **Service reinitialization**: All services are properly restarted with new settings
+
+If reload fails, you'll see an error message and the previous configuration will be restored automatically.
 
 ## Debug Mode
 

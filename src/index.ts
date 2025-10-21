@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawn } from "child_process";
 import { Config } from "./config/config";
 import { AudioRecorder } from "./services/audio-recorder";
 import { AudioProcessor } from "./services/audio-processor";
@@ -34,15 +35,16 @@ export class VoiceTranscriberApp {
 			// Load configuration
 			await this.config.loadWithSetup();
 
-			if (!this.config.openaiApiKey) {
-				return {
-					success: false,
-					error: "OpenAI API key not configured. Please add it to config.json",
-				};
-			}
-
 			// Initialize transcription service with full config
 			const transcriptionConfig = this.config.getTranscriptionConfig();
+
+			// Validate API key for the selected backend
+			if (!transcriptionConfig.apiKey) {
+				return {
+					success: false,
+					error: `API key not configured for ${transcriptionConfig.backend} backend. Please add it to config.json`,
+				};
+			}
 			this.transcriptionService = new TranscriptionService({
 				apiKey: transcriptionConfig.apiKey,
 				language: transcriptionConfig.language,
@@ -93,6 +95,8 @@ export class VoiceTranscriberApp {
 				callbacks: {
 					onRecordingStart: () => this.handleRecordingStart(),
 					onRecordingStop: () => this.handleRecordingStop(),
+					onOpenConfig: () => this.handleOpenConfig(),
+					onReload: () => this.handleReload(),
 					onQuit: () => this.handleQuit(),
 				},
 			});
@@ -166,6 +170,145 @@ export class VoiceTranscriberApp {
 		} catch (error) {
 			logger.error(`Recording stop error: ${error}`);
 			await this.systemTrayService.setState(TrayState.IDLE);
+		}
+	}
+
+	private handleOpenConfig(): void {
+		try {
+			const configPath = this.config.getConfigPath();
+			logger.info(`Opening config file: ${configPath}`);
+
+			const child = spawn("xdg-open", [configPath], {
+				detached: true,
+				stdio: "ignore",
+			});
+			child.unref();
+		} catch (error) {
+			logger.error(`Failed to open config file: ${error}`);
+		}
+	}
+
+	private async handleReload(): Promise<void> {
+		try {
+			// 1. Validate state - cannot reload during recording or processing
+			if (this.audioRecorder.isRecording()) {
+				logger.warn("Cannot reload configuration while recording");
+				return;
+			}
+
+			if (this.systemTrayService) {
+				const currentState = this.systemTrayService.getState();
+				if (currentState !== TrayState.IDLE) {
+					logger.warn(
+						`Cannot reload configuration in ${currentState} state`
+					);
+					return;
+				}
+			}
+
+			logger.info("Reloading configuration...");
+
+			// 2. Backup current config values in case of failure
+			const oldTranscriptionConfig = this.config.getTranscriptionConfig();
+			const oldFormatterConfig = this.config.getFormatterConfig();
+
+			try {
+				// 3. Reload config from file
+				await this.config.load();
+
+				// 4. Validate new config
+				const transcriptionConfig =
+					this.config.getTranscriptionConfig();
+				if (!transcriptionConfig.apiKey) {
+					throw new Error(
+						`API key not configured for ${transcriptionConfig.backend} backend`
+					);
+				}
+
+				// 5. Reinitialize services with new config
+				this.transcriptionService = new TranscriptionService({
+					apiKey: transcriptionConfig.apiKey,
+					language: transcriptionConfig.language,
+					prompt: transcriptionConfig.prompt,
+					backend: transcriptionConfig.backend,
+					model: transcriptionConfig.model,
+					speachesUrl: transcriptionConfig.speachesUrl,
+				});
+
+				const formatterConfig = this.config.getFormatterConfig();
+				this.formatterService = new FormatterService({
+					apiKey: formatterConfig.apiKey,
+					enabled: formatterConfig.enabled,
+					language: formatterConfig.language,
+					prompt: formatterConfig.prompt,
+				});
+
+				this.audioProcessor = new AudioProcessor({
+					config: this.config,
+					transcriptionService: this.transcriptionService,
+					formatterService: this.formatterService,
+					clipboardService: this.clipboardService,
+				});
+
+				// 6. Preload model if needed
+				if (
+					transcriptionConfig.backend === "speaches" ||
+					this.config.benchmarkMode
+				) {
+					logger.info(
+						`⏳ Preloading Speaches model: ${transcriptionConfig.model}...`
+					);
+					const warmupResult = await this.transcriptionService.warmup(
+						this.config.benchmarkMode
+					);
+					if (!warmupResult.success) {
+						logger.warn(
+							`⚠️  Failed to preload model: ${warmupResult.error}`
+						);
+					}
+				}
+
+				logger.info("✅ Configuration reloaded successfully");
+				logger.info(
+					`Transcription backend: ${transcriptionConfig.backend}`
+				);
+				logger.info(`Model: ${transcriptionConfig.model}`);
+				if (this.config.benchmarkMode) {
+					logger.info("🔬 Benchmark mode enabled");
+				}
+			} catch (error) {
+				// 7. Rollback on failure - restore old services
+				logger.error(`Failed to reload configuration: ${error}`);
+				logger.info("Rolling back to previous configuration...");
+
+				this.transcriptionService = new TranscriptionService({
+					apiKey: oldTranscriptionConfig.apiKey,
+					language: oldTranscriptionConfig.language,
+					prompt: oldTranscriptionConfig.prompt,
+					backend: oldTranscriptionConfig.backend,
+					model: oldTranscriptionConfig.model,
+					speachesUrl: oldTranscriptionConfig.speachesUrl,
+				});
+
+				this.formatterService = new FormatterService({
+					apiKey: oldFormatterConfig.apiKey,
+					enabled: oldFormatterConfig.enabled,
+					language: oldFormatterConfig.language,
+					prompt: oldFormatterConfig.prompt,
+				});
+
+				this.audioProcessor = new AudioProcessor({
+					config: this.config,
+					transcriptionService: this.transcriptionService,
+					formatterService: this.formatterService,
+					clipboardService: this.clipboardService,
+				});
+
+				logger.info("Previous configuration restored");
+				throw error;
+			}
+		} catch (error) {
+			logger.error(`Reload error: ${error}`);
 		}
 	}
 
