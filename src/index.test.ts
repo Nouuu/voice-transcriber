@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { VoiceTranscriberApp } from "./index";
+import { TrayState } from "./services/system-tray";
 
 describe("VoiceTranscriberApp", () => {
 	let app: VoiceTranscriberApp;
@@ -150,7 +151,7 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockTray = {
-				getState: mock().mockReturnValue("recording"),
+				getState: mock().mockReturnValue(TrayState.RECORDING),
 			};
 
 			(app as any).audioRecorder = mockRecorder;
@@ -167,7 +168,7 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockTray = {
-				getState: mock().mockReturnValue("idle"),
+				getState: mock().mockReturnValue(TrayState.IDLE),
 			};
 
 			const mockConfigLoad = mock().mockResolvedValue(undefined);
@@ -208,7 +209,7 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockTray = {
-				getState: mock().mockReturnValue("idle"),
+				getState: mock().mockReturnValue(TrayState.IDLE),
 			};
 
 			const oldTranscriptionConfig = {
@@ -253,7 +254,7 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockTray = {
-				getState: mock().mockReturnValue("idle"),
+				getState: mock().mockReturnValue(TrayState.IDLE),
 			};
 
 			const mockConfig = {
@@ -287,7 +288,7 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockTray = {
-				getState: mock().mockReturnValue("idle"),
+				getState: mock().mockReturnValue(TrayState.IDLE),
 			};
 
 			const mockConfigLoad = mock().mockResolvedValue(undefined);

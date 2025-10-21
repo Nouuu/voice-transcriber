@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { logger } from "../utils/logger";
 
 export interface TranscriptionBackendConfig {
 	backend: "openai" | "speaches";
@@ -59,6 +60,9 @@ export class Config {
 
 	public async load(): Promise<void> {
 		if (!existsSync(this.configPath)) {
+			logger.warn(
+				`Config file not found at ${this.configPath}. Using default configuration values.`
+			);
 			return;
 		}
 
