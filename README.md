@@ -20,11 +20,13 @@ Lightweight desktop voice-to-text transcription with OpenAI Whisper and system t
 ## ✨ Features
 
 - **🎯 System Tray Integration**: Click to record, visual state feedback (green=idle, red=recording, purple=processing)
+- **⚙️ Live Configuration Management**: Edit config and reload without restart - switch backends, languages, API keys on-the-fly
 - **🎙️ High-Quality Recording**: Audio capture using arecord on Linux
 - **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
 - **✍️ Text Formatting**: Optional GPT-based grammar improvement
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
 - **🏠 Self-Hosted Option**: Run 100% offline with [Speaches](https://github.com/speaches-ai/speaches) - same quality as OpenAI Whisper, zero cost, complete privacy
+- **🔄 Smart Reload**: Configuration validation with automatic rollback on errors
 
 ## 🚀 Quick Start
 
@@ -155,13 +157,17 @@ Right-click the tray icon for menu options:
 
 ```
 🎤 Voice Transcriber
+├── ⚙️ Open Config     - Open configuration in default editor
+├── 🔄 Reload Config   - Reload config without restart (idle only)
 ├── 🎙️ Start Recording - Begin voice capture
 ├── ⏹️ Stop Recording  - End recording and transcribe
 └── ❌ Exit           - Exit the application
 ```
+- When **idle** (🟢): Start/Open/Reload/Exit enabled, Stop disabled
+- When **recording** (🔴): Stop/Open/Exit enabled, Start/Reload disabled
+- When **processing** (🟣): Open/Exit enabled, Start/Stop/Reload disabled
 
-**Menu Behavior:**
-- When **idle** (🟢): "Start Recording" is enabled, "Stop Recording" is disabled
+**New: Live Configuration Management** - Edit your config file and reload without restarting the app. Perfect for testing different languages, switching backends, or updating API keys.
 - When **recording** (🔴): "Start Recording" is disabled, "Stop Recording" is enabled
 - When **processing** (🟣): Both recording options are disabled
 
@@ -319,7 +325,8 @@ make test-file FILE=src/services/system-tray.test.ts
 - OpenAI GPT formatting service (70 lines, simplified from complex)
 
 **Phase 3: System Integration** ✅
-- System tray with 3 states and recreation workaround (100 lines, simplified from 381)
+- Live configuration management with validation and rollback
+- **All 93 tests passing** with comprehensive coverage (including config management tests)
 - Cross-platform clipboard service (66 lines, simplified from 460)
 
 **Phase 4: Main Application** ✅
@@ -343,6 +350,7 @@ make test-file FILE=src/services/system-tray.test.ts
 4. ✅ **Release automation**: FIXED - Automatic changelog generation for both PRs and direct commits
 5. ✅ **Asset resolution**: FIXED - Modern import.meta.dirname-based asset paths for development and npm package compatibility
 6. ✅ **npm version workflow**: FIXED - Automated release workflow with npm version, pre-release validation, and conventional commit messages
+13. ✅ **Live Configuration Management**: FIXED - Open and reload configuration from system tray menu without restart (with validation and rollback)
 7. ✅ **Linting Migration**: FIXED - Successfully migrated from Biome to ESLint + Prettier with updated CI workflows
 8. ✅ **Mixed Language Transcription**: FIXED - Enhanced Whisper prompt to better preserve French/English mixed speech
 9. ✅ **System Tray Library**: FIXED - Migrated from systray2 to node-systray-v2 for better reliability and distribution
@@ -357,6 +365,8 @@ make test-file FILE=src/services/system-tray.test.ts
 ## 🛣️ Future Roadmap
 
 ### Phase 5: Production Ready 🚀 ✅ COMPLETED
+- ✅ **⚙️ Live Config Management**: Open and reload configuration from system tray without restart
+- ✅ **🔄 Config Validation**: Automatic validation and rollback on configuration errors
 - ✅ **🏠 User Config Directory**: Config now uses ~/.config/voice-transcriber/ with first-run setup wizard
 - ✅ **🔧 Local Installation**: Streamlined local-only Bun installation with automated setup
 - ✅ **📁 Dynamic Asset Resolution**: Modern import.meta.dirname-based asset resolution
@@ -374,6 +384,10 @@ make test-file FILE=src/services/system-tray.test.ts
 - **⏳ Long Audio Support**: Handle audio files longer than API limits
 
 ### Phase 7: User Interface & Platform 🖥️
+- **🎯 Quick Actions Menu**: Toggle features and switch modes on-the-fly without config reload
+  - ✍️ **Formatter Toggle**: Enable/disable GPT formatting instantly
+  - 🎭 **Formatter Personalities**: Quick switch between formatting styles (Professional, Technical, Creative)
+  - 🤖 **Backend Selector**: Choose between OpenAI GPT or Speaches LLM for formatting
 - **💻 CLI Interface**: Command-line interface for automation and scripting
 - **🪟 Windows Support**: Replace arecord with Windows-compatible audio recording
 - **🍎 macOS Support**: Add macOS audio recording and system tray integration
