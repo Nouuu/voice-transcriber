@@ -173,6 +173,7 @@ export class Config {
 			formatterEnabled: this.formatterEnabled,
 			transcriptionPrompt: this.transcriptionPrompt,
 			formattingPrompt: this.formattingPrompt,
+			benchmarkMode: this.benchmarkMode,
 			transcription: {
 				backend: this.transcriptionBackend,
 				openai: {

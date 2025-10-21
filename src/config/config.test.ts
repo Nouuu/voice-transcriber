@@ -1,7 +1,6 @@
-import { afterEach, describe, expect, it, mock, spyOn } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { Config } from "./config";
-import { logger } from "../utils/logger";
 
 describe("Config", () => {
 	const testConfigPath = "/tmp/test-config.json";
