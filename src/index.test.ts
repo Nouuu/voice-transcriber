@@ -280,6 +280,53 @@ describe("VoiceTranscriberApp", () => {
 			// Should not throw
 			await expect((app as any).handleReload()).resolves.toBeUndefined();
 		});
+
+		it("should handle benchmarkMode change on reload", async () => {
+			const mockRecorder = {
+				isRecording: mock().mockReturnValue(false),
+			};
+
+			const mockTray = {
+				getState: mock().mockReturnValue("idle"),
+			};
+
+			const mockConfigLoad = mock().mockResolvedValue(undefined);
+
+			const mockConfig = {
+				load: mockConfigLoad,
+				benchmarkMode: true, // Benchmark mode enabled
+				getTranscriptionConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					language: "en",
+					prompt: "test",
+					backend: "openai",
+					model: "whisper-1",
+					speachesUrl: "http://localhost:8000",
+				}),
+				getFormatterConfig: mock().mockReturnValue({
+					apiKey: "sk-test123",
+					enabled: true,
+					language: "en",
+					prompt: "test",
+				}),
+			};
+
+			(app as any).audioRecorder = mockRecorder;
+			(app as any).systemTrayService = mockTray;
+			(app as any).config = mockConfig;
+			(app as any).clipboardService = {};
+
+			await (app as any).handleReload();
+
+			// Config should have been loaded
+			expect(mockConfigLoad).toHaveBeenCalled();
+
+			// TranscriptionService should have been created with benchmark support
+			expect((app as any).transcriptionService).toBeDefined();
+
+			// AudioProcessor should have access to benchmarkMode via config
+			expect((app as any).audioProcessor).toBeDefined();
+		});
 	});
 
 	describe("workflow integration", () => {

@@ -273,6 +273,9 @@ export class VoiceTranscriberApp {
 					`Transcription backend: ${transcriptionConfig.backend}`
 				);
 				logger.info(`Model: ${transcriptionConfig.model}`);
+				if (this.config.benchmarkMode) {
+					logger.info("🔬 Benchmark mode enabled");
+				}
 			} catch (error) {
 				// 7. Rollback on failure - restore old services
 				logger.error(`Failed to reload configuration: ${error}`);
