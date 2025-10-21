@@ -1,7 +1,0 @@
-/* Minimal custom styles for Voice Transcriber Documentation */
-/* Keeping it simple to avoid conflicts with Material theme */
-
-/* Improve mermaid diagram centering */
-.mermaid {
-    text-align: center;
-}
