@@ -58,6 +58,10 @@ export class AudioProcessor {
 					? formatterEnabled
 					: this.config.formatterEnabled;
 
+			logger.debug(
+				`Formatter state: ${shouldFormat ? "enabled" : "disabled"} (runtime: ${formatterEnabled}, config: ${this.config.formatterEnabled})`
+			);
+
 			// Format text if enabled
 			if (shouldFormat) {
 				logger.info("Formatting text...");

@@ -49,11 +49,12 @@ describe("FormatterService", () => {
 					},
 				],
 				temperature: 0.3,
-				max_tokens: 1000,
+				max_completion_tokens: 1000,
 			});
 		});
 
-		it("should return original text when disabled", async () => {
+		it("should attempt formatting even when config.enabled is false (caller controls enablement)", async () => {
+			// Create service with enabled=false but inject mock so we don't call real API
 			const disabledService = new FormatterService({
 				apiKey: "test-key",
 				enabled: false,
@@ -61,11 +62,19 @@ describe("FormatterService", () => {
 				prompt: "Format this text:",
 			});
 
+			// Inject mock into the disabled instance
+			(disabledService as any).openai = mockOpenAI;
+
+			const formattedText = "Test text formatted.";
+			mockOpenAI.chat.completions.create.mockResolvedValueOnce({
+				choices: [{ message: { content: formattedText } }],
+			});
+
 			const result = await disabledService.formatText("test text");
 
 			expect(result.success).toBe(true);
-			expect(result.text).toBe("test text");
-			expect(mockOpenAI.chat.completions.create).not.toHaveBeenCalled();
+			expect(result.text).toBe(formattedText);
+			expect(mockOpenAI.chat.completions.create).toHaveBeenCalled();
 		});
 
 		it("should handle API errors", async () => {

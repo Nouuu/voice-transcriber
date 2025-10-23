@@ -178,7 +178,9 @@ interface RuntimeState {
 - [x] Créer structure dictionnaire MENU_ITEMS pour factorisation
 - [x] Corriger update-menu + update-item pour états enabled/disabled
 - [x] Ajouter méthode updateFormatterState()
-- [ ] Tests unitaires (2-3 tests) ← TODO
+- [x] Tests unitaires (3 tests) - Runtime toggle override (2025-10-23)
+- [x] Debug logging dans FormatterService (2025-10-23)
+- [x] Debug logging dans AudioProcessor pour formatter state (2025-10-23)
 
 ### Phase 2: Formatter Personalities - 2h
 - [ ] Définir les 4 personalities prédéfinies (default, professional, technical, creative)
