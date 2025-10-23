@@ -93,7 +93,7 @@ describe("AudioProcessor", () => {
 			);
 		});
 
-		it("should skip formatting when disabled", async () => {
+		it("should skip formatting when disabled in config", async () => {
 			mockConfig.formatterEnabled = false;
 
 			await audioProcessor.processAudioFile(testAudioFile);
@@ -101,6 +101,43 @@ describe("AudioProcessor", () => {
 			expect(mockFormatterService.formatText).not.toHaveBeenCalled();
 			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
 				"Test transcription"
+			);
+		});
+
+		it("should respect runtime formatterEnabled=true override", async () => {
+			mockConfig.formatterEnabled = false;
+
+			await audioProcessor.processAudioFile(testAudioFile, true);
+
+			expect(mockFormatterService.formatText).toHaveBeenCalledWith(
+				"Test transcription"
+			);
+			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
+				"Formatted text"
+			);
+		});
+
+		it("should respect runtime formatterEnabled=false override", async () => {
+			mockConfig.formatterEnabled = true;
+
+			await audioProcessor.processAudioFile(testAudioFile, false);
+
+			expect(mockFormatterService.formatText).not.toHaveBeenCalled();
+			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
+				"Test transcription"
+			);
+		});
+
+		it("should use config value when runtime override is undefined", async () => {
+			mockConfig.formatterEnabled = true;
+
+			await audioProcessor.processAudioFile(testAudioFile, undefined);
+
+			expect(mockFormatterService.formatText).toHaveBeenCalledWith(
+				"Test transcription"
+			);
+			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
+				"Formatted text"
 			);
 		});
 
