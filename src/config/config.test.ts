@@ -43,6 +43,73 @@ describe("Config", () => {
 			expect(config.openaiApiKey).toBe("");
 			expect(config.formatterEnabled).toBe(true);
 		});
+
+		it("should merge formatterPersonalities from file with defaults", async () => {
+			const testData = {
+				formatterEnabled: true,
+				formatterPersonalities: {
+					custom: {
+						name: "Custom",
+						prompt: "Custom prompt",
+					},
+				},
+				transcription: {
+					backend: "openai" as const,
+					openai: { apiKey: "k", model: "whisper-1" },
+				},
+			};
+
+			writeFileSync(testConfigPath, JSON.stringify(testData, null, 2));
+
+			const config = new Config(testConfigPath);
+			await config.load();
+
+			// The default personalities should still exist and custom should be merged
+			expect(config.formatterPersonalities.default).toBeDefined();
+			const custom = config.formatterPersonalities.custom;
+			expect(custom).toBeDefined();
+			if (custom) {
+				expect(custom.prompt).toBe("Custom prompt");
+			}
+		});
+
+		it("should load formatterPersonalityEnabled and formatterPersonality from file", async () => {
+			const testData = {
+				formatterPersonality: "creative",
+				formatterPersonalityEnabled: true,
+				transcription: {
+					backend: "openai" as const,
+					openai: { apiKey: "k", model: "whisper-1" },
+				},
+			};
+
+			writeFileSync(testConfigPath, JSON.stringify(testData, null, 2));
+
+			const config = new Config(testConfigPath);
+			await config.load();
+
+			expect(config.formatterPersonality).toBe("creative");
+			expect(config.formatterPersonalityEnabled).toBe(true);
+		});
+
+		it("should load legacy formattingPrompt from file and use it for formatter prompt", async () => {
+			const testData = {
+				formattingPrompt: "Legacy formatting prompt",
+				transcription: {
+					backend: "openai" as const,
+					openai: { apiKey: "k", model: "whisper-1" },
+				},
+			};
+
+			writeFileSync(testConfigPath, JSON.stringify(testData, null, 2));
+
+			const config = new Config(testConfigPath);
+			await config.load();
+
+			expect(config.formattingPrompt).toBe("Legacy formatting prompt");
+			const fc = config.getFormatterConfig();
+			expect(fc.prompt).toBe("Legacy formatting prompt");
+		});
 	});
 
 	describe("save", () => {
@@ -58,6 +125,31 @@ describe("Config", () => {
 			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
 			expect(savedData.transcription?.openai?.apiKey).toBe("saved-key");
 			expect(savedData.formatterEnabled).toBe(false);
+		});
+
+		it("should persist new formatter fields and selectedPersonalities", async () => {
+			const config = new Config(testConfigPath);
+			config.openaiApiKey = "saved-key";
+			config.formatterPersonality = "creative";
+			config.formatterPersonalityEnabled = true;
+			config.selectedPersonalities = ["creative", "professional"];
+
+			// add a custom personality locally so it gets saved
+			config.formatterPersonalities.custom = {
+				name: "Custom",
+				prompt: "Custom prompt",
+			};
+
+			await config.save();
+
+			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
+			expect(savedData.formatterPersonality).toBe("creative");
+			expect(savedData.formatterPersonalityEnabled).toBe(true);
+			expect(savedData.selectedPersonalities).toEqual([
+				"creative",
+				"professional",
+			]);
+			expect(savedData.formatterPersonalities.custom.name).toBe("Custom");
 		});
 	});
 
@@ -165,6 +257,28 @@ describe("Config", () => {
 				);
 			}
 		});
+
+		it("should validate speaches URL and throw on invalid URL", () => {
+			const config = new Config(testConfigPath);
+			config.transcriptionBackend = "speaches";
+			config.speachesUrl = "ftp://invalid-url"; // invalid protocol
+
+			expect(() => config.getTranscriptionConfig()).toThrow();
+		});
+
+		it("should return speaches config when speachesUrl is valid", () => {
+			const config = new Config(testConfigPath);
+			config.transcriptionBackend = "speaches";
+			config.speachesUrl = "https://speaches.example.local/v1";
+			config.speachesApiKey = "spk";
+			config.speachesModel = "custom-model";
+
+			const cfg = config.getTranscriptionConfig();
+			expect(cfg.backend).toBe("speaches");
+			expect(cfg.speachesUrl).toBe("https://speaches.example.local/v1");
+			expect(cfg.apiKey).toBe("spk");
+			expect(cfg.model).toBe("custom-model");
+		});
 	});
 
 	describe("getFormatterConfig", () => {
@@ -203,6 +317,20 @@ describe("Config", () => {
 			const formatterConfig = config.getFormatterConfig();
 
 			expect(formatterConfig.enabled).toBe(false);
+		});
+
+		it("should surface personality prompt and enabled flag", () => {
+			const config = new Config(testConfigPath);
+			config.openaiApiKey = "akey";
+			config.formatterPersonality = "emojify";
+			config.formatterPersonalityEnabled = true;
+
+			const fc = config.getFormatterConfig();
+			expect(fc.personalityName).toBe("emojify");
+			expect(fc.personalityEnabled).toBe(true);
+			expect(fc.personalityPrompt).toContain(
+				"Lightly add context-appropriate emojis"
+			);
 		});
 	});
 
