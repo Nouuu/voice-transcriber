@@ -17,11 +17,11 @@ interface RuntimeState {
 export class VoiceTranscriberApp {
 	private config: Config;
 	private audioRecorder: AudioRecorder;
-	private audioProcessor: AudioProcessor;
-	private transcriptionService: TranscriptionService;
-	private formatterService: FormatterService;
+	private audioProcessor!: AudioProcessor;
+	private transcriptionService!: TranscriptionService;
+	private formatterService!: FormatterService;
 	private clipboardService: ClipboardService;
-	private systemTrayService: SystemTrayService;
+	private systemTrayService!: SystemTrayService;
 	private runtimeState: RuntimeState;
 
 	constructor(configPath?: string) {
@@ -34,11 +34,7 @@ export class VoiceTranscriberApp {
 			formatterEnabled: true, // Default value, will be overridden by config
 		};
 
-		// These will be initialized after config loads
-		this.audioProcessor = undefined as any;
-		this.transcriptionService = undefined as any;
-		this.formatterService = undefined as any;
-		this.systemTrayService = undefined as any;
+		// These will be initialized after config loads (definite assignment used)
 	}
 
 	public async initialize(): Promise<{ success: boolean; error?: string }> {

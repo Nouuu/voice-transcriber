@@ -23,6 +23,16 @@ export interface ConfigData {
 	formattingPrompt?: string | null;
 	benchmarkMode?: boolean;
 	transcription?: TranscriptionBackendConfig;
+
+	// New fields for formatter personalities
+	formatterPersonality?: string | null;
+	formatterPersonalityEnabled?: boolean | null;
+	formatterPersonalities?: Record<
+		string,
+		{ name: string; description?: string; prompt?: string | null }
+	> | null;
+	// Persisted ordered selection of personalities
+	selectedPersonalities?: string[] | null;
 }
 
 export class Config {
@@ -32,13 +42,50 @@ export class Config {
 	public formattingPrompt: string | null = null;
 	public benchmarkMode: boolean = false;
 
-	// Transcription backend configuration
+	// Restore transcription backend fields that were accidentally removed
 	public transcriptionBackend: "openai" | "speaches" = "openai";
 	public openaiApiKey: string = "";
 	public openaiModel: string = "whisper-1";
 	public speachesUrl: string = "http://localhost:8000/v1";
 	public speachesApiKey: string = "none";
 	public speachesModel: string = "Systran/faster-whisper-base";
+
+	// New formatter personality settings
+	public formatterPersonality: string = "default";
+	public formatterPersonalityEnabled: boolean = false;
+	public formatterPersonalities: Record<
+		string,
+		{ name: string; description?: string; prompt?: string | null }
+	> = {
+		default: {
+			name: "Default",
+			description: "Minimal formatting - Fix grammar only",
+			prompt: "Format the text with correct grammar and punctuation. Do not translate the text; keep it in the original language.",
+		},
+		professional: {
+			name: "Professional",
+			description: "Business communication style",
+			prompt: "Format as professional business communication. Use formal tone, clear structure, and proper punctuation. Suitable for emails and reports. Do not translate the text; keep it in the original language.",
+		},
+		technical: {
+			name: "Technical",
+			description: "Technical documentation style",
+			prompt: "Format for technical documentation. Preserve technical terms, code references, and precision. Use clear, concise language. Do not translate the text; keep it in the original language.",
+		},
+		creative: {
+			name: "Creative",
+			description: "Expressive and natural style",
+			prompt: "Format naturally with expressive language. Maintain personality and tone. Make it engaging and conversational. Do not translate the text; keep it in the original language.",
+		},
+		emojify: {
+			name: "Emojify",
+			description: "Lightly add a few emojis to convey tone (max 3).",
+			prompt: "Lightly add context-appropriate emojis to the text, adapting the number to the text length: for very short texts (<40 characters) add at most 1 emoji; for medium texts (40–120 characters) add up to 2 emojis; for long texts (>120 characters) add up to 3 emojis. Do not add more than 3 emojis in total. Keep the original wording and meaning intact, do not translate the text; keep it in the original language. Return only the final text with emojis added inline where appropriate.",
+		},
+	};
+
+	// Ordered list of selected personalities (runtime selection or persisted if user saves)
+	public selectedPersonalities: string[] = [];
 
 	private readonly configPath: string;
 
@@ -75,6 +122,39 @@ export class Config {
 			this.transcriptionPrompt = data.transcriptionPrompt ?? null;
 			this.formattingPrompt = data.formattingPrompt ?? null;
 			this.benchmarkMode = data.benchmarkMode ?? false;
+
+			// If user provided a legacy formattingPrompt, ensure it populates the default personality prompt
+			if (
+				this.formattingPrompt &&
+				!this.formatterPersonalities?.["default"]?.prompt
+			) {
+				// Ensure the default personality entry exists
+				if (!this.formatterPersonalities["default"]) {
+					this.formatterPersonalities["default"] = {
+						name: "Default",
+						description: "Minimal formatting - Fix grammar only",
+						prompt: null,
+					};
+				}
+
+				this.formatterPersonalities["default"].prompt =
+					`${this.formattingPrompt}. Do not translate the text; keep it in the original language.`;
+			}
+
+			// Load new personality fields if present
+			if (data.formatterPersonality) {
+				this.formatterPersonality = data.formatterPersonality;
+			}
+			if (typeof data.formatterPersonalityEnabled === "boolean") {
+				this.formatterPersonalityEnabled =
+					data.formatterPersonalityEnabled;
+			}
+			if (data.formatterPersonalities) {
+				this.formatterPersonalities = {
+					...this.formatterPersonalities,
+					...data.formatterPersonalities,
+				};
+			}
 
 			// Load transcription backend config
 			if (data.transcription) {
@@ -186,6 +266,12 @@ export class Config {
 					model: this.speachesModel,
 				},
 			},
+
+			// new fields
+			formatterPersonality: this.formatterPersonality,
+			formatterPersonalityEnabled: this.formatterPersonalityEnabled,
+			formatterPersonalities: this.formatterPersonalities,
+			selectedPersonalities: this.selectedPersonalities,
 		};
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));
 	}
@@ -288,7 +374,19 @@ export class Config {
 		enabled: boolean;
 		language: string;
 		prompt: string;
+		personalityName: string | null;
+		personalityPrompt: string | null;
+		personalityEnabled: boolean;
+		selectedPersonalities: string[];
+		personalities: Record<
+			string,
+			{ name: string; description?: string; prompt?: string | null }
+		>;
 	} {
+		const personalityPrompt =
+			this.formatterPersonalities[this.formatterPersonality]?.prompt ||
+			null;
+
 		return {
 			apiKey: this.openaiApiKey,
 			enabled: this.formatterEnabled,
@@ -296,6 +394,11 @@ export class Config {
 			prompt:
 				this.formattingPrompt ||
 				this.buildFormattingPrompt(this.language),
+			personalityName: this.formatterPersonality || null,
+			personalityPrompt,
+			personalityEnabled: this.formatterPersonalityEnabled,
+			selectedPersonalities: this.selectedPersonalities,
+			personalities: this.formatterPersonalities,
 		};
 	}
 }
