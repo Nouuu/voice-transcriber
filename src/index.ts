@@ -9,6 +9,11 @@ import { SystemTrayService, TrayState } from "./services/system-tray";
 import { TranscriptionService } from "./services/transcription";
 import { logger, LogLevel } from "./utils/logger";
 
+// Runtime state for quick actions (not persisted to config file)
+interface RuntimeState {
+	formatterEnabled: boolean;
+}
+
 export class VoiceTranscriberApp {
 	private config: Config;
 	private audioRecorder: AudioRecorder;
@@ -17,23 +22,32 @@ export class VoiceTranscriberApp {
 	private formatterService: FormatterService;
 	private clipboardService: ClipboardService;
 	private systemTrayService: SystemTrayService;
+	private runtimeState: RuntimeState;
 
 	constructor(configPath?: string) {
 		this.config = new Config(configPath);
 		this.audioRecorder = new AudioRecorder();
 		this.clipboardService = new ClipboardService();
 
+		// Initialize runtime state (will be synced with config during load)
+		this.runtimeState = {
+			formatterEnabled: true, // Default value, will be overridden by config
+		};
+
 		// These will be initialized after config loads
-		this.audioProcessor = null as any;
-		this.transcriptionService = null as any;
-		this.formatterService = null as any;
-		this.systemTrayService = null as any;
+		this.audioProcessor = undefined as any;
+		this.transcriptionService = undefined as any;
+		this.formatterService = undefined as any;
+		this.systemTrayService = undefined as any;
 	}
 
 	public async initialize(): Promise<{ success: boolean; error?: string }> {
 		try {
 			// Load configuration
 			await this.config.loadWithSetup();
+
+			// Sync runtime state with config
+			this.runtimeState.formatterEnabled = this.config.formatterEnabled;
 
 			// Initialize transcription service with full config
 			const transcriptionConfig = this.config.getTranscriptionConfig();
@@ -95,10 +109,12 @@ export class VoiceTranscriberApp {
 				callbacks: {
 					onRecordingStart: () => this.handleRecordingStart(),
 					onRecordingStop: () => this.handleRecordingStop(),
+					onFormatterToggle: () => this.handleFormatterToggle(),
 					onOpenConfig: () => this.handleOpenConfig(),
 					onReload: () => this.handleReload(),
 					onQuit: () => this.handleQuit(),
 				},
+				formatterEnabled: this.runtimeState.formatterEnabled,
 			});
 
 			const trayResult = await this.systemTrayService.initialize();
@@ -163,13 +179,35 @@ export class VoiceTranscriberApp {
 			if (this.config.benchmarkMode) {
 				await this.audioProcessor.processBenchmark(stopResult.filePath);
 			} else {
-				await this.audioProcessor.processAudioFile(stopResult.filePath);
+				await this.audioProcessor.processAudioFile(
+					stopResult.filePath,
+					this.runtimeState.formatterEnabled
+				);
 			}
 
 			await this.systemTrayService.setState(TrayState.IDLE);
 		} catch (error) {
 			logger.error(`Recording stop error: ${error}`);
 			await this.systemTrayService.setState(TrayState.IDLE);
+		}
+	}
+
+	private handleFormatterToggle(): void {
+		try {
+			// Toggle runtime state
+			this.runtimeState.formatterEnabled =
+				!this.runtimeState.formatterEnabled;
+
+			// Update system tray to reflect new state
+			this.systemTrayService.updateFormatterState(
+				this.runtimeState.formatterEnabled
+			);
+
+			logger.info(
+				`Formatter ${this.runtimeState.formatterEnabled ? "enabled" : "disabled"}`
+			);
+		} catch (error) {
+			logger.error(`Failed to toggle formatter: ${error}`);
 		}
 	}
 
@@ -276,6 +314,13 @@ export class VoiceTranscriberApp {
 				if (this.config.benchmarkMode) {
 					logger.info("🔬 Benchmark mode enabled");
 				}
+
+				// Sync runtime state with reloaded config
+				this.runtimeState.formatterEnabled =
+					this.config.formatterEnabled;
+				this.systemTrayService.updateFormatterState(
+					this.runtimeState.formatterEnabled
+				);
 			} catch (error) {
 				// 7. Rollback on failure - restore old services
 				logger.error(`Failed to reload configuration: ${error}`);

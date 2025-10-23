@@ -32,7 +32,10 @@ export class AudioProcessor {
 	/**
 	 * Process audio file: transcribe, format (optional), and copy to clipboard
 	 */
-	async processAudioFile(filePath: string): Promise<void> {
+	async processAudioFile(
+		filePath: string,
+		formatterEnabled?: boolean
+	): Promise<void> {
 		try {
 			logger.info("Transcribing audio...");
 
@@ -49,8 +52,14 @@ export class AudioProcessor {
 			let finalText = transcriptionResult.text;
 			logger.info(`Transcription result: ${finalText}`);
 
+			// Use runtime state if provided, otherwise fall back to config
+			const shouldFormat =
+				formatterEnabled !== undefined
+					? formatterEnabled
+					: this.config.formatterEnabled;
+
 			// Format text if enabled
-			if (this.config.formatterEnabled) {
+			if (shouldFormat) {
 				logger.info("Formatting text...");
 				const formatResult =
 					await this.formatterService.formatText(finalText);

@@ -10,10 +10,12 @@ export interface TrayConfig {
 	callbacks: {
 		onRecordingStart: () => void;
 		onRecordingStop: () => void;
+		onFormatterToggle: () => void;
 		onOpenConfig: () => void;
 		onReload: () => Promise<void>;
 		onQuit: () => void;
 	};
+	formatterEnabled: boolean;
 }
 
 export interface TrayResult {
@@ -30,14 +32,70 @@ const iconsBase64 = {
 		"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",
 };
 
+// Menu Items Configuration Dictionary
+// Single source of truth for all menu items
+interface MenuItemConfig {
+	seq_id: number;
+	title: string;
+	getTooltip: (state: TrayState, formatterEnabled?: boolean) => string;
+	getEnabled: (state: TrayState) => boolean;
+	getChecked?: (formatterEnabled: boolean) => boolean;
+}
+
+const MENU_ITEMS: Record<string, MenuItemConfig> = {
+	START_RECORDING: {
+		seq_id: 0,
+		title: "🎤 Start Recording",
+		getTooltip: () => "Start voice recording",
+		getEnabled: state => state !== TrayState.RECORDING,
+	},
+	STOP_RECORDING: {
+		seq_id: 1,
+		title: "⏹️ Stop Recording",
+		getTooltip: () => "Stop voice recording",
+		getEnabled: state => state === TrayState.RECORDING,
+	},
+	FORMATTER_TOGGLE: {
+		seq_id: 2,
+		title: "Enable Formatter", // Will be prefixed with ✅/⬜ dynamically
+		getTooltip: (_state, formatterEnabled) =>
+			`Toggle text formatting (currently ${formatterEnabled ? "enabled" : "disabled"})`,
+		getEnabled: () => true,
+		getChecked: formatterEnabled => formatterEnabled,
+	},
+	OPEN_CONFIG: {
+		seq_id: 3,
+		title: "⚙️ Open Config",
+		getTooltip: () => "Open configuration file",
+		getEnabled: () => true,
+	},
+	RELOAD_CONFIG: {
+		seq_id: 4,
+		title: "🔄 Reload Config",
+		getTooltip: state =>
+			state === TrayState.IDLE
+				? "Reload configuration"
+				: "Reload configuration (disabled while recording/processing)",
+		getEnabled: state => state === TrayState.IDLE,
+	},
+	EXIT: {
+		seq_id: 5,
+		title: "❌ Exit",
+		getTooltip: () => "Quit application",
+		getEnabled: () => true,
+	},
+};
+
 export class SystemTrayService {
 	private systray: SysTray | null = null;
+	private formatterEnabled: boolean;
 	private currentState: TrayState = TrayState.IDLE;
 	private callbacks: TrayConfig["callbacks"];
 	private readonly SysTrayConstructor: typeof SysTray;
 
 	constructor(config: TrayConfig, systrayConstructor?: typeof SysTray) {
 		this.callbacks = config.callbacks;
+		this.formatterEnabled = config.formatterEnabled;
 		this.SysTrayConstructor = systrayConstructor || SysTray;
 	}
 
@@ -49,38 +107,7 @@ export class SystemTrayService {
 					icon: this.getIconBase64(TrayState.IDLE),
 					title: "Voice Transcriber",
 					tooltip: "Voice Transcriber - Click to record",
-					items: [
-						{
-							title: "🎤 Start Recording",
-							tooltip: "Start voice recording",
-							checked: false,
-							enabled: true,
-						},
-						{
-							title: "⏹️ Stop Recording",
-							tooltip: "Stop voice recording",
-							checked: false,
-							enabled: false, // Disabled initially
-						},
-						{
-							title: "⚙️ Open Config",
-							tooltip: "Open configuration file",
-							checked: false,
-							enabled: true,
-						},
-						{
-							title: "🔄 Reload Config",
-							tooltip: "Reload configuration",
-							checked: false,
-							enabled: true, // Enabled in IDLE state
-						},
-						{
-							title: "❌ Exit",
-							tooltip: "Exit application",
-							checked: false,
-							enabled: true,
-						},
-					],
+					items: this.buildMenuItems(TrayState.IDLE),
 				},
 				debug: false,
 				copyDir: true, // Utile pour packaging
@@ -90,7 +117,7 @@ export class SystemTrayService {
 			systray.onClick(action => {
 				console.log(`Menu item clicked:`, action.item.title);
 
-				// Route based on seq_id (0=start, 1=stop, 2=open config, 3=reload, 4=quit)
+				// Route based on seq_id (0=start, 1=stop, 2=formatter toggle, 3=open config, 4=reload, 5=quit)
 				switch (action.seq_id) {
 					case 0:
 						console.log("Start Recording clicked");
@@ -101,14 +128,18 @@ export class SystemTrayService {
 						this.callbacks.onRecordingStop();
 						break;
 					case 2:
+						console.log("Formatter Toggle clicked");
+						this.callbacks.onFormatterToggle();
+						break;
+					case 3:
 						console.log("Open Config clicked");
 						this.callbacks.onOpenConfig();
 						break;
-					case 3:
+					case 4:
 						console.log("Reload Config clicked");
 						this.callbacks.onReload();
 						break;
-					case 4:
+					case 5:
 						console.log("Exit clicked");
 						this.callbacks.onQuit();
 						break;
@@ -147,6 +178,22 @@ export class SystemTrayService {
 		return tooltips[state];
 	}
 
+	private buildMenuItems(state: TrayState) {
+		return Object.values(MENU_ITEMS).map(config => {
+			return {
+				title:
+					config.seq_id === 2
+						? `${this.formatterEnabled ? "✅" : "⬜"} ${config.title}`
+						: config.title,
+				tooltip: config.getTooltip(state, this.formatterEnabled),
+				checked: config.getChecked
+					? config.getChecked(this.formatterEnabled)
+					: false,
+				enabled: config.getEnabled(state),
+			};
+		});
+	}
+
 	public async setState(state: TrayState): Promise<TrayResult> {
 		try {
 			const oldState = this.currentState;
@@ -158,119 +205,39 @@ export class SystemTrayService {
 				return { success: false, error: "System tray not initialized" };
 			}
 
-			// Update icon using menu update
+			// Step 1: Update entire menu (icon + items)
 			this.systray.sendAction({
 				type: "update-menu",
 				menu: {
 					icon: this.getIconBase64(state),
 					title: "Voice Transcriber",
 					tooltip: this.getTooltip(state),
-					items: [
-						{
-							title: "🎤 Start Recording",
-							tooltip: "Start voice recording",
-							checked: false,
-							enabled: state !== TrayState.RECORDING,
-						},
-						{
-							title: "⏹️ Stop Recording",
-							tooltip: "Stop voice recording",
-							checked: false,
-							enabled: state === TrayState.RECORDING,
-						},
-						{
-							title: "⚙️ Open Config",
-							tooltip: "Open configuration file",
-							checked: false,
-							enabled: true,
-						},
-						{
-							title: "🔄 Reload Config",
-							tooltip: "Reload configuration",
-							checked: false,
-							enabled: state === TrayState.IDLE,
-						},
-						{
-							title: "❌ Exit",
-							tooltip: "Exit application",
-							checked: false,
-							enabled: true,
-						},
-					],
+					items: this.buildMenuItems(state),
 				},
 				seq_id: 0,
 			});
 
-			// Also update individual items to ensure state consistency
-			if (state === TrayState.RECORDING) {
-				// Disable Start, Enable Stop, Disable Reload
-				this.systray.sendAction({
+			// Step 2: Update individual items to ensure state consistency
+			// This fixes the issue where update-menu alone doesn't update enabled states
+			Object.values(MENU_ITEMS).forEach(config => {
+				const item = {
+					title:
+						config.seq_id === 2
+							? `${this.formatterEnabled ? "✅" : "⬜"} ${config.title}`
+							: config.title,
+					tooltip: config.getTooltip(state, this.formatterEnabled),
+					checked: config.getChecked
+						? config.getChecked(this.formatterEnabled)
+						: false,
+					enabled: config.getEnabled(state),
+				};
+
+				this.systray?.sendAction({
 					type: "update-item",
-					item: {
-						title: "🎤 Start Recording",
-						tooltip: "Start voice recording",
-						checked: false,
-						enabled: false,
-					},
-					seq_id: 0,
+					item,
+					seq_id: config.seq_id,
 				});
-				this.systray.sendAction({
-					type: "update-item",
-					item: {
-						title: "⏹️ Stop Recording",
-						tooltip: "Stop voice recording",
-						checked: false,
-						enabled: true,
-					},
-					seq_id: 1,
-				});
-				this.systray.sendAction({
-					type: "update-item",
-					item: {
-						title: "🔄 Reload Config",
-						tooltip:
-							"Reload configuration (disabled while recording)",
-						checked: false,
-						enabled: false,
-					},
-					seq_id: 3,
-				});
-			} else {
-				// Enable Start, Disable Stop, Enable Reload (if IDLE)
-				this.systray.sendAction({
-					type: "update-item",
-					item: {
-						title: "🎤 Start Recording",
-						tooltip: "Start voice recording",
-						checked: false,
-						enabled: true,
-					},
-					seq_id: 0,
-				});
-				this.systray.sendAction({
-					type: "update-item",
-					item: {
-						title: "⏹️ Stop Recording",
-						tooltip: "Stop voice recording",
-						checked: false,
-						enabled: false,
-					},
-					seq_id: 1,
-				});
-				this.systray.sendAction({
-					type: "update-item",
-					item: {
-						title: "🔄 Reload Config",
-						tooltip:
-							state === TrayState.IDLE
-								? "Reload configuration"
-								: "Reload configuration (disabled while processing)",
-						checked: false,
-						enabled: state === TrayState.IDLE,
-					},
-					seq_id: 3,
-				});
-			}
+			});
 
 			console.log(`Tray icon updated to state: ${state}`);
 			return { success: true };
@@ -283,11 +250,17 @@ export class SystemTrayService {
 	public async shutdown(): Promise<TrayResult> {
 		try {
 			if (this.systray) {
-				this.systray.kill(); // node-systray-v2 kill() takes no parameters
+				this.systray.kill();
 			}
 			return { success: true };
 		} catch (error) {
 			return { success: false, error: `Failed to shutdown: ${error}` };
 		}
+	}
+
+	public updateFormatterState(enabled: boolean): void {
+		this.formatterEnabled = enabled;
+		// Force menu refresh with current state
+		this.setState(this.currentState);
 	}
 }
