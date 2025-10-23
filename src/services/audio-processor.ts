@@ -30,9 +30,12 @@ export class AudioProcessor {
 	}
 
 	/**
-	 * Process audio file: transcribe, format (optional), and copy to clipboard
+	 * Process audio file: transcribe, format (optional with multiple personalities), and copy to clipboard
 	 */
-	async processAudioFile(filePath: string): Promise<void> {
+	async processAudioFile(
+		filePath: string,
+		activePersonalities?: string[]
+	): Promise<void> {
 		try {
 			logger.info("Transcribing audio...");
 
@@ -49,19 +52,36 @@ export class AudioProcessor {
 			let finalText = transcriptionResult.text;
 			logger.info(`Transcription result: ${finalText}`);
 
-			// Format text if enabled
-			if (this.config.formatterEnabled) {
-				logger.info("Formatting text...");
-				const formatResult =
-					await this.formatterService.formatText(finalText);
-				if (formatResult.success && formatResult.text) {
-					finalText = formatResult.text;
-				} else {
-					logger.warn(
-						`Formatting failed: ${formatResult.error || "Unknown error"}`
+			// Format text if at least one personality is active
+			if (activePersonalities && activePersonalities.length > 0) {
+				logger.info(
+					`Formatting text with personalities: ${activePersonalities.join(", ")}`
+				);
+
+				// Apply each personality sequentially
+				for (const personality of activePersonalities) {
+					logger.debug(`Applying personality: ${personality}`);
+					const formatOptions = {
+						promptOverride:
+							this.formatterService.getPersonalityPrompt(
+								personality
+							),
+					};
+
+					const formatResult = await this.formatterService.formatText(
+						finalText,
+						formatOptions
 					);
-					logger.warn("Using unformatted transcription");
+					if (formatResult.success && formatResult.text) {
+						finalText = formatResult.text;
+					} else {
+						logger.warn(
+							`Formatting with ${personality} failed: ${formatResult.error || "Unknown error"}`
+						);
+					}
 				}
+			} else {
+				logger.debug("No active personalities, skipping formatting");
 			}
 
 			// Copy to clipboard

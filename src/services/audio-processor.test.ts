@@ -21,7 +21,6 @@ describe("AudioProcessor", () => {
 
 		// Mock config
 		mockConfig = {
-			formatterEnabled: true,
 			benchmarkMode: false,
 			speachesModel: "Systran/faster-whisper-base",
 			speachesUrl: "http://localhost:8000/v1",
@@ -53,6 +52,7 @@ describe("AudioProcessor", () => {
 					text: "Formatted text",
 				})
 			),
+			getPersonalityPrompt: mock(() => "test prompt"),
 		} as any;
 
 		mockClipboardService = {
@@ -80,23 +80,33 @@ describe("AudioProcessor", () => {
 
 	describe("processAudioFile", () => {
 		it("should transcribe, format, and copy to clipboard", async () => {
-			await audioProcessor.processAudioFile(testAudioFile);
+			await audioProcessor.processAudioFile(testAudioFile, [
+				"builtin:default",
+			]);
 
 			expect(mockTranscriptionService.transcribe).toHaveBeenCalledWith(
 				testAudioFile
 			);
 			expect(mockFormatterService.formatText).toHaveBeenCalledWith(
-				"Test transcription"
+				"Test transcription",
+				{ promptOverride: "test prompt" }
 			);
 			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
 				"Formatted text"
 			);
 		});
 
-		it("should skip formatting when disabled", async () => {
-			mockConfig.formatterEnabled = false;
-
+		it("should skip formatting when no personalities parameter passed", async () => {
 			await audioProcessor.processAudioFile(testAudioFile);
+
+			expect(mockFormatterService.formatText).not.toHaveBeenCalled();
+			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
+				"Test transcription"
+			);
+		});
+
+		it("should skip formatting when empty personalities array passed", async () => {
+			await audioProcessor.processAudioFile(testAudioFile, []);
 
 			expect(mockFormatterService.formatText).not.toHaveBeenCalled();
 			expect(mockClipboardService.writeText).toHaveBeenCalledWith(
