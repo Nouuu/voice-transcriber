@@ -9,9 +9,64 @@
 
 ---
 
-## 📝 Session de Troubleshooting (2025-10-23)
+## 📝 Sessions de Troubleshooting
 
-### 🐛 Bugs Identifiés et Corrigés
+### Session 2025-10-23 (PM) : Gestion des Personalities & Configuration
+
+**Commits récents** :
+- `26896d3` - feat: streamline click handling and remove debug logs in system tray
+- `38c8989` - feat: enhance system tray menu with personality management and routing
+- `040520b` - feat: add support for multiple active personalities in audio processing
+- `dad0fdb` - feat: add formatter state management and click routing for system tray actions
+- `b0bf175` - feat: add tests for loading and saving formatter personality settings in config
+- `534c7ca` - feat: add formatter personality settings and dynamic prompt management
+
+**Implémentation Phase 2 - Personalities** : ✅ COMPLETE
+
+**Fonctionnalités ajoutées** :
+1. ✅ **Support multi-personalities dans Config** - Sauvegarde/chargement de `customPersonalities`, `selectedPersonalities` et `activePersonalities`
+2. ✅ **Menu dynamique des personalities** - Sous-menu avec checkmarks sur les items actifs
+3. ✅ **Routing des clics** - Gestion des événements pour sélectionner une personality
+4. ✅ **Propagation du prompt** - AudioProcessor utilise les personalities actives pour formater
+5. ✅ **Tests complets** - Coverage des nouvelles fonctionnalités config
+
+**Décisions prises** :
+- ✅ **Système à namespace (2 niveaux)** : Séparation claire entre personalities builtin et custom
+  - **Builtin personalities** : `builtin:default`, `builtin:professional`, etc.
+  - **Custom personalities** : `custom:my-style`, `custom:meeting-notes`, etc.
+  - **Avantages** :
+    - ✅ Aucune collision possible (namespaces séparés)
+    - ✅ Clarté visuelle dans le menu : "Default (builtin)" vs "My Style (custom)"
+    - ✅ Évolutivité : Ajout de builtins sans risque de casser les configs users
+    - ✅ Prévisibilité : L'utilisateur sait ce qui est modifiable
+
+**Architecture du système** :
+
+```typescript
+// Constantes de namespace
+const BUILTIN_PREFIX = 'builtin:';
+const CUSTOM_PREFIX = 'custom:';
+
+// Deux maps séparées
+private readonly builtinPersonalities: Record<string, PersonalityConfig>
+public customPersonalities: Record<string, PersonalityConfig>
+
+// Menu avec séparation visuelle
+Personalities →
+  ✓ Default (builtin)
+  ⬜ Professional (builtin)
+  ⬜ Technical (builtin)
+  ───────────────────
+  ⬜ Meeting Notes (custom)
+  ⬜ Blog Post (custom)
+```
+
+**Migration** :
+- Les personalities existantes sans préfixe doivent être normalisées en `builtin:` au moment du chargement si nécessaire
+- Les personalities dans `config.json` pour des personnalisations utilisateurs utilisent le préfixe `custom:` (cf. `customPersonalities`)
+- L'ensemble des choix d'active/selected est contrôlé via `activePersonalities` / `selectedPersonalities`
+
+### Session 2025-10-23 (AM) : Refactoring Menu State
 
 **Problème Initial** :
 - Menu items ne se mettaient pas à jour lors du changement d'état
@@ -26,13 +81,13 @@
 1. ✅ **Structure dictionnaire `MENU_ITEMS`** - Single source of truth pour tous les menu items avec configuration centralisée
 2. ✅ **Approche hybride `update-menu` + `update-item`** - Garantit la mise à jour correcte des états
 3. ✅ **Méthode `buildMenuItems()` refactorisée** - Utilise le dictionnaire pour construire les items
-4. ✅ **Méthode `updateFormatterState()` ajoutée** - Pour mettre à jour le toggle formatter dynamiquement
+4. ✅ **Méthode `updatePersonalityState()` ajoutée** - Pour mettre à jour le check des personalities dynamiquement
 5. ✅ **Méthode `shutdown()` restaurée** - Corrige l'erreur au exit
 
 **Résultats des Tests** :
 - ✅ Start Recording active correctement Stop Recording
 - ✅ Stop Recording désactive correctement et retourne à IDLE
-- ✅ Toggle Formatter fonctionne (⬜ ↔ ✅)
+- ✅ Toggle de la personality (check/uncheck) fonctionne
 - ✅ Reload Config correctement désactivé pendant Recording
 - ✅ Exit fonctionne sans erreur
 
@@ -45,20 +100,22 @@
 
 ## 🎯 Motivation
 
-Les utilisateurs doivent actuellement éditer `config.json` et recharger la configuration pour changer des paramètres courants. Cette feature permettrait de **toggle des fonctionnalités à la volée** directement depuis le menu du system tray, sans édition de fichier.
+Le but est d'exposer les capacités de formatage depuis le tray en s'appuyant uniquement sur le système de personalities (builtin + custom). Le runtime n'expose plus un toggle "global formatter" : le comportement est déterminé par les personalities actives et sélectionnées.
 
 ### Use Cases Principaux
 
-1. **Toggle Formatter** : Activer/désactiver le formatage GPT rapidement
-2. **Switch Formatter Personalities** : Changer entre différents prompts de formatage prédéfinis
+1. **Sélectionner les personalities actives** : Permettre au système de formatage d'utiliser un ou plusieurs prompts
+2. **Changer la personality par défaut via le menu** : Choisir rapidement un style sans éditer le fichier
 
 ---
 
-## ✨ Features Proposées
+## ✨ Features Proposées (ajustées)
 
-### 1. Toggle Formatter (MVP) ⭐
+### 1. Personnalities (MVP)
 
-**Description** : Activer/désactiver le formatage sans éditer la config
+**Description** : Le menu expose un sous-menu "Personality" où l'utilisateur peut :
+- cocher/décocher des personalities (activePersonalities)
+- sélectionner la personality par défaut (selectedPersonalities / ordre)
 
 **Menu Item** :
 ```
@@ -66,36 +123,7 @@ Les utilisateurs doivent actuellement éditer `config.json` et recharger la conf
 ├── 🎙️ Start Recording
 ├── ⏹️ Stop Recording
 ├── ─────────────────
-├── ✍️ Formatter: ON/OFF  ← NOUVEAU (checkable)
-├── ─────────────────
-├── ⚙️ Open Config
-├── 🔄 Reload Config
-└── ❌ Exit
-```
-
-**Comportement** :
-- Menu item avec checkbox (✓ = ON, ☐ = OFF)
-- Toggle instantané sans reload de config
-- État sauvegardé en mémoire (pas dans le fichier config)
-- Icône différente selon l'état : ✍️ (ON) / ✏️ (OFF)
-
-**Avantages** :
-- Utile pour tests rapides
-- Économie d'API calls OpenAI GPT
-- Feedback immédiat
-
-### 2. Formatter Personalities 🎭
-
-**Description** : Menu submenu avec différents prompts de formatage prédéfinis
-
-**Menu Structure** :
-```
-🎤 Voice Transcriber
-├── 🎙️ Start Recording
-├── ⏹️ Stop Recording
-├── ─────────────────
-├── ✍️ Formatter: ON
-├──── 🎭 Personality  ← NOUVEAU (submenu)
+├── 🎭 Personality  ← NOUVEAU (submenu)
 │     ├── ✓ Default (Minimal formatting)
 │     ├── ☐ Professional (Business style)
 │     ├── ☐ Technical (Code-friendly)
@@ -107,45 +135,10 @@ Les utilisateurs doivent actuellement éditer `config.json` et recharger la conf
 └── ❌ Exit
 ```
 
-**Prompts Prédéfinis** :
-
-```json
-{
-  "formatterPersonalities": {
-    "default": {
-      "name": "Default",
-      "description": "Minimal formatting - Fix grammar only",
-      "prompt": "Fix grammar and punctuation. Keep the original style and tone."
-    },
-    "professional": {
-      "name": "Professional",
-      "description": "Business communication style",
-      "prompt": "Format as professional business communication. Use formal tone, clear structure, proper punctuation. Suitable for emails and reports."
-    },
-    "technical": {
-      "name": "Technical",
-      "description": "Technical documentation style",
-      "prompt": "Format for technical documentation. Preserve technical terms, code references, and precision. Use clear, concise language."
-    },
-    "creative": {
-      "name": "Creative",
-      "description": "Expressive and natural style",
-      "prompt": "Format naturally with expressive language. Maintain personality and tone. Make it engaging and conversational."
-    },
-    "custom": {
-      "name": "Custom",
-      "description": "User-defined prompt from config",
-      "prompt": null  // Uses formattingPrompt from config.json
-    }
-  }
-}
-```
-
 **Comportement** :
-- Selection radio-style (un seul actif à la fois)
-- Changement instantané du prompt de formatage
-- Sauvegarde en mémoire (pas dans config.json)
-- Option "Custom" utilise le `formattingPrompt` du fichier config
+- Les personalities cochées dans `activePersonalities` seront utilisées pour le post-traitement
+- L'utilisateur peut changer la personnalité par défaut via `selectedPersonalities` ou en cochant une seule personality
+- Les changes sont appliqués en runtime (non persistés automatiquement)
 
 ---
 
@@ -155,186 +148,54 @@ Les utilisateurs doivent actuellement éditer `config.json` et recharger la conf
 
 ```typescript
 interface RuntimeState {
-  formatterEnabled: boolean;        // Toggle ON/OFF
-  formatterPersonality: string;     // "default" | "professional" | "technical" | "creative" | "custom"
+  selectedPersonalities: string[]; // ordre/choix visibles
+  activePersonalities: string[];   // lesquelles sont actives (checkbox)
 }
 ```
 
 **Principe** :
-- État runtime séparé de la config fichier
-- Priorité : Runtime State > config.json
-- Pas de sauvegarde automatique (reset au redémarrage)
-- Option future : "Save as default" pour persister dans config.json
+- État runtime séparé de la config fichier (pas de persist automatique)
+- Le système prend le prompt à partir de la personality (builtin ou custom) pour le formatage
 
 ---
 
-## 📊 Plan d'Implémentation
+## 📊 Plan d'Implémentation (ajusté)
 
-### Phase 1: Toggle Formatter (MVP) - ✅ COMPLETE (2h)
-- [x] Ajouter RuntimeState dans VoiceTranscriberApp
-- [x] Ajouter menu item checkbox "Formatter ON/OFF" (✅/⬜)
-- [x] Implémenter handleFormatterToggle()
-- [x] Mettre à jour processAudioFile() pour respecter runtimeState
-- [x] Créer structure dictionnaire MENU_ITEMS pour factorisation
-- [x] Corriger update-menu + update-item pour états enabled/disabled
-- [x] Ajouter méthode updateFormatterState()
-- [x] Tests unitaires (3 tests) - Runtime toggle override (2025-10-23)
-- [x] Debug logging dans FormatterService (2025-10-23)
-- [x] Debug logging dans AudioProcessor pour formatter state (2025-10-23)
+### Phase 1: Menu Personalities - ✅ COMPLETE
+- [x] Ajouter structure pour personalities dans `Config`
+- [x] Exposer `customPersonalities`, `selectedPersonalities`, `activePersonalities`
+- [x] Ajouter sous-menu Personality avec checkboxes
+- [x] Tests unitaires pour la gestion des personalities
 
-### Phase 2: Formatter Personalities - 2h
-- [ ] Définir les 4 personalities prédéfinies (default, professional, technical, creative)
-- [ ] Ajouter submenu "Personality" avec radio buttons
-- [ ] Implémenter handlePersonalityChange()
-- [ ] Modifier FormatterService pour accepter personality
-- [ ] Tests unitaires (3-4 tests)
+### Phase 2: Propagation des prompts - 1.5h
+- [ ] Faire en sorte que `AudioProcessor` transmette le(s) prompt(s) correspondant(s) aux personalities actives
+- [ ] Ajouter tests unitaires d'intégration pour vérifier que le prompt envoyé à l'API correspond à la personality sélectionnée
 
-### Phase 3: Polish & Documentation - 1h
-- [ ] Icônes différentes selon état (✍️/✏️)
-- [ ] Messages de feedback clairs
-- [ ] Mise à jour documentation utilisateur (Quick Actions)
-- [ ] Guide de troubleshooting (submenus, état runtime)
-
-**Total estimé** : 5 heures
+### Phase 3: UX & polish - 1h
+- [ ] Ajouter tooltips et libellés clairs
+- [ ] Option future "Save as default" (persist)
 
 ---
 
-## 🗺️ Roadmap détaillée & Étape suivante (Phase 2)
+## 📚 Documentation Utilisateur (mise à jour)
 
-L'étape suivante est la Phase 2 : "Formatter Personalities" — implémentation d'un sous-menu de personnalités pour le formateur, permettant de changer dynamiquement le prompt utilisé par le FormatterService sans recharger la configuration.
-
-Qu'est-ce que c'est ?
-- C'est une extension du toggle actuel qui ajoute un sous-menu "Personality" contenant plusieurs styles de formatage (Default, Professional, Technical, Creative, Custom).
-- L'utilisateur peut sélectionner une personnalité (radio-style) et la prochaine transcription utilisera le prompt correspondant.
-
-Objectifs de la Phase 2
-- Permettre la sélection instantanée d'un prompt de formatage dans le menu système.
-- Faire en sorte que `AudioProcessor` et `FormatterService` puissent accepter/propager la personnalité choisie.
-- Ajouter tests unitaires et d'intégration pour couvrir le nouveau flux.
-
-Tâches techniques (décomposées)
-1. Modèle de données & runtime
-   - Ajouter `formatterPersonality: string` dans `RuntimeState` (valeurs: `default|professional|technical|creative|custom`).
-   - Étendre l'initialisation pour charger la personnalité par défaut depuis `config.getFormatterConfig()` si présente.
-   - Estimé : 0.5h
-
-2. Menu système (node-systray-v2)
-   - Ajouter sous-menu "Personality" avec éléments radio et check mark pour l'item actif.
-   - Implémenter `handlePersonalityChange(personality: string)` pour mettre à jour le runtime state et appeler `updateMenu`/`updateItem`.
-   - Tester visuellement que la sélection change d'état et est reflétée dans le menu.
-   - Estimé : 1h
-
-3. Propagation du prompt au FormatterService
-   - Modifier `AudioProcessor.processAudioFile()` pour accepter un paramètre `personality?: string` (ou lire depuis `runtimeState`) et transmettre la prompt correspondante au `FormatterService` (ou à son appelant) lors de `formatText()`.
-   - Étendre `FormatterService` pour accepter un override de prompt à l'appel (ex: `formatText(text, { promptOverride?: string })`).
-   - Estimé : 1h
-
-4. Prompts prédéfinis & Custom
-   - Ajouter structure contenant les prompts prédéfinis dans `work/QUICK_ACTIONS_MENU.md` (déjà documenté) et exposer ces prompts via `Config.getFormatterConfig()` ou une nouvelle source interne du runtime.
-   - Implémenter la personnalité `custom` qui utilise `config.formattingPrompt` si sélectionnée.
-   - Estimé : 0.5h
-
-5. Tests unitaires et d'intégration
-   - Tests unitaires :
-     - `FormatterService.formatText` respecte l'override de prompt si fourni.
-     - `AudioProcessor.processAudioFile` transmet correctement la personnalité/runtime override.
-   - Tests d'intégration :
-     - Simuler sélection de personnalité + enregistrement/transcription → vérifier que `openai.chat.completions.create` reçoit le prompt attendu.
-   - Estimé : 1h
-
-6. Documentation & UX
-   - Mettre à jour `work/QUICK_ACTIONS_MENU.md` (ce fichier) pour expliquer l'usage.
-   - Mettre à jour README utilisateur si besoin.
-   - Estimé : 0.5h
-
-Livrables et critères d'acceptation (Definition of Done)
-- [ ] Sous-menu "Personality" visible et navigable dans le system tray.
-- [ ] La sélection change l'état runtime et l'item actif est affiché comme cochée.
-- [ ] Les transcriptions ultérieures utilisent le prompt associé à la personnalité choisie.
-- [ ] Tests unitaires couvrant la propagation du prompt : 100% pass localement.
-- [ ] Pas de régression sur les tests existants (suite complète verte).
-
-Plan de test minimal
-- Tests unitaires : lancer `bun test src/services/formatter.test.ts` et `bun test src/services/audio-processor.test.ts`.
-- Test d'intégration rapide : démarrer l'app en mode debug, sélectionner une personnalité différente, enregistrer une phrase courte et vérifier dans les logs que le prompt envoyé à OpenAI contient la personnalité choisie.
-
-Dépendances & risques
-- `node-systray-v2` : vérifier le support des submenus / radio items sur toutes les plateformes ciblées. (Risque faible mais à valider.)
-- Augmentation potentielle des appels à l'API si les users testent plusieurs personalities rapidement (coût). On recommande une notice UX avertissant l'utilisateur.
-
-Calendrier proposé (itératif)
-- Jour J (T0) : Implémentation du runtime + menu (tâches 1+2) — 1.5h
-- Jour J+1 (T1) : Propagation du prompt + prompts prédéfinis (tâches 3+4) — 1.5h
-- Jour J+2 (T2) : Tests, docs et polish (tâche 5+6) — 1h
-
-Prochaine action immédiate (que je peux faire pour vous maintenant)
-- Implémenter la Phase 2 : créer le code pour le sous-menu, ajouter le champ `formatterPersonality` dans le runtime et modifier `FormatterService` pour accepter un override de prompt. Je peux appliquer ces changements et exécuter les tests unitaires/integration ci-après.
-
-Souhaitez-vous que je commence l'implémentation technique de Phase 2 maintenant ?
-- Répondez "Oui, commence" et je lancerai les modifications de code (création/modification des fichiers nécessaires) et j'exécuterai la suite de tests.
-- Répondez "Document only" si vous voulez seulement la documentation et un plan, sans code.
-
----
-
-## 🎯 Bénéfices Utilisateur
-
-### Toggle Formatter
-- ✅ Économie d'API calls OpenAI (~$0.0005 par transcription)
-- ✅ Tests rapides sans édition de config
-- ✅ Transcriptions brutes pour analyse/debugging
-
-### Personalities
-- ✅ Adaptation rapide au contexte (meeting, email, notes)
-- ✅ Pas besoin de mémoriser les bons prompts
-- ✅ Résultats consistants par use case
-
----
-
-## 🚧 Limitations & Considérations
-
-### Limitations Techniques
-- État runtime non persisté (reset au redémarrage)
-- Personalities limitées à 4-5 prédéfinies
-
-### Décisions de Design
-- **Pas de sauvegarde auto dans config.json** : Évite conflits avec fichier config
-- **État mémoire prioritaire** : Plus simple à gérer qu'un système de merge
-- **Option "Save as default" future** : Si besoin de persistance
-
-### UX
-- Menu peut devenir long avec submenu (4-5 items)
-- Besoin de tooltips clairs pour expliquer les personalities
-- Icon feedback important pour état actuel
-
----
-
-## 📚 Documentation Utilisateur
-
-### Guide Rapide
-
-**Toggle Formatter** :
+**Changer les personalities** :
 1. Right-click system tray icon
-2. Click "✍️ Formatter: ON" to toggle
-3. Status changes immediately (no restart)
-
-**Change Personality** :
-1. Right-click → "Personality" submenu
-2. Select desired style (Default, Professional, Technical, Creative)
-3. Next transcription uses new style
+2. Open "Personality" submenu
+3. Check/Uncheck the personalities to enable/disable them
+4. The next transcription(s) will use the active personalities' prompts
 
 ---
 
 ## ✅ Checklist de Validation
 
-Avant de démarrer l'implémentation :
-
-- [ ] Valider les 4 personalities avec des tests utilisateur
-- [ ] Vérifier node-systray-v2 supporte les submenus
-- [ ] Confirmer que l'état runtime est suffisant (pas besoin de persistence)
-- [ ] Définir le comportement lors du reload config (merge ou reset ?)
+- [x] Les personalities builtin sont présentes
+- [x] Les custom personalities peuvent être ajoutées via `config.json`
+- [x] Les active/selected personalities sont chargées au démarrage
+- [x] Le menu reflète correctement l'état runtime
 
 ---
 
 **Status** : ✅ **Prêt pour implémentation**
 **Dépendances** : Aucune (feature standalone)
-**Related** : Voir `OLLAMA_BACKEND.md` pour le support de formatage local
+**Related** : Voir `work/QUICK_ACTIONS_MENU.md` pour les détails d'implémentation

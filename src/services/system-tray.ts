@@ -16,7 +16,10 @@ export interface TrayConfig {
 		onQuit: () => void;
 	};
 	activePersonalities: string[];
+	// Optional: which personalities should appear in the menu (strings like "builtin:default" or "custom:myCustomStyle")
 	selectedPersonalities?: string[];
+	// Optional: map of custom personality id -> { name }
+	customPersonalities?: Record<string, { name?: string }>;
 }
 
 export interface TrayResult {
@@ -57,10 +60,14 @@ interface MenuItem {
 export class SystemTrayService {
 	private systray: SysTray | null = null;
 	private activePersonalities: string[];
-	private selectedPersonalities: string[];
 	private currentState: TrayState = TrayState.IDLE;
 	private callbacks: TrayConfig["callbacks"];
 	private readonly SysTrayConstructor: typeof SysTray;
+
+	// Personalities shown in the menu (full ids with prefix)
+	private selectedPersonalities: string[];
+	// Custom personalities map (id -> display name)
+	private customPersonalities: Record<string, { name?: string }> = {};
 
 	// Map to track what each menu position represents
 	private menuItemMap: MenuItem[] = [];
@@ -68,8 +75,18 @@ export class SystemTrayService {
 	constructor(config: TrayConfig, systrayConstructor?: typeof SysTray) {
 		this.callbacks = config.callbacks;
 		this.activePersonalities = config.activePersonalities;
-		this.selectedPersonalities = config.selectedPersonalities || [];
 		this.SysTrayConstructor = systrayConstructor || SysTray;
+
+		// Use provided selectedPersonalities or default to builtin list
+		this.selectedPersonalities = config.selectedPersonalities ?? [
+			"builtin:default",
+			"builtin:professional",
+			"builtin:technical",
+			"builtin:creative",
+			"builtin:emojify",
+		];
+
+		this.customPersonalities = config.customPersonalities ?? {};
 	}
 
 	public async initialize(): Promise<TrayResult> {
@@ -160,7 +177,8 @@ export class SystemTrayService {
 		// Reset the item map
 		this.menuItemMap = [];
 
-		const labels: Record<string, string> = {
+		// Labels for builtin personalities (keys are the suffix after "builtin:")
+		const builtinLabels: Record<string, string> = {
 			default: "Default",
 			professional: "Professional",
 			technical: "Technical",
@@ -221,10 +239,26 @@ export class SystemTrayService {
 			checked: false,
 		});
 
-		// Add personality items
-		this.selectedPersonalities.forEach(personality => {
-			const isActive = this.activePersonalities.includes(personality);
-			const label = labels[personality] || personality;
+		// Add personality items based on selectedPersonalities from config.
+		// Each entry is expected to be prefixed: "builtin:<key>" or "custom:<id>".
+		this.selectedPersonalities.forEach(entry => {
+			const personalityId = entry; // full id (used in callbacks / active checks)
+			let label = entry;
+			const isActive = this.activePersonalities.includes(personalityId);
+
+			if (entry.startsWith("builtin:")) {
+				const key = entry.split(":")[1];
+				label = key ? builtinLabels[key] || key : entry;
+			} else if (entry.startsWith("custom:")) {
+				const key = entry.split(":")[1];
+				label = key
+					? this.customPersonalities[key]?.name || key
+					: entry;
+			} else {
+				// Fallback: treat as direct key
+				label = entry;
+			}
+
 			const title = `${isActive ? "✅" : "⬜"} ${label}`;
 
 			this.menuItemMap.push({
@@ -233,7 +267,7 @@ export class SystemTrayService {
 				tooltip: `Toggle ${label} personality`,
 				enabled: true,
 				checked: isActive,
-				personality,
+				personality: personalityId,
 			});
 			items.push({
 				title,
