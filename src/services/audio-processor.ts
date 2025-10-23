@@ -84,6 +84,10 @@ export class AudioProcessor {
 				logger.debug("No active personalities, skipping formatting");
 			}
 
+			// Afficher le texte complet en info (selon demande)
+			logger.info(`Final formatted text (${finalText.length} chars):`);
+			logger.info(finalText);
+
 			// Copy to clipboard
 			logger.info("Copying to clipboard...");
 			const clipboardResult =
