@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { SystemTrayService, type TrayConfig, TrayState } from "./system-tray";
 
 // Mock node-systray-v2 module completely before importing
 const mockSystray = {
@@ -16,8 +17,6 @@ mock.module("node-systray-v2", () => ({
 	SysTray: mockSysTrayConstructor,
 }));
 
-import { SystemTrayService, type TrayConfig, TrayState } from "./system-tray";
-
 describe("SystemTrayService", () => {
 	let service: SystemTrayService;
 	let config: TrayConfig;
@@ -33,8 +32,12 @@ describe("SystemTrayService", () => {
 			callbacks: {
 				onRecordingStart: mock(),
 				onRecordingStop: mock(),
+				onFormatterToggle: mock(),
+				onOpenConfig: mock(),
+				onReload: mock(),
 				onQuit: mock(),
 			},
+			formatterEnabled: true,
 		};
 
 		service = new SystemTrayService(config, mockSysTrayConstructor);
@@ -105,6 +108,95 @@ describe("SystemTrayService", () => {
 			const result = await service.shutdown();
 			expect(result.success).toBe(true);
 			// kill should not be called when not initialized
+		});
+	});
+
+	describe("updateFormatterState", () => {
+		beforeEach(async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+		});
+
+		it("should update formatter state and refresh menu", async () => {
+			service.updateFormatterState(false);
+			// Should trigger setState which calls sendAction
+			expect(mockSystray.sendAction).toHaveBeenCalled();
+		});
+
+		it("should toggle formatter state correctly", async () => {
+			service.updateFormatterState(false);
+			expect(mockSystray.sendAction).toHaveBeenCalled();
+
+			const calls = mockSystray.sendAction.mock.calls;
+			// Should have update-menu and update-item calls
+			expect(calls.length).toBeGreaterThan(0);
+		});
+	});
+
+	describe("onClick routing", () => {
+		beforeEach(async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+		});
+
+		it("should route seq_id 0 to onRecordingStart", async () => {
+			// Get the onClick callback that was registered
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+
+			// Simulate click on Start Recording (seq_id: 0)
+			onClickCallback({ seq_id: 0, item: { title: "Start Recording" } });
+
+			expect(config.callbacks.onRecordingStart).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 1 to onRecordingStop", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 1, item: { title: "Stop Recording" } });
+			expect(config.callbacks.onRecordingStop).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 2 to onFormatterToggle", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 2, item: { title: "Enable Formatter" } });
+			expect(config.callbacks.onFormatterToggle).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 3 to onOpenConfig", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 3, item: { title: "Open Config" } });
+			expect(config.callbacks.onOpenConfig).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 4 to onReload", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 4, item: { title: "Reload Config" } });
+			expect(config.callbacks.onReload).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 5 to onQuit", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 5, item: { title: "Exit" } });
+			expect(config.callbacks.onQuit).toHaveBeenCalled();
 		});
 	});
 });
