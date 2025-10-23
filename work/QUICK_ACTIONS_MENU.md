@@ -5,197 +5,158 @@
 **Updated**: 2025-10-23
 **Status**: ✅ Phase 1 Complete / 🚧 Phase 2-3 Pending
 **Priority**: Medium
-**Estimated Effort**: 2h completed / 3h remaining
+**Estimated Effort**: 2h completed / 3h remaining (estimation initiale)
 
 ---
 
-## 📝 Sessions de Troubleshooting
+## Résumé actuel
 
-### Session 2025-10-23 (PM) : Gestion des Personalities & Configuration
+La fonctionnalité « Quick Actions Menu » permet d'exposer des actions rapides dans l'icône de la tray système, dont un sous-menu « Personalities » pour activer/désactiver des styles de formatage (builtin + custom). La Phase 1 (construction du menu dynamique, routing des clics et gestion des états) est terminée et couverte par des tests unitaires. Les comportements critiques (Start/Stop Recording, mise à jour visuelle des items, toggles des personalities, Reload/Exit) sont fonctionnels.
 
-**Commits récents** :
-- `26896d3` - feat: streamline click handling and remove debug logs in system tray
-- `38c8989` - feat: enhance system tray menu with personality management and routing
-- `040520b` - feat: add support for multiple active personalities in audio processing
-- `dad0fdb` - feat: add formatter state management and click routing for system tray actions
-- `b0bf175` - feat: add tests for loading and saving formatter personality settings in config
-- `534c7ca` - feat: add formatter personality settings and dynamic prompt management
-
-**Implémentation Phase 2 - Personalities** : ✅ COMPLETE
-
-**Fonctionnalités ajoutées** :
-1. ✅ **Support multi-personalities dans Config** - Sauvegarde/chargement de `customPersonalities`, `selectedPersonalities` et `activePersonalities`
-2. ✅ **Menu dynamique des personalities** - Sous-menu avec checkmarks sur les items actifs
-3. ✅ **Routing des clics** - Gestion des événements pour sélectionner une personality
-4. ✅ **Propagation du prompt** - AudioProcessor utilise les personalities actives pour formater
-5. ✅ **Tests complets** - Coverage des nouvelles fonctionnalités config
-
-**Décisions prises** :
-- ✅ **Système à namespace (2 niveaux)** : Séparation claire entre personalities builtin et custom
-  - **Builtin personalities** : `builtin:default`, `builtin:professional`, etc.
-  - **Custom personalities** : `custom:my-style`, `custom:meeting-notes`, etc.
-  - **Avantages** :
-    - ✅ Aucune collision possible (namespaces séparés)
-    - ✅ Clarté visuelle dans le menu : "Default (builtin)" vs "My Style (custom)"
-    - ✅ Évolutivité : Ajout de builtins sans risque de casser les configs users
-    - ✅ Prévisibilité : L'utilisateur sait ce qui est modifiable
-
-**Architecture du système** :
-
-```typescript
-// Constantes de namespace
-const BUILTIN_PREFIX = 'builtin:';
-const CUSTOM_PREFIX = 'custom:';
-
-// Deux maps séparées
-private readonly builtinPersonalities: Record<string, PersonalityConfig>
-public customPersonalities: Record<string, PersonalityConfig>
-
-// Menu avec séparation visuelle
-Personalities →
-  ✓ Default (builtin)
-  ⬜ Professional (builtin)
-  ⬜ Technical (builtin)
-  ───────────────────
-  ⬜ Meeting Notes (custom)
-  ⬜ Blog Post (custom)
-```
-
-**Migration** :
-- Les personalities existantes sans préfixe doivent être normalisées en `builtin:` au moment du chargement si nécessaire
-- Les personalities dans `config.json` pour des personnalisations utilisateurs utilisent le préfixe `custom:` (cf. `customPersonalities`)
-- L'ensemble des choix d'active/selected est contrôlé via `activePersonalities` / `selectedPersonalities`
-
-### Session 2025-10-23 (AM) : Refactoring Menu State
-
-**Problème Initial** :
-- Menu items ne se mettaient pas à jour lors du changement d'état
-- Boutons restaient grisés/activés incorrectement après Start/Stop Recording
-- Méthode `shutdown()` manquante causant une erreur au exit
-
-**Root Cause** :
-- L'approche simplifiée avec `update-menu` seul ne mettait pas à jour les états `enabled/disabled` des items
-- Le code qui fonctionnait utilisait `update-menu` + `update-item` pour chaque item
-
-**Solutions Appliquées** :
-1. ✅ **Structure dictionnaire `MENU_ITEMS`** - Single source of truth pour tous les menu items avec configuration centralisée
-2. ✅ **Approche hybride `update-menu` + `update-item`** - Garantit la mise à jour correcte des états
-3. ✅ **Méthode `buildMenuItems()` refactorisée** - Utilise le dictionnaire pour construire les items
-4. ✅ **Méthode `updatePersonalityState()` ajoutée** - Pour mettre à jour le check des personalities dynamiquement
-5. ✅ **Méthode `shutdown()` restaurée** - Corrige l'erreur au exit
-
-**Résultats des Tests** :
-- ✅ Start Recording active correctement Stop Recording
-- ✅ Stop Recording désactive correctement et retourne à IDLE
-- ✅ Toggle de la personality (check/uncheck) fonctionne
-- ✅ Reload Config correctement désactivé pendant Recording
-- ✅ Exit fonctionne sans erreur
-
-**Code Quality** :
-- **Avant** : 112 lignes dans `setState()` avec duplication massive
-- **Après** : 50 lignes factorisées avec structure dictionnaire
-- **Amélioration** : -55% lignes, maintenabilité haute, aucune duplication
+Ce fichier documente l'avancement, les décisions d'architecture et ce qui reste à faire pour finaliser et stabiliser la feature en production.
 
 ---
 
-## 🎯 Motivation
+## Ce qui a été réalisé (Phase 1)
 
-Le but est d'exposer les capacités de formatage depuis le tray en s'appuyant uniquement sur le système de personalities (builtin + custom). Le runtime n'expose plus un toggle "global formatter" : le comportement est déterminé par les personalities actives et sélectionnées.
-
-### Use Cases Principaux
-
-1. **Sélectionner les personalities actives** : Permettre au système de formatage d'utiliser un ou plusieurs prompts
-2. **Changer la personality par défaut via le menu** : Choisir rapidement un style sans éditer le fichier
-
----
-
-## ✨ Features Proposées (ajustées)
-
-### 1. Personnalities (MVP)
-
-**Description** : Le menu expose un sous-menu "Personality" où l'utilisateur peut :
-- cocher/décocher des personalities (activePersonalities)
-- sélectionner la personality par défaut (selectedPersonalities / ordre)
-
-**Menu Item** :
-```
-🎤 Voice Transcriber
-├── 🎙️ Start Recording
-├── ⏹️ Stop Recording
-├── ─────────────────
-├── 🎭 Personality  ← NOUVEAU (submenu)
-│     ├── ✓ Default (Minimal formatting)
-│     ├── ☐ Professional (Business style)
-│     ├── ☐ Technical (Code-friendly)
-│     ├── ☐ Creative (Expressive style)
-│     └── ☐ Custom (from config.json)
-├── ─────────────────
-├── ⚙️ Open Config
-├── 🔄 Reload Config
-└── ❌ Exit
-```
-
-**Comportement** :
-- Les personalities cochées dans `activePersonalities` seront utilisées pour le post-traitement
-- L'utilisateur peut changer la personnalité par défaut via `selectedPersonalities` ou en cochant une seule personality
-- Les changes sont appliqués en runtime (non persistés automatiquement)
+- ✅ Support multi-personalities dans `Config`
+  - Sauvegarde / chargement de `customPersonalities`, `selectedPersonalities` et `activePersonalities`.
+- ✅ Menu dynamique des personalities dans la tray
+  - Sous-menu construit à partir de `selectedPersonalities` et `customPersonalities`.
+- ✅ Routing des clics
+  - Les clics sont routés par index (seq_id) vers les callbacks appropriés (start/stop/open/reload/quit/personality toggle).
+- ✅ Propagation minimale du prompt vers l'AudioProcessor (structure prête, voir Phase 2 pour intégration complète)
+- ✅ Tests unitaires
+  - Tests de `Config` (load/save/migration)
+  - Tests de `SystemTrayService` (initialize, setState, shutdown, click routing)
+- ✅ Refactor `buildMenuItems()` et `setState()` pour assurer des updates fiables (`update-menu` + `update-item`).
+- ✅ Méthode `shutdown()` implémentée et testée.
 
 ---
 
-## 🏗️ Architecture Technique
+## Décisions d'architecture clés
 
-### État en Mémoire (Runtime State)
+- Namespace clair pour les personalities : `builtin:` vs `custom:`.
+- Separation of concerns : la tray manipule l'état runtime (selected/active) mais ne persiste pas automatiquement les changements utilisateur dans `config.json` (par défaut). Cette séparation facilite les actions immédiates sans altérer la configuration persistée.
+- Mise à jour visuelle fiable : combinaison `update-menu` + `update-item` pour assurer que `enabled`/`checked` soient reflétés correctement.
 
-```typescript
-interface RuntimeState {
-  selectedPersonalities: string[]; // ordre/choix visibles
-  activePersonalities: string[];   // lesquelles sont actives (checkbox)
+---
+
+## Ce qui reste à faire (Phase 2 & 3)
+
+Priorité élevée
+1. Propagation complète des prompts actifs vers `AudioProcessor` (Phase 2) — 1.5h
+   - Description : faire en sorte que, lors de la transcription, l'AudioProcessor récupère les prompts des personalities actives et les envoie correctement au formatter / backend.
+   - Acceptation : tests d'intégration qui simulent une transcription avec plusieurs personalities actives et vérifient que le prompt envoyé contient la concaténation / composition attendue.
+   - Risques : gestion du modèle de composition (ordre, conflit entre prompts), taille du prompt (trim si trop grand).
+
+2. Tests d'intégration / E2E pour menu → transcription (Phase 2) — 1h
+   - Description : tests qui couvrent : changement de personality dans la tray → déclenchement d'une transcription → vérification que le formatter reçoit la bonne instruction.
+   - Acceptation : CI vert, couverture minimale pour le flux critique.
+
+Priorité moyenne
+3. Option "Save as default" / Persistance (Phase 3) — 1h
+   - Description : ajouter une action dans le menu (ou checkbox longue-pression) pour enregistrer l'état runtime (selected/active) dans `config.json` (persistant). Nécessite UI pour confirmation et mise à jour de `Config.save()`.
+   - Acceptation : lors de la sélection "save", `config.json` est mis à jour et une relance de l'app reflète le nouvel état.
+   - Considérations : demander confirmation à l'utilisateur pour éviter persistance involontaire.
+
+4. UX polish & tooltips (Phase 3) — 0.5h
+   - Description : clarifier libellés, tooltips, séparation visuelle, ordre par défaut.
+   - Acceptation : revue UX rapide et corrections mineures.
+
+5. Cross-platform testing and packaging checks — 0.5h
+   - Description : vérifier le comportement `node-systray-v2`/tray sur Linux/Mac/Windows (packaging via electron/tauri ou binaire) ; s'assurer que `copyDir` / icones fonctionnent.
+   - Acceptation : smoke tests sur OS disponibles à portée.
+
+Total estimé restant : ≈ 3.0 h
+
+---
+
+## Tâches techniques détaillées et checklist
+
+- [x] Phase 1: Menu + routing + tests unitaires
+- [ ] Phase 2.1: Implémenter propagation des prompts vers `AudioProcessor` (intégration runtime)
+  - [ ] Ajouter API dans SystemTrayService pour exposer l'état runtime (getActivePersonalities/getSelectedPersonalities)
+  - [ ] Adapter `AudioProcessor` pour accepter un tableau de prompts (ou un prompt composite)
+  - [ ] Tests unitaires + tests d'intégration
+- [ ] Phase 2.2: Tests d'intégration / E2E (menu -> transcription)
+- [ ] Phase 3.1: Ajouter action "Save as default" et intégration dans `Config.save()`
+- [ ] Phase 3.2: UX polish (tooltips, labels)
+- [ ] Phase 3.3: Cross-platform smoke tests (Linux/Mac/Windows packaging)
+- [ ] Documentation utilisateur: mettre à jour README et user-guide (transcription-backends.md et basic-usage.md)
+- [ ] Revue de sécurité: valider la taille des prompts, éviter fuite d'API keys dans logs
+
+---
+
+## Critères d'acceptation (Definition of Done)
+
+- Flux complet (menu → sélection personality → transcription) couvert par tests d'intégration.
+- Comportements Start/Stop/Reload/Exit sont robustes et n'entraînent pas d'état invalide.
+- Les prompts issus des personalities actives sont envoyés correctement au formatter / backend.
+- Option de persistance (si activée) met à jour `config.json` de façon atomique et sûre.
+- Documentation utilisateur et technique mise à jour.
+
+---
+
+## Risques et mitigations
+
+- Prompt trop long : ajouter logique de truncation ou priorisation des personalities (ex: garder N premier prompts ou concat avec separators).
+- Comportement platform-dépendant de la tray : isoler interactions dans `SystemTrayService` et stub/mock dans tests.
+- Changement non désiré de la configuration user : exiger confirmation avant persistance.
+
+---
+
+## Proposition d'ordonnancement (Sprint court)
+
+Sprint 1 (1 jour)
+- Implémenter propagation des prompts vers `AudioProcessor` (2-3h)
+- Ajouter tests d'intégration (1h)
+- Revue PR et corrections (1h)
+
+Sprint 2 (demi-journée)
+- Ajouter persistance "Save as default" (1h)
+- UX polish et docs (1h)
+- Cross-platform smoke tests (0.5h)
+
+---
+
+## Exemples d'API / Pseudo-code
+
+- Exposer l'état runtime depuis `SystemTrayService` :
+
+```ts
+// SystemTrayService
+public getRuntimeState() {
+  return {
+    selectedPersonalities: this.selectedPersonalities.slice(),
+    activePersonalities: this.activePersonalities.slice(),
+  };
 }
 ```
 
-**Principe** :
-- État runtime séparé de la config fichier (pas de persist automatique)
-- Le système prend le prompt à partir de la personality (builtin ou custom) pour le formatage
+- Utiliser depuis `AudioProcessor` :
+
+```ts
+const { activePersonalities } = systemTrayService.getRuntimeState();
+const prompts = activePersonalities.map(id => config.getPromptFor(id));
+const compositePrompt = prompts.join('\n\n---\n\n');
+```
 
 ---
 
-## 📊 Plan d'Implémentation (ajusté)
+## Notes additionnelles
 
-### Phase 1: Menu Personalities - ✅ COMPLETE
-- [x] Ajouter structure pour personalities dans `Config`
-- [x] Exposer `customPersonalities`, `selectedPersonalities`, `activePersonalities`
-- [x] Ajouter sous-menu Personality avec checkboxes
-- [x] Tests unitaires pour la gestion des personalities
-
-### Phase 2: Propagation des prompts - 1.5h
-- [ ] Faire en sorte que `AudioProcessor` transmette le(s) prompt(s) correspondant(s) aux personalities actives
-- [ ] Ajouter tests unitaires d'intégration pour vérifier que le prompt envoyé à l'API correspond à la personality sélectionnée
-
-### Phase 3: UX & polish - 1h
-- [ ] Ajouter tooltips et libellés clairs
-- [ ] Option future "Save as default" (persist)
+- Les tests actuels couvrent les cas unitaires abordés pendant la phase 1 ; l'ajout d'un test d'intégration permettra de valider l'orchestration complète.
+- Garder la logique de persistence optionnelle évite d'écraser la configuration de l'utilisateur sans confirmation.
 
 ---
 
-## 📚 Documentation Utilisateur (mise à jour)
+## Prochaine action suggérée
 
-**Changer les personalities** :
-1. Right-click system tray icon
-2. Open "Personality" submenu
-3. Check/Uncheck the personalities to enable/disable them
-4. The next transcription(s) will use the active personalities' prompts
+Souhaitez-vous que j'implémente immédiatement la Phase 2 (propagation des prompts + tests d'intégration) ?
+- Si oui, je peux :
+  1. ajouter une petite API `getRuntimeState()` dans `SystemTrayService` et l'exposer pour tests ;
+  2. adapter `AudioProcessor` pour accepter prompts multiples (ou un prompt composite) et écrire tests unitaires/integration minimalistes ;
+  3. lancer la suite de tests et corriger les régressions.
 
----
-
-## ✅ Checklist de Validation
-
-- [x] Les personalities builtin sont présentes
-- [x] Les custom personalities peuvent être ajoutées via `config.json`
-- [x] Les active/selected personalities sont chargées au démarrage
-- [x] Le menu reflète correctement l'état runtime
-
----
-
-**Status** : ✅ **Prêt pour implémentation**
-**Dépendances** : Aucune (feature standalone)
-**Related** : Voir `work/QUICK_ACTIONS_MENU.md` pour les détails d'implémentation
+Indiquez quelle option vous préférez (implémentation immédiate / planifier / autre) et je m'en charge.
