@@ -32,15 +32,18 @@ describe("SystemTrayService", () => {
 			callbacks: {
 				onRecordingStart: mock(),
 				onRecordingStop: mock(),
-				onFormatterToggle: mock(),
+				onPersonalityToggle: mock(),
 				onOpenConfig: mock(),
 				onReload: mock(),
 				onQuit: mock(),
 			},
-			formatterEnabled: true,
+			activePersonalities: ["builtin:default"],
 		};
 
-		service = new SystemTrayService(config, mockSysTrayConstructor);
+		service = new SystemTrayService(
+			config,
+			mockSysTrayConstructor as unknown as typeof import("node-systray-v2").SysTray
+		);
 	});
 
 	describe("initialize", () => {
@@ -111,29 +114,6 @@ describe("SystemTrayService", () => {
 		});
 	});
 
-	describe("updateFormatterState", () => {
-		beforeEach(async () => {
-			mockSysTrayConstructor.mockReturnValue(mockSystray);
-			mockSystray.onReady.mockImplementation(callback => callback());
-			await service.initialize();
-		});
-
-		it("should update formatter state and refresh menu", async () => {
-			service.updateFormatterState(false);
-			// Should trigger setState which calls sendAction
-			expect(mockSystray.sendAction).toHaveBeenCalled();
-		});
-
-		it("should toggle formatter state correctly", async () => {
-			service.updateFormatterState(false);
-			expect(mockSystray.sendAction).toHaveBeenCalled();
-
-			const calls = mockSystray.sendAction.mock.calls;
-			// Should have update-menu and update-item calls
-			expect(calls.length).toBeGreaterThan(0);
-		});
-	});
-
 	describe("onClick routing", () => {
 		beforeEach(async () => {
 			mockSysTrayConstructor.mockReturnValue(mockSystray);
@@ -163,39 +143,41 @@ describe("SystemTrayService", () => {
 			expect(config.callbacks.onRecordingStop).toHaveBeenCalled();
 		});
 
-		it("should route seq_id 2 to onFormatterToggle", async () => {
+		it("should route personality clicks to onPersonalityToggle", async () => {
 			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 2, item: { title: "Enable Formatter" } });
-			expect(config.callbacks.onFormatterToggle).toHaveBeenCalled();
+			// Personality items start after separator (seq_id 2 is separator, 3+ are personalities)
+			onClickCallback({ seq_id: 3, item: { title: "Default" } });
+			expect(config.callbacks.onPersonalityToggle).toHaveBeenCalled();
 		});
 
-		it("should route seq_id 3 to onOpenConfig", async () => {
+		it("should route to onOpenConfig", async () => {
 			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 3, item: { title: "Open Config" } });
+			// Adjust seq_id based on number of personalities (5 personalities + 3 separators + 2 actions = ~10)
+			onClickCallback({ seq_id: 9, item: { title: "Open Config" } });
 			expect(config.callbacks.onOpenConfig).toHaveBeenCalled();
 		});
 
-		it("should route seq_id 4 to onReload", async () => {
+		it("should route to onReload", async () => {
 			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 4, item: { title: "Reload Config" } });
+			onClickCallback({ seq_id: 10, item: { title: "Reload Config" } });
 			expect(config.callbacks.onReload).toHaveBeenCalled();
 		});
 
-		it("should route seq_id 5 to onQuit", async () => {
+		it("should route to onQuit", async () => {
 			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 5, item: { title: "Exit" } });
+			onClickCallback({ seq_id: 11, item: { title: "Exit" } });
 			expect(config.callbacks.onQuit).toHaveBeenCalled();
 		});
 	});

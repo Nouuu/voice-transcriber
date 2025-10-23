@@ -17,7 +17,6 @@ describe("Config", () => {
 		it("should load config from file", async () => {
 			const testData = {
 				language: "en",
-				formatterEnabled: false,
 				transcription: {
 					backend: "openai" as const,
 					openai: {
@@ -25,6 +24,7 @@ describe("Config", () => {
 						model: "whisper-1",
 					},
 				},
+				activePersonalities: ["builtin:default"],
 			};
 
 			writeFileSync(testConfigPath, JSON.stringify(testData));
@@ -33,7 +33,7 @@ describe("Config", () => {
 			await config.load();
 
 			expect(config.openaiApiKey).toBe("test-key");
-			expect(config.formatterEnabled).toBe(false);
+			expect(config.activePersonalities).toEqual(["builtin:default"]);
 		});
 
 		it("should use defaults when file doesn't exist", async () => {
@@ -41,13 +41,13 @@ describe("Config", () => {
 			await config.load();
 
 			expect(config.openaiApiKey).toBe("");
-			expect(config.formatterEnabled).toBe(true);
+			// default active personalities should include builtin:default
+			expect(config.activePersonalities).toEqual(["builtin:default"]);
 		});
 
-		it("should merge formatterPersonalities from file with defaults", async () => {
+		it("should merge custom personalities from file with builtin ones", async () => {
 			const testData = {
-				formatterEnabled: true,
-				formatterPersonalities: {
+				customPersonalities: {
 					custom: {
 						name: "Custom",
 						prompt: "Custom prompt",
@@ -64,19 +64,18 @@ describe("Config", () => {
 			const config = new Config(testConfigPath);
 			await config.load();
 
-			// The default personalities should still exist and custom should be merged
-			expect(config.formatterPersonalities.default).toBeDefined();
-			const custom = config.formatterPersonalities.custom;
+			// The default builtin personalities should still exist and custom should be merged
+			expect(config["builtinPersonalities"].default).toBeDefined();
+			const custom = config.customPersonalities.custom;
 			expect(custom).toBeDefined();
 			if (custom) {
 				expect(custom.prompt).toBe("Custom prompt");
 			}
 		});
 
-		it("should load formatterPersonalityEnabled and formatterPersonality from file", async () => {
+		it("should load activePersonalities from file", async () => {
 			const testData = {
-				formatterPersonality: "creative",
-				formatterPersonalityEnabled: true,
+				activePersonalities: ["builtin:creative"],
 				transcription: {
 					backend: "openai" as const,
 					openai: { apiKey: "k", model: "whisper-1" },
@@ -88,13 +87,12 @@ describe("Config", () => {
 			const config = new Config(testConfigPath);
 			await config.load();
 
-			expect(config.formatterPersonality).toBe("creative");
-			expect(config.formatterPersonalityEnabled).toBe(true);
+			expect(config.activePersonalities).toEqual(["builtin:creative"]);
 		});
 
-		it("should load legacy formattingPrompt from file and use it for formatter prompt", async () => {
+		it("should load transcriptionPrompt from file and expose it to formatter config", async () => {
 			const testData = {
-				formattingPrompt: "Legacy formatting prompt",
+				transcriptionPrompt: "Custom transcription prompt",
 				transcription: {
 					backend: "openai" as const,
 					openai: { apiKey: "k", model: "whisper-1" },
@@ -106,9 +104,11 @@ describe("Config", () => {
 			const config = new Config(testConfigPath);
 			await config.load();
 
-			expect(config.formattingPrompt).toBe("Legacy formatting prompt");
+			expect(config.transcriptionPrompt).toBe(
+				"Custom transcription prompt"
+			);
 			const fc = config.getFormatterConfig();
-			expect(fc.prompt).toBe("Legacy formatting prompt");
+			expect(fc.prompt).toBe("Custom transcription prompt");
 		});
 	});
 
@@ -116,7 +116,7 @@ describe("Config", () => {
 		it("should save config to file", async () => {
 			const config = new Config(testConfigPath);
 			config.openaiApiKey = "saved-key";
-			config.formatterEnabled = false;
+			config.activePersonalities = []; // No formatting (empty array)
 
 			await config.save();
 
@@ -124,18 +124,16 @@ describe("Config", () => {
 
 			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
 			expect(savedData.transcription?.openai?.apiKey).toBe("saved-key");
-			expect(savedData.formatterEnabled).toBe(false);
+			expect(savedData.activePersonalities).toEqual([]);
 		});
 
 		it("should persist new formatter fields and selectedPersonalities", async () => {
 			const config = new Config(testConfigPath);
 			config.openaiApiKey = "saved-key";
-			config.formatterPersonality = "creative";
-			config.formatterPersonalityEnabled = true;
-			config.selectedPersonalities = ["creative", "professional"];
+			config.activePersonalities = ["builtin:creative"];
 
 			// add a custom personality locally so it gets saved
-			config.formatterPersonalities.custom = {
+			config.customPersonalities.custom = {
 				name: "Custom",
 				prompt: "Custom prompt",
 			};
@@ -143,13 +141,11 @@ describe("Config", () => {
 			await config.save();
 
 			const savedData = JSON.parse(readFileSync(testConfigPath, "utf8"));
-			expect(savedData.formatterPersonality).toBe("creative");
-			expect(savedData.formatterPersonalityEnabled).toBe(true);
-			expect(savedData.selectedPersonalities).toEqual([
-				"creative",
-				"professional",
-			]);
-			expect(savedData.formatterPersonalities.custom.name).toBe("Custom");
+			expect(savedData.activePersonalities).toEqual(["builtin:creative"]);
+			expect(savedData.customPersonalities?.custom).toEqual({
+				name: "Custom",
+				prompt: "Custom prompt",
+			});
 		});
 	});
 
@@ -157,7 +153,7 @@ describe("Config", () => {
 		it("should load existing config without running setup", async () => {
 			const existingConfig = {
 				language: "en",
-				formatterEnabled: false,
+				activePersonalities: [],
 				transcription: {
 					backend: "openai" as const,
 					openai: {
@@ -176,14 +172,14 @@ describe("Config", () => {
 			await config.loadWithSetup();
 
 			expect(config.openaiApiKey).toBe("existing-key");
-			expect(config.formatterEnabled).toBe(false);
+			expect(config.activePersonalities).toEqual([]);
 		});
 
 		it("should not overwrite existing config with real API key", async () => {
 			const realApiKey = "sk-real-api-key-that-should-be-preserved";
 			const existingConfig = {
 				language: "en",
-				formatterEnabled: false,
+				activePersonalities: ["builtin:default"],
 				transcription: {
 					backend: "openai" as const,
 					openai: {
@@ -205,7 +201,8 @@ describe("Config", () => {
 			const savedConfig = JSON.parse(configContent);
 
 			expect(savedConfig.transcription?.openai?.apiKey).toBe(realApiKey);
-			expect(savedConfig.formatterEnabled).toBe(false);
+			// Ensure no legacy boolean is written; instead formatter.openai.apiKey should be set from transcription key
+			expect(savedConfig.formatter?.openai?.apiKey).toBe(realApiKey);
 		});
 	});
 
@@ -282,55 +279,72 @@ describe("Config", () => {
 	});
 
 	describe("getFormatterConfig", () => {
-		it("should return formatter config with language and prompt", () => {
+		it("should return formatter config with personalities", () => {
 			const config = new Config(testConfigPath);
-			config.openaiApiKey = "test-api-key";
+			config.formatterOpenaiApiKey = "test-api-key";
 			config.language = "fr";
-			config.formatterEnabled = true;
+			config.activePersonalities = ["builtin:default"];
 
 			const formatterConfig = config.getFormatterConfig();
 
 			expect(formatterConfig.apiKey).toBe("test-api-key");
-			expect(formatterConfig.enabled).toBe(true);
 			expect(formatterConfig.language).toBe("fr");
-			expect(formatterConfig.prompt).toContain("French");
-			expect(formatterConfig.prompt).toContain(
-				"Do not translate to another language"
-			);
+			expect(formatterConfig.activePersonalities).toEqual([
+				"builtin:default",
+			]);
+			// Guard access to avoid TS possibly-undefined error
+			const builtinDefault = formatterConfig.builtinPersonalities.default;
+			expect(builtinDefault).toBeDefined();
+			if (builtinDefault) {
+				expect(builtinDefault.prompt).toContain("grammar");
+			}
 		});
 
-		it("should use custom formatting prompt when provided", () => {
+		it("should return custom personalities if defined", () => {
 			const config = new Config(testConfigPath);
-			config.openaiApiKey = "test-api-key";
-			config.language = "fr";
-			config.formattingPrompt = "Custom formatting prompt";
+			config.formatterOpenaiApiKey = "test-api-key";
+			config.customPersonalities = {
+				myCustom: {
+					name: "My Custom",
+					prompt: "Custom formatting prompt",
+				},
+			};
 
 			const formatterConfig = config.getFormatterConfig();
 
-			expect(formatterConfig.prompt).toBe("Custom formatting prompt");
+			expect(formatterConfig.customPersonalities.myCustom).toEqual({
+				name: "My Custom",
+				prompt: "Custom formatting prompt",
+			});
 		});
 
-		it("should respect formatterEnabled setting", () => {
+		it("should handle empty active personalities (no formatting)", () => {
 			const config = new Config(testConfigPath);
-			config.formatterEnabled = false;
+			config.activePersonalities = [];
 
 			const formatterConfig = config.getFormatterConfig();
 
-			expect(formatterConfig.enabled).toBe(false);
+			expect(formatterConfig.activePersonalities).toEqual([]);
 		});
 
-		it("should surface personality prompt and enabled flag", () => {
+		it("should return builtin and custom personalities separately", () => {
 			const config = new Config(testConfigPath);
-			config.openaiApiKey = "akey";
-			config.formatterPersonality = "emojify";
-			config.formatterPersonalityEnabled = true;
+			config.formatterOpenaiApiKey = "akey";
+			config.customPersonalities = {
+				custom1: { name: "Custom 1", prompt: "Custom prompt 1" },
+			};
 
 			const fc = config.getFormatterConfig();
-			expect(fc.personalityName).toBe("emojify");
-			expect(fc.personalityEnabled).toBe(true);
-			expect(fc.personalityPrompt).toContain(
-				"Lightly add context-appropriate emojis"
-			);
+			expect(fc.builtinPersonalities.default).toBeDefined();
+			// Guard emojify before accessing .prompt
+			const emojify = fc.builtinPersonalities.emojify;
+			expect(emojify).toBeDefined();
+			expect(fc.customPersonalities.custom1).toBeDefined();
+			if (emojify) {
+				expect(emojify.prompt).toContain(
+					"Lightly add context-appropriate emojis"
+				);
+			}
 		});
 	});
 
@@ -338,7 +352,6 @@ describe("Config", () => {
 		it("should load language from config file", async () => {
 			const testData = {
 				language: "fr",
-				formatterEnabled: true,
 				transcription: {
 					backend: "openai" as const,
 					openai: {
@@ -358,7 +371,6 @@ describe("Config", () => {
 
 		it("should default to 'en' when language not specified", async () => {
 			const testData = {
-				formatterEnabled: true,
 				transcription: {
 					backend: "openai" as const,
 					openai: {
@@ -380,7 +392,6 @@ describe("Config", () => {
 			const config = new Config(testConfigPath);
 			config.openaiApiKey = "test-key";
 			config.language = "es";
-			config.formatterEnabled = true;
 
 			await config.save();
 
