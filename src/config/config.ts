@@ -33,6 +33,8 @@ export interface ConfigData {
 	> | null;
 	// Persisted ordered selection of personalities
 	selectedPersonalities?: string[] | null;
+	// Active personalities (checked by default)
+	activePersonalities?: string[] | null;
 }
 
 export class Config {
@@ -85,7 +87,16 @@ export class Config {
 	};
 
 	// Ordered list of selected personalities (runtime selection or persisted if user saves)
-	public selectedPersonalities: string[] = [];
+	public selectedPersonalities: string[] = [
+		"default",
+		"professional",
+		"technical",
+		"creative",
+		"emojify",
+	];
+
+	// Active personalities (checked by default) - only "default" is active initially
+	public activePersonalities: string[] = ["default"];
 
 	private readonly configPath: string;
 
@@ -154,6 +165,12 @@ export class Config {
 					...this.formatterPersonalities,
 					...data.formatterPersonalities,
 				};
+			}
+			if (data.selectedPersonalities) {
+				this.selectedPersonalities = data.selectedPersonalities;
+			}
+			if (data.activePersonalities) {
+				this.activePersonalities = data.activePersonalities;
 			}
 
 			// Load transcription backend config
@@ -378,6 +395,7 @@ export class Config {
 		personalityPrompt: string | null;
 		personalityEnabled: boolean;
 		selectedPersonalities: string[];
+		activePersonalities: string[];
 		personalities: Record<
 			string,
 			{ name: string; description?: string; prompt?: string | null }
@@ -398,6 +416,7 @@ export class Config {
 			personalityPrompt,
 			personalityEnabled: this.formatterPersonalityEnabled,
 			selectedPersonalities: this.selectedPersonalities,
+			activePersonalities: this.activePersonalities,
 			personalities: this.formatterPersonalities,
 		};
 	}

@@ -11,7 +11,7 @@ import { logger, LogLevel } from "./utils/logger";
 
 // Runtime state for quick actions (not persisted to config file)
 interface RuntimeState {
-	formatterEnabled: boolean;
+	activePersonalities: string[]; // Multiple personalities can be active simultaneously
 }
 
 export class VoiceTranscriberApp {
@@ -31,7 +31,7 @@ export class VoiceTranscriberApp {
 
 		// Initialize runtime state (will be synced with config during load)
 		this.runtimeState = {
-			formatterEnabled: true, // Default value, will be overridden by config
+			activePersonalities: [], // Will be loaded from config
 		};
 
 		// These will be initialized after config loads (definite assignment used)
@@ -43,7 +43,10 @@ export class VoiceTranscriberApp {
 			await this.config.loadWithSetup();
 
 			// Sync runtime state with config
-			this.runtimeState.formatterEnabled = this.config.formatterEnabled;
+			const formatterConfig = this.config.getFormatterConfig();
+			// Initialize with personalities that are enabled by default in config
+			this.runtimeState.activePersonalities =
+				formatterConfig.activePersonalities || [];
 
 			// Initialize transcription service with full config
 			const transcriptionConfig = this.config.getTranscriptionConfig();
@@ -84,12 +87,13 @@ export class VoiceTranscriberApp {
 				}
 			}
 
-			const formatterConfig = this.config.getFormatterConfig();
+			// Initialize FormatterService (formatterConfig already declared above)
 			this.formatterService = new FormatterService({
 				apiKey: formatterConfig.apiKey,
 				enabled: formatterConfig.enabled,
 				language: formatterConfig.language,
 				prompt: formatterConfig.prompt,
+				personalities: formatterConfig.personalities,
 			});
 
 			// Initialize audio processor
@@ -105,12 +109,14 @@ export class VoiceTranscriberApp {
 				callbacks: {
 					onRecordingStart: () => this.handleRecordingStart(),
 					onRecordingStop: () => this.handleRecordingStop(),
-					onFormatterToggle: () => this.handleFormatterToggle(),
+					onPersonalityToggle: (personality: string) =>
+						this.handlePersonalityToggle(personality),
 					onOpenConfig: () => this.handleOpenConfig(),
 					onReload: () => this.handleReload(),
 					onQuit: () => this.handleQuit(),
 				},
-				formatterEnabled: this.runtimeState.formatterEnabled,
+				activePersonalities: this.runtimeState.activePersonalities,
+				selectedPersonalities: formatterConfig.selectedPersonalities,
 			});
 
 			const trayResult = await this.systemTrayService.initialize();
@@ -177,7 +183,7 @@ export class VoiceTranscriberApp {
 			} else {
 				await this.audioProcessor.processAudioFile(
 					stopResult.filePath,
-					this.runtimeState.formatterEnabled
+					this.runtimeState.activePersonalities
 				);
 			}
 
@@ -188,22 +194,31 @@ export class VoiceTranscriberApp {
 		}
 	}
 
-	private handleFormatterToggle(): void {
+	private handlePersonalityToggle(personality: string): void {
 		try {
-			// Toggle runtime state
-			this.runtimeState.formatterEnabled =
-				!this.runtimeState.formatterEnabled;
+			// Toggle personality in active list
+			const index =
+				this.runtimeState.activePersonalities.indexOf(personality);
+			if (index === -1) {
+				// Add personality
+				this.runtimeState.activePersonalities.push(personality);
+				logger.info(`Personality activated: ${personality}`);
+			} else {
+				// Remove personality
+				this.runtimeState.activePersonalities.splice(index, 1);
+				logger.info(`Personality deactivated: ${personality}`);
+			}
 
 			// Update system tray to reflect new state
-			this.systemTrayService.updateFormatterState(
-				this.runtimeState.formatterEnabled
+			this.systemTrayService.updateActivePersonalities(
+				this.runtimeState.activePersonalities
 			);
 
 			logger.info(
-				`Formatter ${this.runtimeState.formatterEnabled ? "enabled" : "disabled"}`
+				`Active personalities: ${this.runtimeState.activePersonalities.length > 0 ? this.runtimeState.activePersonalities.join(", ") : "none (formatter disabled)"}`
 			);
 		} catch (error) {
-			logger.error(`Failed to toggle formatter: ${error}`);
+			logger.error(`Failed to toggle personality: ${error}`);
 		}
 	}
 
@@ -275,6 +290,7 @@ export class VoiceTranscriberApp {
 					enabled: formatterConfig.enabled,
 					language: formatterConfig.language,
 					prompt: formatterConfig.prompt,
+					personalities: formatterConfig.personalities,
 				});
 
 				this.audioProcessor = new AudioProcessor({
@@ -311,11 +327,11 @@ export class VoiceTranscriberApp {
 					logger.info("🔬 Benchmark mode enabled");
 				}
 
-				// Sync runtime state with reloaded config
-				this.runtimeState.formatterEnabled =
-					this.config.formatterEnabled;
-				this.systemTrayService.updateFormatterState(
-					this.runtimeState.formatterEnabled
+				// Sync runtime state with reloaded config (formatterConfig already declared above)
+				this.runtimeState.activePersonalities =
+					formatterConfig.activePersonalities || [];
+				this.systemTrayService.updateActivePersonalities(
+					this.runtimeState.activePersonalities
 				);
 			} catch (error) {
 				// 7. Rollback on failure - restore old services
@@ -336,6 +352,7 @@ export class VoiceTranscriberApp {
 					enabled: oldFormatterConfig.enabled,
 					language: oldFormatterConfig.language,
 					prompt: oldFormatterConfig.prompt,
+					personalities: oldFormatterConfig.personalities,
 				});
 
 				this.audioProcessor = new AudioProcessor({

@@ -30,11 +30,11 @@ export class AudioProcessor {
 	}
 
 	/**
-	 * Process audio file: transcribe, format (optional), and copy to clipboard
+	 * Process audio file: transcribe, format (optional with multiple personalities), and copy to clipboard
 	 */
 	async processAudioFile(
 		filePath: string,
-		formatterEnabled?: boolean
+		activePersonalities?: string[]
 	): Promise<void> {
 		try {
 			logger.info("Transcribing audio...");
@@ -52,29 +52,36 @@ export class AudioProcessor {
 			let finalText = transcriptionResult.text;
 			logger.info(`Transcription result: ${finalText}`);
 
-			// Use runtime state if provided, otherwise fall back to config
-			const shouldFormat =
-				formatterEnabled !== undefined
-					? formatterEnabled
-					: this.config.formatterEnabled;
+			// Format text if at least one personality is active
+			if (activePersonalities && activePersonalities.length > 0) {
+				logger.info(
+					`Formatting text with personalities: ${activePersonalities.join(", ")}`
+				);
 
-			logger.debug(
-				`Formatter state: ${shouldFormat ? "enabled" : "disabled"} (runtime: ${formatterEnabled}, config: ${this.config.formatterEnabled})`
-			);
+				// Apply each personality sequentially
+				for (const personality of activePersonalities) {
+					logger.debug(`Applying personality: ${personality}`);
+					const formatOptions = {
+						promptOverride:
+							this.formatterService.getPersonalityPrompt(
+								personality
+							),
+					};
 
-			// Format text if enabled
-			if (shouldFormat) {
-				logger.info("Formatting text...");
-				const formatResult =
-					await this.formatterService.formatText(finalText);
-				if (formatResult.success && formatResult.text) {
-					finalText = formatResult.text;
-				} else {
-					logger.warn(
-						`Formatting failed: ${formatResult.error || "Unknown error"}`
+					const formatResult = await this.formatterService.formatText(
+						finalText,
+						formatOptions
 					);
-					logger.warn("Using unformatted transcription");
+					if (formatResult.success && formatResult.text) {
+						finalText = formatResult.text;
+					} else {
+						logger.warn(
+							`Formatting with ${personality} failed: ${formatResult.error || "Unknown error"}`
+						);
+					}
 				}
+			} else {
+				logger.debug("No active personalities, skipping formatting");
 			}
 
 			// Copy to clipboard
