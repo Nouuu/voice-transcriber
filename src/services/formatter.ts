@@ -7,6 +7,10 @@ export interface FormatterConfig {
 	enabled: boolean;
 	language: string;
 	prompt: string;
+	personalities: Record<
+		string,
+		{ name: string; description?: string; prompt?: string | null }
+	>;
 }
 
 export interface FormatResult {
@@ -29,6 +33,22 @@ export class FormatterService {
 		this.openai = new OpenAI({
 			apiKey: this.config.apiKey,
 		});
+	}
+
+	/**
+	 * Get the prompt for a specific personality.
+	 * Falls back to the config prompt if personality not found.
+	 */
+	public getPersonalityPrompt(personality: string): string {
+		const preset = this.config.personalities[personality];
+		if (preset?.prompt) {
+			logger.debug(`Using ${preset.name} personality prompt`);
+			return preset.prompt;
+		}
+		logger.debug(
+			`Personality '${personality}' not found or no prompt, using config prompt`
+		);
+		return this.config.prompt;
 	}
 
 	/**
