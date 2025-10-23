@@ -4,7 +4,7 @@ import { Config } from "./config/config";
 import { AudioRecorder } from "./services/audio-recorder";
 import { AudioProcessor } from "./services/audio-processor";
 import { ClipboardService } from "./services/clipboard";
-import { FormatterService } from "./services/formatter";
+import { type FormatterConfig, FormatterService } from "./services/formatter";
 import { SystemTrayService, TrayState } from "./services/system-tray";
 import { TranscriptionService } from "./services/transcription";
 import { logger, LogLevel } from "./utils/logger";
@@ -87,14 +87,13 @@ export class VoiceTranscriberApp {
 				}
 			}
 
-			// Initialize FormatterService (formatterConfig already declared above)
-			this.formatterService = new FormatterService({
-				apiKey: formatterConfig.apiKey,
-				enabled: formatterConfig.enabled,
-				language: formatterConfig.language,
-				prompt: formatterConfig.prompt,
-				personalities: formatterConfig.personalities,
-			});
+			// Initialize FormatterService (map config.getFormatterConfig() -> FormatterConfig)
+			this.formatterService = new FormatterService(
+				this.buildFormatterConfig(
+					formatterConfig,
+					transcriptionConfig.prompt
+				)
+			);
 
 			// Initialize audio processor
 			this.audioProcessor = new AudioProcessor({
@@ -116,7 +115,7 @@ export class VoiceTranscriberApp {
 					onQuit: () => this.handleQuit(),
 				},
 				activePersonalities: this.runtimeState.activePersonalities,
-				selectedPersonalities: formatterConfig.selectedPersonalities,
+				selectedPersonalities: this.config.selectedPersonalities,
 			});
 
 			const trayResult = await this.systemTrayService.initialize();
@@ -181,9 +180,11 @@ export class VoiceTranscriberApp {
 			if (this.config.benchmarkMode) {
 				await this.audioProcessor.processBenchmark(stopResult.filePath);
 			} else {
+				// Use the runtime state exposed by the system tray service (authoritative source)
+				const runtime = this.systemTrayService.getRuntimeState();
 				await this.audioProcessor.processAudioFile(
 					stopResult.filePath,
-					this.runtimeState.activePersonalities
+					runtime.activePersonalities
 				);
 			}
 
@@ -285,13 +286,12 @@ export class VoiceTranscriberApp {
 				});
 
 				const formatterConfig = this.config.getFormatterConfig();
-				this.formatterService = new FormatterService({
-					apiKey: formatterConfig.apiKey,
-					enabled: formatterConfig.enabled,
-					language: formatterConfig.language,
-					prompt: formatterConfig.prompt,
-					personalities: formatterConfig.personalities,
-				});
+				this.formatterService = new FormatterService(
+					this.buildFormatterConfig(
+						formatterConfig,
+						transcriptionConfig.prompt
+					)
+				);
 
 				this.audioProcessor = new AudioProcessor({
 					config: this.config,
@@ -347,13 +347,12 @@ export class VoiceTranscriberApp {
 					speachesUrl: oldTranscriptionConfig.speachesUrl,
 				});
 
-				this.formatterService = new FormatterService({
-					apiKey: oldFormatterConfig.apiKey,
-					enabled: oldFormatterConfig.enabled,
-					language: oldFormatterConfig.language,
-					prompt: oldFormatterConfig.prompt,
-					personalities: oldFormatterConfig.personalities,
-				});
+				this.formatterService = new FormatterService(
+					this.buildFormatterConfig(
+						oldFormatterConfig,
+						oldTranscriptionConfig.prompt
+					)
+				);
 
 				this.audioProcessor = new AudioProcessor({
 					config: this.config,
@@ -390,6 +389,48 @@ export class VoiceTranscriberApp {
 		} catch (error) {
 			logger.error(`Shutdown error: ${error}`);
 		}
+	}
+
+	/**
+	 * Convert Config.getFormatterConfig() output into the FormatterService expected config shape.
+	 */
+	private buildFormatterConfig(
+		cfg: any,
+		transcriptionPrompt?: string
+	): FormatterConfig {
+		// Compose personalities map with keys matching runtime ids (builtin:<key> / custom:<id>)
+		const personalities: Record<
+			string,
+			{ name: string; description?: string; prompt?: string | null }
+		> = {};
+
+		const builtin = cfg.builtinPersonalities || {};
+		for (const k of Object.keys(builtin)) {
+			const p = builtin[k];
+			personalities[`builtin:${k}`] = {
+				name: p.name,
+				description: p.description,
+				prompt: p.prompt ?? null,
+			};
+		}
+
+		const custom = cfg.customPersonalities || {};
+		for (const k of Object.keys(custom)) {
+			const p = custom[k];
+			personalities[`custom:${k}`] = {
+				name: p.name || k,
+				description: p.description,
+				prompt: p.prompt ?? null,
+			};
+		}
+
+		return {
+			apiKey: cfg.apiKey || "",
+			enabled: true,
+			language: cfg.language || this.config.language,
+			prompt: cfg.prompt ?? transcriptionPrompt ?? "",
+			personalities,
+		};
 	}
 }
 

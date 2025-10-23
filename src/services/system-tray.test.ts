@@ -181,4 +181,33 @@ describe("SystemTrayService", () => {
 			expect(config.callbacks.onQuit).toHaveBeenCalled();
 		});
 	});
+
+	describe("runtime state", () => {
+		it("should expose runtime state after initialize", async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			// Mock onReady to call callback immediately
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+
+			const runtime = service.getRuntimeState();
+			expect(Array.isArray(runtime.selectedPersonalities)).toBe(true);
+			expect(runtime.activePersonalities).toEqual(["builtin:default"]);
+		});
+
+		it("should reflect updates after updateActivePersonalities", async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+
+			service.updateActivePersonalities([
+				"builtin:creative",
+				"custom:my",
+			]);
+			const runtime = service.getRuntimeState();
+			expect(runtime.activePersonalities).toEqual([
+				"builtin:creative",
+				"custom:my",
+			]);
+		});
+	});
 });

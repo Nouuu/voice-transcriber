@@ -408,4 +408,17 @@ export class SystemTrayService {
 		// Force menu refresh with current state
 		this.setState(this.currentState);
 	}
+
+	/**
+	 * Expose the current runtime state (copies) so other services can read active/selected personalities.
+	 */
+	public getRuntimeState(): {
+		selectedPersonalities: string[];
+		activePersonalities: string[];
+	} {
+		return {
+			selectedPersonalities: this.selectedPersonalities.slice(),
+			activePersonalities: this.activePersonalities.slice(),
+		};
+	}
 }
