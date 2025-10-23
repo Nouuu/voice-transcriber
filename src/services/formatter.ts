@@ -15,6 +15,10 @@ export interface FormatResult {
 	error?: string;
 }
 
+export interface FormatOptions {
+	promptOverride?: string;
+}
+
 export class FormatterService {
 	private openai: OpenAI;
 	private config: FormatterConfig;
@@ -34,13 +38,18 @@ export class FormatterService {
 	 * should occur (i.e. checked runtime/config state). It will always attempt to
 	 * format the provided text and return the formatted result or an error.
 	 */
-	public async formatText(text: string): Promise<FormatResult> {
+	public async formatText(
+		text: string,
+		options: FormatOptions = {}
+	): Promise<FormatResult> {
 		// Caller must check whether formatting is enabled (runtime/config).
 
 		if (!text || text.trim().length === 0) {
 			logger.error("Cannot format empty text");
 			return { success: false, error: "Text cannot be empty" };
 		}
+
+		const promptToUse = options.promptOverride || this.config.prompt;
 
 		logger.debug(`Formatting text (${text.length} chars)`);
 		logger.debug(`Language: ${this.config.language}`);
@@ -54,7 +63,7 @@ export class FormatterService {
 				messages: [
 					{
 						role: "user",
-						content: `${this.config.prompt}\n\n${text}`,
+						content: `${promptToUse}\n\n${text}`,
 					},
 				],
 				temperature: 0.3,

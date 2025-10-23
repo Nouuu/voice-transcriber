@@ -199,6 +199,83 @@ interface RuntimeState {
 
 ---
 
+## 🗺️ Roadmap détaillée & Étape suivante (Phase 2)
+
+L'étape suivante est la Phase 2 : "Formatter Personalities" — implémentation d'un sous-menu de personnalités pour le formateur, permettant de changer dynamiquement le prompt utilisé par le FormatterService sans recharger la configuration.
+
+Qu'est-ce que c'est ?
+- C'est une extension du toggle actuel qui ajoute un sous-menu "Personality" contenant plusieurs styles de formatage (Default, Professional, Technical, Creative, Custom).
+- L'utilisateur peut sélectionner une personnalité (radio-style) et la prochaine transcription utilisera le prompt correspondant.
+
+Objectifs de la Phase 2
+- Permettre la sélection instantanée d'un prompt de formatage dans le menu système.
+- Faire en sorte que `AudioProcessor` et `FormatterService` puissent accepter/propager la personnalité choisie.
+- Ajouter tests unitaires et d'intégration pour couvrir le nouveau flux.
+
+Tâches techniques (décomposées)
+1. Modèle de données & runtime
+   - Ajouter `formatterPersonality: string` dans `RuntimeState` (valeurs: `default|professional|technical|creative|custom`).
+   - Étendre l'initialisation pour charger la personnalité par défaut depuis `config.getFormatterConfig()` si présente.
+   - Estimé : 0.5h
+
+2. Menu système (node-systray-v2)
+   - Ajouter sous-menu "Personality" avec éléments radio et check mark pour l'item actif.
+   - Implémenter `handlePersonalityChange(personality: string)` pour mettre à jour le runtime state et appeler `updateMenu`/`updateItem`.
+   - Tester visuellement que la sélection change d'état et est reflétée dans le menu.
+   - Estimé : 1h
+
+3. Propagation du prompt au FormatterService
+   - Modifier `AudioProcessor.processAudioFile()` pour accepter un paramètre `personality?: string` (ou lire depuis `runtimeState`) et transmettre la prompt correspondante au `FormatterService` (ou à son appelant) lors de `formatText()`.
+   - Étendre `FormatterService` pour accepter un override de prompt à l'appel (ex: `formatText(text, { promptOverride?: string })`).
+   - Estimé : 1h
+
+4. Prompts prédéfinis & Custom
+   - Ajouter structure contenant les prompts prédéfinis dans `work/QUICK_ACTIONS_MENU.md` (déjà documenté) et exposer ces prompts via `Config.getFormatterConfig()` ou une nouvelle source interne du runtime.
+   - Implémenter la personnalité `custom` qui utilise `config.formattingPrompt` si sélectionnée.
+   - Estimé : 0.5h
+
+5. Tests unitaires et d'intégration
+   - Tests unitaires :
+     - `FormatterService.formatText` respecte l'override de prompt si fourni.
+     - `AudioProcessor.processAudioFile` transmet correctement la personnalité/runtime override.
+   - Tests d'intégration :
+     - Simuler sélection de personnalité + enregistrement/transcription → vérifier que `openai.chat.completions.create` reçoit le prompt attendu.
+   - Estimé : 1h
+
+6. Documentation & UX
+   - Mettre à jour `work/QUICK_ACTIONS_MENU.md` (ce fichier) pour expliquer l'usage.
+   - Mettre à jour README utilisateur si besoin.
+   - Estimé : 0.5h
+
+Livrables et critères d'acceptation (Definition of Done)
+- [ ] Sous-menu "Personality" visible et navigable dans le system tray.
+- [ ] La sélection change l'état runtime et l'item actif est affiché comme cochée.
+- [ ] Les transcriptions ultérieures utilisent le prompt associé à la personnalité choisie.
+- [ ] Tests unitaires couvrant la propagation du prompt : 100% pass localement.
+- [ ] Pas de régression sur les tests existants (suite complète verte).
+
+Plan de test minimal
+- Tests unitaires : lancer `bun test src/services/formatter.test.ts` et `bun test src/services/audio-processor.test.ts`.
+- Test d'intégration rapide : démarrer l'app en mode debug, sélectionner une personnalité différente, enregistrer une phrase courte et vérifier dans les logs que le prompt envoyé à OpenAI contient la personnalité choisie.
+
+Dépendances & risques
+- `node-systray-v2` : vérifier le support des submenus / radio items sur toutes les plateformes ciblées. (Risque faible mais à valider.)
+- Augmentation potentielle des appels à l'API si les users testent plusieurs personalities rapidement (coût). On recommande une notice UX avertissant l'utilisateur.
+
+Calendrier proposé (itératif)
+- Jour J (T0) : Implémentation du runtime + menu (tâches 1+2) — 1.5h
+- Jour J+1 (T1) : Propagation du prompt + prompts prédéfinis (tâches 3+4) — 1.5h
+- Jour J+2 (T2) : Tests, docs et polish (tâche 5+6) — 1h
+
+Prochaine action immédiate (que je peux faire pour vous maintenant)
+- Implémenter la Phase 2 : créer le code pour le sous-menu, ajouter le champ `formatterPersonality` dans le runtime et modifier `FormatterService` pour accepter un override de prompt. Je peux appliquer ces changements et exécuter les tests unitaires/integration ci-après.
+
+Souhaitez-vous que je commence l'implémentation technique de Phase 2 maintenant ?
+- Répondez "Oui, commence" et je lancerai les modifications de code (création/modification des fichiers nécessaires) et j'exécuterai la suite de tests.
+- Répondez "Document only" si vous voulez seulement la documentation et un plan, sans code.
+
+---
+
 ## 🎯 Bénéfices Utilisateur
 
 ### Toggle Formatter
@@ -261,4 +338,3 @@ Avant de démarrer l'implémentation :
 **Status** : ✅ **Prêt pour implémentation**
 **Dépendances** : Aucune (feature standalone)
 **Related** : Voir `OLLAMA_BACKEND.md` pour le support de formatage local
-
