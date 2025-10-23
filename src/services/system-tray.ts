@@ -88,53 +88,35 @@ export class SystemTrayService {
 
 			// Click handling using position-based routing
 			systray.onClick(action => {
-				console.log(`Menu item clicked: ${action.item.title}`);
-				console.log(
-					`DEBUG: seq_id = ${action.seq_id}, position in array`
-				);
-
 				// Get the item type from our map using seq_id as position
 				const menuItem = this.menuItemMap[action.seq_id];
 
 				if (!menuItem) {
-					console.log(
-						`WARNING: No menu item found at position ${action.seq_id}`
-					);
 					return;
 				}
-
-				console.log(`DEBUG: Item type = ${menuItem.type}`);
 
 				// Route based on item type
 				switch (menuItem.type) {
 					case MenuItemType.START_RECORDING:
-						console.log("Start Recording clicked");
 						this.callbacks.onRecordingStart();
 						break;
 					case MenuItemType.STOP_RECORDING:
-						console.log("Stop Recording clicked");
 						this.callbacks.onRecordingStop();
 						break;
 					case MenuItemType.PERSONALITY:
 						if (menuItem.personality) {
-							console.log(
-								`Personality toggled: ${menuItem.personality}`
-							);
 							this.callbacks.onPersonalityToggle(
 								menuItem.personality
 							);
 						}
 						break;
 					case MenuItemType.OPEN_CONFIG:
-						console.log("Open Config clicked");
 						this.callbacks.onOpenConfig();
 						break;
 					case MenuItemType.RELOAD_CONFIG:
-						console.log("Reload Config clicked");
 						this.callbacks.onReload();
 						break;
 					case MenuItemType.EXIT:
-						console.log("Exit clicked");
 						this.callbacks.onQuit();
 						break;
 					case MenuItemType.SEPARATOR:
@@ -150,7 +132,6 @@ export class SystemTrayService {
 
 			// Assign after successful initialization
 			this.systray = systray;
-			console.log("System tray initialized successfully");
 
 			return { success: true };
 		} catch (error) {
@@ -333,10 +314,7 @@ export class SystemTrayService {
 
 	public async setState(state: TrayState): Promise<TrayResult> {
 		try {
-			const oldState = this.currentState;
 			this.currentState = state;
-
-			console.log(`State changed from ${oldState} to ${state}`);
 
 			if (!this.systray) {
 				return { success: false, error: "System tray not initialized" };
@@ -344,14 +322,6 @@ export class SystemTrayService {
 
 			// Build the menu items
 			const menuItems = this.buildMenuItems(state);
-
-			// DEBUG: Log menu structure using menuItemMap
-			console.log("DEBUG: Menu structure:");
-			this.menuItemMap.forEach((item, index) => {
-				console.log(
-					`  [${index}] type=${item.type}, title="${item.title}", enabled=${item.enabled}`
-				);
-			});
 
 			// Update entire menu (icon + items structure)
 			this.systray.sendAction({
@@ -382,10 +352,8 @@ export class SystemTrayService {
 				}
 			});
 
-			console.log(`Tray icon updated to state: ${state}`);
 			return { success: true };
 		} catch (error) {
-			console.log(`Failed to update state: ${error}`);
 			return { success: false, error: `Failed to set state: ${error}` };
 		}
 	}
