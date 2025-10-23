@@ -2,9 +2,44 @@
 
 **Feature**: Dynamic Quick Actions in System Tray Menu
 **Created**: 2025-10-21
-**Status**: 📋 Planning / Future Enhancement
+**Updated**: 2025-10-23
+**Status**: ✅ Phase 1 Complete / 🚧 Phase 2-3 Pending
 **Priority**: Medium
-**Estimated Effort**: 4-5 hours
+**Estimated Effort**: 2h completed / 3h remaining
+
+---
+
+## 📝 Session de Troubleshooting (2025-10-23)
+
+### 🐛 Bugs Identifiés et Corrigés
+
+**Problème Initial** :
+- Menu items ne se mettaient pas à jour lors du changement d'état
+- Boutons restaient grisés/activés incorrectement après Start/Stop Recording
+- Méthode `shutdown()` manquante causant une erreur au exit
+
+**Root Cause** :
+- L'approche simplifiée avec `update-menu` seul ne mettait pas à jour les états `enabled/disabled` des items
+- Le code qui fonctionnait utilisait `update-menu` + `update-item` pour chaque item
+
+**Solutions Appliquées** :
+1. ✅ **Structure dictionnaire `MENU_ITEMS`** - Single source of truth pour tous les menu items avec configuration centralisée
+2. ✅ **Approche hybride `update-menu` + `update-item`** - Garantit la mise à jour correcte des états
+3. ✅ **Méthode `buildMenuItems()` refactorisée** - Utilise le dictionnaire pour construire les items
+4. ✅ **Méthode `updateFormatterState()` ajoutée** - Pour mettre à jour le toggle formatter dynamiquement
+5. ✅ **Méthode `shutdown()` restaurée** - Corrige l'erreur au exit
+
+**Résultats des Tests** :
+- ✅ Start Recording active correctement Stop Recording
+- ✅ Stop Recording désactive correctement et retourne à IDLE
+- ✅ Toggle Formatter fonctionne (⬜ ↔ ✅)
+- ✅ Reload Config correctement désactivé pendant Recording
+- ✅ Exit fonctionne sans erreur
+
+**Code Quality** :
+- **Avant** : 112 lignes dans `setState()` avec duplication massive
+- **Après** : 50 lignes factorisées avec structure dictionnaire
+- **Amélioration** : -55% lignes, maintenabilité haute, aucune duplication
 
 ---
 
@@ -135,12 +170,15 @@ interface RuntimeState {
 
 ## 📊 Plan d'Implémentation
 
-### Phase 1: Toggle Formatter (MVP) - 2h
-- [ ] Ajouter RuntimeState dans VoiceTranscriberApp
-- [ ] Ajouter menu item checkbox "Formatter ON/OFF"
-- [ ] Implémenter handleFormatterToggle()
-- [ ] Mettre à jour processAudioFile() pour respecter runtimeState
-- [ ] Tests unitaires (2-3 tests)
+### Phase 1: Toggle Formatter (MVP) - ✅ COMPLETE (2h)
+- [x] Ajouter RuntimeState dans VoiceTranscriberApp
+- [x] Ajouter menu item checkbox "Formatter ON/OFF" (✅/⬜)
+- [x] Implémenter handleFormatterToggle()
+- [x] Mettre à jour processAudioFile() pour respecter runtimeState
+- [x] Créer structure dictionnaire MENU_ITEMS pour factorisation
+- [x] Corriger update-menu + update-item pour états enabled/disabled
+- [x] Ajouter méthode updateFormatterState()
+- [ ] Tests unitaires (2-3 tests) ← TODO
 
 ### Phase 2: Formatter Personalities - 2h
 - [ ] Définir les 4 personalities prédéfinies (default, professional, technical, creative)
