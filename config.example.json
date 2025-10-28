@@ -1,6 +1,10 @@
 {
+	"_comment_language": "Primary language for transcription: 'en', 'fr', 'es', 'de', 'it'",
 	"language": "en",
+
+	"_comment_benchmark": "Compare OpenAI vs Speaches side-by-side (requires --debug flag)",
 	"benchmarkMode": false,
+
 	"transcription": {
 		"backend": "openai",
 		"openai": {
@@ -24,7 +28,10 @@
 			"model": "llama3.1:8b"
 		}
 	},
+	"_comment_active": "Personalities applied during formatting (can be multiple)",
 	"activePersonalities": ["builtin:default"],
+
+	"_comment_selected": "Personalities visible in system tray menu",
 	"selectedPersonalities": [
 		"builtin:default",
 		"builtin:professional",
@@ -33,6 +40,8 @@
 		"builtin:emojify",
 		"custom:myCustomStyle"
 	],
+
+	"_comment_custom": "Define your own formatting styles - See: https://nouuu.github.io/voice-transcriber/latest/user-guide/formatting-personalities/",
 	"customPersonalities": {
 		"myCustomStyle": {
 			"name": "My Custom Style",

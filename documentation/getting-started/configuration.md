@@ -59,30 +59,6 @@ The primary language for transcription and formatting.
 }
 ```
 
-#### `language` (string)
-The primary language for transcription and formatting.
-
-**Supported languages**:
-- `"fr"` - French
-- `"en"` - English (default)
-- `"es"` - Spanish
-- `"de"` - German
-- `"it"` - Italian
-
-**Default**: `"en"`
-
-**How it works**:
-- Whisper API uses this as the primary transcription language
-- A strong language-specific prompt prevents Whisper from switching languages mid-transcription
-- Formatter (GPT) maintains this language when formatting text
-
-**Example**:
-```json
-{
-  "language": "fr"
-}
-```
-
 #### `transcriptionPrompt` (string or null)
 Custom prompt for Whisper transcription.
 
@@ -599,13 +575,25 @@ The system detects **15+ types of changes**:
 ```json
 {
   "language": "fr",
-  "formatterEnabled": true,
   "transcriptionPrompt": "Transcribe this French audio with proper names and technical terms.",
-  "formattingPrompt": "Format this French text in a concise, professional style.",
   "transcription": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "activePersonalities": ["builtin:professional"],
+  "customPersonalities": {
+    "myStyle": {
+      "name": "My Custom Style",
+      "description": "Concise professional style",
+      "prompt": "Format this French text in a concise, professional style."
     }
   }
 }
