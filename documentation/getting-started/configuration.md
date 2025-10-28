@@ -59,18 +59,27 @@ The primary language for transcription and formatting.
 }
 ```
 
-#### `formatterEnabled` (boolean)
-Enable or disable GPT text formatting after transcription.
+#### `language` (string)
+The primary language for transcription and formatting.
 
-**When enabled**: Transcribed text is formatted with proper grammar and punctuation
-**When disabled**: Raw transcription is copied directly to clipboard
+**Supported languages**:
+- `"fr"` - French
+- `"en"` - English (default)
+- `"es"` - Spanish
+- `"de"` - German
+- `"it"` - Italian
 
-**Default**: `true`
+**Default**: `"en"`
+
+**How it works**:
+- Whisper API uses this as the primary transcription language
+- A strong language-specific prompt prevents Whisper from switching languages mid-transcription
+- Formatter (GPT) maintains this language when formatting text
 
 **Example**:
 ```json
 {
-  "formatterEnabled": true
+  "language": "fr"
 }
 ```
 
@@ -95,25 +104,6 @@ Do NOT switch to English or translate. Keep all content in [Language], preservin
 }
 ```
 
-#### `formattingPrompt` (string or null)
-Custom prompt for GPT text formatting.
-
-**Default**: `null` (uses automatic language-aware prompt)
-
-**When to use**: Only if you need specific formatting rules beyond grammar and punctuation.
-
-**Built-in prompt (when null)**:
-```
-Format this [Language] text with proper grammar, punctuation, and structure.
-Keep the text in [Language]. Do not translate to another language.
-```
-
-**Example**:
-```json
-{
-  "formattingPrompt": "Format this French text in a formal business style with proper punctuation."
-}
-```
 
 #### `benchmarkMode` (boolean)
 
@@ -197,19 +187,142 @@ Backend configuration for transcription service.
 
 **Note**: For `benchmarkMode`, both `openai` and `speaches` sections must be configured.
 
+#### `formatter` (object)
+
+Backend configuration for text formatting service.
+
+**Structure**:
+```json
+{
+  "formatter": {
+    "backend": "openai" | "ollama",
+    "openai": {
+      "apiKey": "string",
+      "model": "string"
+    },
+    "ollama": {
+      "url": "string",
+      "model": "string"
+    }
+  }
+}
+```
+
+**Fields**:
+
+- `backend` (required): `"openai"` or `"ollama"` - which backend to use for formatting
+- `openai.apiKey` (required for OpenAI): Your OpenAI API key
+- `openai.model` (optional): GPT model, default `"gpt-4o-mini"`
+- `ollama.url` (optional): Ollama server URL, default `"http://localhost:11434"`
+- `ollama.model` (optional): Model name, default `"llama3.1:8b"`
+
+#### `activePersonalities` (array of strings)
+
+List of personalities to apply during formatting. Multiple personalities can be active simultaneously, and their prompts will be concatenated into a single request.
+
+**Default**: `["builtin:default"]`
+
+**Format**: `"builtin:<name>"` for built-in personalities, `"custom:<id>"` for custom ones
+
+**Built-in personalities**:
+- `builtin:default` - Minimal formatting, fix grammar only
+- `builtin:professional` - Business communication style
+- `builtin:technical` - Technical documentation style
+- `builtin:creative` - Expressive and natural style
+- `builtin:emojify` - Add context-appropriate emojis
+
+**Example**:
+```json
+{
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:emojify",
+    "custom:myStyle"
+  ]
+}
+```
+
+#### `customPersonalities` (object)
+
+Define your own custom formatting styles.
+
+**Structure**:
+```json
+{
+  "customPersonalities": {
+    "myStyleId": {
+      "name": "Display Name",
+      "description": "Optional description",
+      "prompt": "Formatting instructions for GPT"
+    }
+  }
+}
+```
+
+**Example**:
+```json
+{
+  "customPersonalities": {
+    "technical-french": {
+      "name": "Technical French",
+      "description": "French technical documentation style",
+      "prompt": "Format as French technical documentation. Keep technical English terms. Use formal tone."
+    },
+    "email-style": {
+      "name": "Email Style",
+      "description": "Professional email format",
+      "prompt": "Format as a professional email: greeting, body, closing signature."
+    }
+  }
+}
+```
+
+#### `maxPromptLength` (number)
+
+Maximum total length (in characters) when concatenating multiple personality prompts.
+
+**Default**: `4000`
+
+**How it works**:
+- When multiple personalities are active, their prompts are concatenated with `\n\n---\n\n` separator
+- If adding a new prompt would exceed `maxPromptLength`, concatenation stops
+- Helps prevent exceeding LLM token limits while using multiple personalities
+
+**Example**:
+```json
+{
+  "maxPromptLength": 4000,
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:technical",
+    "custom:myLongPrompt"
+  ]
+}
+```
+
+!!! tip "Personality Concatenation"
+    When using multiple personalities, they are combined into a single formatting request rather than applied sequentially. This is faster and more cost-effective, but means personalities should be complementary rather than contradictory.
+
 ## Complete Configuration Examples
 
 ### Minimal Configuration (OpenAI Backend)
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
   "transcription": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-proj-abc123..."
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": ["builtin:default"]
 }
 ```
 
@@ -217,9 +330,7 @@ Backend configuration for transcription service.
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
   "transcriptionPrompt": null,
-  "formattingPrompt": null,
   "benchmarkMode": false,
   "transcription": {
     "backend": "openai",
@@ -232,15 +343,28 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    },
+    "ollama": {
+      "url": "http://localhost:11434",
+      "model": "llama3.1:8b"
+    }
+  },
+  "activePersonalities": ["builtin:default"],
+  "customPersonalities": {},
+  "maxPromptLength": 4000
 }
 ```
 
-### Speaches Backend Configuration
+### Speaches Backend Configuration (No Formatting)
 ```json
 {
   "language": "fr",
-  "formatterEnabled": false,
   "transcription": {
     "backend": "speaches",
     "speaches": {
@@ -248,7 +372,41 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
     }
-  }
+  },
+  "activePersonalities": []
+}
+```
+
+### Multiple Personalities Configuration
+```json
+{
+  "language": "fr",
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:emojify",
+    "custom:myStyle"
+  ],
+  "customPersonalities": {
+    "myStyle": {
+      "name": "My Custom Style",
+      "description": "My personal formatting style",
+      "prompt": "Format text in my personal style with..."
+    }
+  },
+  "maxPromptLength": 4000
 }
 ```
 
@@ -256,7 +414,6 @@ Backend configuration for transcription service.
 ```json
 {
   "language": "fr",
-  "formatterEnabled": true,
   "benchmarkMode": true,
   "transcription": {
     "backend": "speaches",
@@ -269,7 +426,15 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-medium"
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": ["builtin:default"]
 }
 ```
 
