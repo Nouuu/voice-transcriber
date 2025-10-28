@@ -22,12 +22,30 @@ export default [
 		},
 		rules: {
 			...tsPlugin.configs.recommended.rules,
+			...tsPlugin.configs["recommended-type-checked"].rules,
 			...prettierConfig.rules,
 			"prettier/prettier": "error",
 
-			// Règles équivalentes à Biome
+			// TypeScript strict rules
 			"@typescript-eslint/no-explicit-any": "warn",
-			"@typescript-eslint/no-non-null-assertion": "warn",
+			"@typescript-eslint/no-non-null-assertion": "error",
+			"@typescript-eslint/no-unnecessary-condition": "warn",
+			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/await-thenable": "error",
+			"@typescript-eslint/no-misused-promises": "error",
+			"@typescript-eslint/require-await": "warn",
+			"@typescript-eslint/no-unsafe-assignment": "warn",
+			"@typescript-eslint/no-unsafe-member-access": "warn",
+			"@typescript-eslint/no-unsafe-call": "warn",
+			"@typescript-eslint/no-unsafe-return": "warn",
+			"@typescript-eslint/restrict-template-expressions": [
+				"warn",
+				{
+					allowNumber: true,
+					allowBoolean: true,
+					allowNullish: true,
+				},
+			],
 
 			// Règles recommandées TypeScript
 			"@typescript-eslint/no-unused-vars": [
@@ -35,10 +53,22 @@ export default [
 				{
 					argsIgnorePattern: "^_",
 					varsIgnorePattern: "^_",
+					caughtErrors: "all",
+					caughtErrorsIgnorePattern: "^_",
 				},
 			],
+
+			// Best practices
 			"no-var": "error",
 			"prefer-const": "error",
+			"no-console": [
+				"warn",
+				{
+					allow: ["warn", "error"],
+				},
+			],
+			eqeqeq: ["error", "always"],
+			"no-throw-literal": "error",
 		},
 	},
 	{
@@ -46,6 +76,15 @@ export default [
 		files: ["**/*.test.ts", "**/*.spec.ts"],
 		rules: {
 			"@typescript-eslint/no-explicit-any": "off",
+			"@typescript-eslint/no-unsafe-assignment": "off",
+			"@typescript-eslint/no-unsafe-member-access": "off",
+			"@typescript-eslint/no-unsafe-call": "off",
+			"@typescript-eslint/no-unsafe-return": "off",
+			"@typescript-eslint/no-floating-promises": "off",
+			"@typescript-eslint/unbound-method": "off",
+			"@typescript-eslint/require-await": "off",
+			"@typescript-eslint/no-unnecessary-type-assertion": "off",
+			"no-console": "off",
 		},
 	},
 ];
