@@ -107,6 +107,7 @@ nav:
       - First Run: getting-started/first-run.md
   - User Guide:
       - Basic Usage: user-guide/basic-usage.md
+      - Formatting Personalities: user-guide/formatting-personalities.md
       - Language Support: user-guide/language-support.md
       - Transcription Backends: user-guide/transcription-backends.md
       - Troubleshooting: user-guide/troubleshooting.md
@@ -116,6 +117,8 @@ nav:
       - Testing: development/testing.md
       - API Reference: development/api-reference.md
   - Advanced:
+      - Configuration Management: advanced/configuration-management.md
+      - Debug Mode: advanced/debug-mode.md
       - Speaches Integration: advanced/speaches-integration.md
       - Whisper Models: advanced/whisper-models.md
       - Local Inference: advanced/local-inference.md

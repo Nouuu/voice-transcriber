@@ -116,12 +116,20 @@ Right-click the tray icon for available actions:
 🎤 Voice Transcriber
 ├── 🎙️ Start Recording
 ├── ⏹️ Stop Recording
+├── ─────────────────
+├── ☑ Default
+├── ☐ Professional
+├── ☐ Technical
+├── ☐ Creative
+├── ☐ Emojify
+├── ─────────────────
+├── 💾 Save as Default
 ├── ⚙️ Open Config
 ├── 🔄 Reload Config
 └── ❌ Exit
 ```
 
-### Menu Actions
+### Core Actions
 
 **Start Recording**
 : Begin audio capture (disabled while recording)
@@ -131,115 +139,89 @@ Right-click the tray icon for available actions:
 : End recording and transcribe (enabled only while recording)
 : Same as left-click when recording
 
+### Formatting Personalities
+
+**Personality Checkboxes** (Default, Professional, Technical, Creative, Emojify)
+: Toggle formatting styles on/off
+: Multiple personalities can be active simultaneously
+: See [Formatting Personalities](formatting-personalities.md) for details
+
+**💾 Save as Default**
+: Save your current personality preferences to config file
+: No need to manually edit `config.json`
+: Changes persist across restarts
+
+!!! tip "Quick Personality Changes"
+    1. Check/uncheck personalities to test different combinations
+    2. Click "💾 Save as Default" when you find your favorite setup
+    3. Restart → Your preferences are restored automatically
+
+### Configuration Actions
+
 **Open Config**
 : Opens configuration file in your default text editor
 : Always available
 
 **Reload Config**
-: Reloads configuration without restarting the application
+: Reloads configuration without restarting
 : Only available when idle (not recording or processing)
+: See [Configuration Management](../advanced/configuration-management.md) for details
 
 **Exit**
 : Exit the application gracefully
 
-!!! note "Menu Behavior"
-    Menu items automatically enable/disable based on state:
+!!! note "Menu State Management"
+    Menu items automatically enable/disable based on application state to prevent accidental errors.
     
     | Menu Item | Idle (🟢) | Recording (🔴) | Processing (🟣) |
     |-----------|-----------|----------------|-----------------|
     | Start Recording | ✅ Enabled | ❌ Disabled | ❌ Disabled |
     | Stop Recording | ❌ Disabled | ✅ Enabled | ❌ Disabled |
+    | Personalities | ✅ Enabled | ✅ Enabled | ✅ Enabled |
+    | Save as Default | ✅ Enabled | ❌ Disabled | ❌ Disabled |
     | Open Config | ✅ Enabled | ✅ Enabled | ✅ Enabled |
     | Reload Config | ✅ Enabled | ❌ Disabled | ❌ Disabled |
     | Exit | ✅ Enabled | ✅ Enabled | ✅ Enabled |
 
-## Configuration Management
+## Advanced Features
 
-You can now manage configuration directly from the system tray menu without restarting the application.
+### Configuration Reload
 
-### Quick Configuration Workflow
+You can modify your configuration and reload it without restarting:
 
-1. **Open Config**: Right-click tray icon → "Open Config"
-2. **Edit**: Make your changes in the text editor
-3. **Save**: Save the configuration file
-4. **Reload**: Right-click tray icon → "Reload Config" (when idle)
+1. Right-click → "⚙️ Open Config"
+2. Edit settings (language, backend, etc.)
+3. Save the file
+4. Right-click → "🔄 Reload Config"
 
-### When to Use Reload Config
+Changes take effect immediately!
 
-**Reload Config** is useful when you want to:
-
-- Switch between transcription backends (OpenAI ↔ Speaches)
-- Test different language settings
-- Update API keys
-- Change transcription or formatting prompts
-- Enable/disable the formatter
-
-!!! success "Live Configuration Updates"
-    Changes take effect immediately after reload - no need to restart the application!
-
-!!! warning "Reload Restrictions"
-    **Reload Config** is disabled during:
+!!! tip "For Advanced Users"
+    See [Configuration Management](../advanced/configuration-management.md) for:
     
-    - **Recording** (🔴): Would interrupt audio capture
-    - **Processing** (🟣): Would interfere with transcription
-    
-    Wait for the icon to turn green (idle) before reloading configuration.
+    - Change detection (debug mode)
+    - Safety features and validation
+    - Advanced workflows
+    - Troubleshooting reload issues
 
-### Configuration Reload Safety
+### Debug Mode
 
-The reload process includes automatic safety checks:
-
-- **Validation**: Configuration is validated before applying
-- **Rollback**: Previous configuration is restored if reload fails
-- **Service reinitialization**: All services are properly restarted with new settings
-
-If reload fails, you'll see an error message and the previous configuration will be restored automatically.
-
-## Debug Mode
-
-Enable debug mode for detailed logging and performance metrics:
+Enable detailed logging for troubleshooting:
 
 ```bash
 voice-transcriber --debug
 ```
 
-### What Debug Mode Shows
+Shows performance metrics, file sizes, processing times, and more.
 
-Debug mode provides detailed information about:
+!!! tip "For Advanced Users"
+    See [Debug Mode](../advanced/debug-mode.md) for:
+    
+    - Complete debug output reference
+    - Performance analysis
+    - Backend comparison
+    - Benchmark mode
 
-- **File sizes**: WAV and MP3 file sizes with compression ratios
-- **Audio format**: Sample rate, channels, conversion details
-- **Processing times**: Breakdown of upload, processing, and response times
-- **Transcription details**: Character count, duration metrics
-
-### Example Debug Output
-
-```
-2025-10-11T10:30:15.123Z [DEBUG] WAV file size: 2.45 MB (2569216 bytes)
-2025-10-11T10:30:15.125Z [DEBUG] WAV format: 2 channel(s), 44100 Hz sample rate
-2025-10-11T10:30:15.234Z [DEBUG] MP3 file size: 0.62 MB (650240 bytes)
-2025-10-11T10:30:15.234Z [DEBUG] Compression ratio: 74.7% size reduction
-2025-10-11T10:30:15.234Z [DEBUG] WAV to MP3 conversion completed in 0.11 seconds
-2025-10-11T10:30:16.789Z [INFO] OpenAI transcription completed in 1.55s
-2025-10-11T10:30:16.789Z [DEBUG]   └─ Estimated breakdown: upload ~0.47s, processing ~0.93s, receive ~0.16s
-2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
-```
-
-### When to Use Debug Mode
-
-!!! tip "Debug Mode Use Cases"
-    - **Troubleshooting**: Identify where delays occur in the transcription pipeline
-    - **Performance analysis**: Understand audio compression effectiveness
-    - **Quality verification**: Check audio format and processing details
-    - **Benchmarking**: Compare different backends or configurations
-
-### Disabling Debug Mode
-
-Simply run without the `--debug` flag:
-
-```bash
-voice-transcriber
-```
 
 ## Best Practices
 

@@ -24,7 +24,15 @@
 			"model": "llama3.1:8b"
 		}
 	},
-	"activePersonalities": ["builtin:default", "custom:myCustomStyle"],
+	"activePersonalities": ["builtin:default"],
+	"selectedPersonalities": [
+		"builtin:default",
+		"builtin:professional",
+		"builtin:technical",
+		"builtin:creative",
+		"builtin:emojify",
+		"custom:myCustomStyle"
+	],
 	"customPersonalities": {
 		"myCustomStyle": {
 			"name": "My Custom Style",

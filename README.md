@@ -20,13 +20,16 @@ Lightweight desktop voice-to-text transcription with OpenAI Whisper and system t
 ## ✨ Features
 
 - **🎯 System Tray Integration**: Click to record, visual state feedback (green=idle, red=recording, purple=processing)
-- **⚙️ Live Configuration Management**: Edit config and reload without restart - switch backends, languages, API keys on-the-fly
+- **💾 Save as Default**: One-click save of your personality preferences directly from the system tray - no manual config editing needed
+- **⚙️ Live Configuration Management**: Edit config and reload without restart - switch backends, languages, API keys on-the-fly with detailed change detection
+- **🎭 Multiple Personalities**: Activate multiple formatting styles simultaneously (Professional + Emojify, Technical + Creative, etc.)
+- **🎨 Custom Personalities**: Create your own formatting styles with custom prompts - perfect for specific workflows
 - **🎙️ High-Quality Recording**: Audio capture using arecord on Linux
 - **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
-- **✍️ Text Formatting**: Optional GPT-based grammar improvement
+- **✍️ Text Formatting**: Optional GPT-based grammar improvement with concatenated personality prompts (faster, cheaper)
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
 - **🏠 Self-Hosted Option**: Run 100% offline with [Speaches](https://github.com/speaches-ai/speaches) - same quality as OpenAI Whisper, zero cost, complete privacy
-- **🔄 Smart Reload**: Configuration validation with automatic rollback on errors
+- **🔄 Smart Reload**: Configuration validation with automatic rollback on errors and change detection in debug mode
 
 ## 🚀 Quick Start
 

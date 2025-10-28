@@ -303,6 +303,155 @@ Maximum total length (in characters) when concatenating multiple personality pro
 !!! tip "Personality Concatenation"
     When using multiple personalities, they are combined into a single formatting request rather than applied sequentially. This is faster and more cost-effective, but means personalities should be complementary rather than contradictory.
 
+#### `selectedPersonalities` (array of strings)
+
+List of personalities that appear in the system tray menu. This controls **which** personalities are visible, while `activePersonalities` controls **which** ones are checked/enabled by default.
+
+**Default**: All built-in personalities
+
+**Format**: `"builtin:<name>"` for built-in personalities, `"custom:<id>"` for custom ones
+
+**Example**:
+```json
+{
+  "selectedPersonalities": [
+    "builtin:default",
+    "builtin:professional",
+    "custom:myStyle"
+  ]
+}
+```
+
+**Use cases**:
+- Hide personalities you never use to keep the menu clean
+- Show only personalities relevant to your workflow
+- Add custom personalities to the menu
+
+!!! tip "Menu Organization"
+    Keep `selectedPersonalities` short (3-5 items) for a cleaner menu. You can always add personalities when needed by editing the config and reloading.
+
+## Managing Configuration
+
+### Save as Default (System Tray)
+
+**NEW in v1.x** - You can now save your current configuration directly from the system tray menu, eliminating the need to manually edit `config.json` for common changes.
+
+#### How It Works
+
+1. **Adjust Settings**: Use the system tray menu to check/uncheck personalities
+2. **Save**: Click "💾 Save as Default" in the menu
+3. **Persist**: Your current settings are saved to `config.json`
+4. **Restart**: Next time you start the app, your preferences are restored
+
+#### What Gets Saved
+
+When you click "💾 Save as Default", the **entire configuration** is saved:
+
+- ✅ Active personalities (`activePersonalities`)
+- ✅ Selected personalities (menu visibility)
+- ✅ Custom personalities
+- ✅ Language setting
+- ✅ Transcription backend and settings
+- ✅ Formatter backend and settings
+- ✅ All other configuration parameters
+
+!!! warning "Complete Save"
+    "Save as Default" saves **everything**, not just personalities. Any changes made via the config file and reloaded are included in the save.
+
+#### When to Use
+
+**Perfect for**:
+- Saving your preferred personality combinations
+- Quick workflow adjustments
+- Testing different setups before committing
+
+**Not ideal for**:
+- Complex configuration changes (use config file directly)
+- Temporary testing (changes will persist)
+
+#### Example Workflow
+
+```bash
+# 1. Start the application
+voice-transcriber
+
+# 2. Via system tray menu:
+#    ☑ Professional
+#    ☑ Emojify
+#    ☐ Default (uncheck)
+
+# 3. Click "💾 Save as Default"
+
+# 4. Restart → Professional + Emojify are active by default ✅
+```
+
+#### Safety Features
+
+- **State check**: Only available when app is IDLE (not during recording/processing)
+- **Confirmation**: Logs confirm successful save with details
+- **Rollback**: Edit `config.json` and reload if needed
+
+#### Logs
+
+When you save, you'll see:
+```
+[INFO] ✅ Configuration saved to file successfully
+[INFO] Config file: /home/user/.config/voice-transcriber/config.json
+[INFO] Active personalities saved: builtin:professional, builtin:emojify
+```
+
+### Change Detection (Debug Mode)
+
+**NEW in v1.x** - When reloading configuration in debug mode, the application detects and displays all changes between the live configuration and the file.
+
+#### How to See Change Detection
+
+1. **Start in debug mode**:
+   ```bash
+   voice-transcriber --debug
+   # or
+   voice-transcriber -d
+   ```
+
+2. **Modify** `config.json` manually
+
+3. **Reload** via "🔄 Reload Config" in system tray
+
+4. **See changes** in the terminal output
+
+#### What Is Detected
+
+The system detects **15+ types of changes**:
+
+**Transcription**:
+- Backend (openai ↔ speaches)
+- Model changes
+- Speaches URL changes
+
+**Formatter**:
+- Backend (openai ↔ ollama)
+- Model changes
+- Ollama URL changes
+
+**Personalities**:
+- Active personalities added/removed
+- Custom personalities added
+- Custom personalities removed
+- Custom personalities modified
+- Selected personalities (menu visibility)
+
+**General**:
+- Language changes
+- Benchmark mode toggled
+
+#### Example Output
+
+**No changes**:
+```
+[INFO] Reloading configuration...
+[DEBUG] ✓ No configuration changes detected (config file matches live state)
+[INFO] ✅ Configuration reloaded successfully
+```
 ## Complete Configuration Examples
 
 ### Minimal Configuration (OpenAI Backend)
@@ -356,8 +505,16 @@ Maximum total length (in characters) when concatenating multiple personality pro
     }
   },
   "activePersonalities": ["builtin:default"],
+  "selectedPersonalities": [
+    "builtin:default",
+    "builtin:professional",
+    "builtin:technical",
+    "builtin:creative",
+    "builtin:emojify"
+  ],
   "customPersonalities": {},
-  "maxPromptLength": 4000
+  "maxPromptLength": 4000,
+  "logTruncateThreshold": 1000
 }
 ```
 
