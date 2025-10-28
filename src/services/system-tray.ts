@@ -131,10 +131,10 @@ export class SystemTrayService {
 						this.callbacks.onOpenConfig();
 						break;
 					case MenuItemType.RELOAD_CONFIG:
-						this.callbacks.onReload();
+						void this.callbacks.onReload();
 						break;
 					case MenuItemType.EXIT:
-						this.callbacks.onQuit();
+						void this.callbacks.onQuit();
 						break;
 					case MenuItemType.SEPARATOR:
 						// Ignore separator clicks
@@ -406,7 +406,7 @@ export class SystemTrayService {
 	public updateActivePersonalities(activePersonalities: string[]): void {
 		this.activePersonalities = activePersonalities;
 		// Force menu refresh with current state
-		this.setState(this.currentState);
+		void this.setState(this.currentState);
 	}
 
 	/**

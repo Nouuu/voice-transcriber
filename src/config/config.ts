@@ -45,12 +45,18 @@ export interface ConfigData {
 	customPersonalities?: Record<string, PersonalityConfig> | null;
 	selectedPersonalities?: string[] | null;
 	activePersonalities?: string[] | null;
+
+	// Logging configuration
+	logTruncateThreshold?: number;
 }
 
 export class Config {
 	public language: string = "en";
 	public transcriptionPrompt: string | null = null;
 	public benchmarkMode: boolean = false;
+
+	// Log truncation threshold (characters)
+	public logTruncateThreshold: number = 1000;
 
 	// Use the personalities system (builtin + custom + activePersonalities / selectedPersonalities)
 
@@ -147,6 +153,14 @@ export class Config {
 			this.language = data.language || "en";
 			this.transcriptionPrompt = data.transcriptionPrompt ?? null;
 			this.benchmarkMode = data.benchmarkMode ?? false;
+
+			// Load log threshold if provided
+			if (typeof data.logTruncateThreshold === "number") {
+				this.logTruncateThreshold = Math.max(
+					0,
+					Math.floor(data.logTruncateThreshold)
+				);
+			}
 
 			// Note: do not map any legacy "formatter*" fields. Only modern
 			// personalities fields are considered below.
@@ -317,6 +331,7 @@ export class Config {
 			},
 			customPersonalities: this.customPersonalities,
 			activePersonalities: this.activePersonalities,
+			logTruncateThreshold: this.logTruncateThreshold,
 		};
 		// Persist only the modern config structure (no legacy keys)
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));

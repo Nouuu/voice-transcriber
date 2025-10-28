@@ -99,10 +99,10 @@ export class FormatterService {
 			}
 
 			logger.debug(`Formatting completed in ${duration}ms`);
-			// Show full original and formatted strings (user requested full sentences in logs).
-			// Note: this may produce long log lines for large texts.
-			logger.debug(`Original: "${text}"`);
-			logger.debug(`Formatted: "${formattedText}"`);
+
+			// Log original input and formatted output using central logger
+			logger.logConditional("Original", text);
+			logger.logConditional("Formatted", formattedText);
 
 			return { success: true, text: formattedText };
 		} catch (error) {

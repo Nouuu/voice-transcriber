@@ -50,7 +50,8 @@ export class AudioProcessor {
 			}
 
 			let finalText = transcriptionResult.text;
-			logger.info(`Transcription result: ${finalText}`);
+			// Remplacement: logging conditionnel du résultat de transcription
+			logger.logConditional("Transcription result", finalText);
 
 			// Format text if at least one personality is active
 			if (activePersonalities && activePersonalities.length > 0) {
@@ -84,9 +85,8 @@ export class AudioProcessor {
 				logger.debug("No active personalities, skipping formatting");
 			}
 
-			// Afficher le texte complet en info (selon demande)
-			logger.info(`Final formatted text (${finalText.length} chars):`);
-			logger.info(finalText);
+			// Remplacement: logging conditionnel du texte final formaté
+			logger.logConditional("Final formatted text", finalText);
 
 			// Copy to clipboard
 			logger.info("Copying to clipboard...");
@@ -264,10 +264,9 @@ export class AudioProcessor {
 
 		// Show transcription results
 		logger.debug(`\n📄 Transcription Results:`);
-		logger.debug(`   OpenAI Whisper:`);
-		logger.debug(`   "${textOpenAI}"`);
-		logger.debug(`\n   Speaches:`);
-		logger.debug(`   "${textSpeaches}"`);
+		// Utiliser la même règle de logging conditionnel pour afficher les textes
+		logger.logConditional("OpenAI Whisper", textOpenAI);
+		logger.logConditional("Speaches", textSpeaches);
 
 		// Show differences if texts are different
 		if (textOpenAI !== textSpeaches) {

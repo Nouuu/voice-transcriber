@@ -42,6 +42,9 @@ export class VoiceTranscriberApp {
 			// Load configuration
 			await this.config.loadWithSetup();
 
+			// Apply logger truncation threshold from config
+			logger.setTruncateThreshold(this.config.logTruncateThreshold);
+
 			// Sync runtime state with config
 			const formatterConfig = this.config.getFormatterConfig();
 			// Initialize with personalities that are enabled by default in config
@@ -58,6 +61,7 @@ export class VoiceTranscriberApp {
 					error: `API key not configured for ${transcriptionConfig.backend} backend. Please add it to config.json`,
 				};
 			}
+
 			this.transcriptionService = new TranscriptionService({
 				apiKey: transcriptionConfig.apiKey,
 				language: transcriptionConfig.language,
