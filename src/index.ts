@@ -449,6 +449,7 @@ export class VoiceTranscriberApp {
 			language: cfg.language || this.config.language,
 			prompt: cfg.prompt ?? transcriptionPrompt ?? "",
 			personalities,
+			maxPromptLength: this.config.maxPromptLength,
 		};
 	}
 }

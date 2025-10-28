@@ -11,6 +11,7 @@ export interface FormatterConfig {
 		string,
 		{ name: string; description?: string; prompt?: string | null }
 	>;
+	maxPromptLength?: number;
 }
 
 export interface FormatResult {
@@ -49,6 +50,53 @@ export class FormatterService {
 			`Personality '${personality}' not found or no prompt, using config prompt`
 		);
 		return this.config.prompt;
+	}
+
+	/**
+	 * Build a composite prompt by concatenating multiple personality prompts.
+	 * Respects the maxPromptLength limit if configured.
+	 *
+	 * @param personalities - Array of personality IDs to concatenate
+	 * @returns Concatenated prompt string, or empty string if no personalities
+	 */
+	public buildCompositePrompt(personalities: string[]): string {
+		if (!personalities || personalities.length === 0) {
+			return "";
+		}
+
+		const prompts: string[] = [];
+		let totalLength = 0;
+		const separator = "\n\n---\n\n";
+		const separatorLength = separator.length;
+		const maxLength = this.config.maxPromptLength || 4000;
+
+		for (const personality of personalities) {
+			const prompt = this.getPersonalityPrompt(personality);
+			if (!prompt || prompt.trim().length === 0) {
+				continue;
+			}
+
+			// Calculate what the new total would be
+			const promptLength = prompt.length;
+			const newTotal =
+				totalLength +
+				(prompts.length > 0 ? separatorLength : 0) +
+				promptLength;
+
+			// If adding this prompt would exceed the limit, stop
+			if (newTotal > maxLength) {
+				logger.warn(
+					`Prompt length limit reached (${maxLength} chars). ` +
+						`Stopping at personality: ${personality}`
+				);
+				break;
+			}
+
+			prompts.push(prompt);
+			totalLength = newTotal;
+		}
+
+		return prompts.join(separator);
 	}
 
 	/**

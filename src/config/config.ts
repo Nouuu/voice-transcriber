@@ -48,12 +48,18 @@ export interface ConfigData {
 
 	// Logging configuration
 	logTruncateThreshold?: number;
+
+	// Prompt length limit (characters)
+	maxPromptLength?: number;
 }
 
 export class Config {
 	public language: string = "en";
 	public transcriptionPrompt: string | null = null;
 	public benchmarkMode: boolean = false;
+
+	// Max prompt length when concatenating personalities (characters)
+	public maxPromptLength: number = 4000;
 
 	// Log truncation threshold (characters)
 	public logTruncateThreshold: number = 1000;
@@ -159,6 +165,14 @@ export class Config {
 				this.logTruncateThreshold = Math.max(
 					0,
 					Math.floor(data.logTruncateThreshold)
+				);
+			}
+
+			// Load max prompt length if provided
+			if (typeof data.maxPromptLength === "number") {
+				this.maxPromptLength = Math.max(
+					0,
+					Math.floor(data.maxPromptLength)
 				);
 			}
 
@@ -332,6 +346,7 @@ export class Config {
 			customPersonalities: this.customPersonalities,
 			activePersonalities: this.activePersonalities,
 			logTruncateThreshold: this.logTruncateThreshold,
+			maxPromptLength: this.maxPromptLength,
 		};
 		// Persist only the modern config structure (no legacy keys)
 		writeFileSync(this.configPath, JSON.stringify(data, null, 2));

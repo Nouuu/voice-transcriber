@@ -1,38 +1,36 @@
 {
-  "language": "en",
-  "benchmarkMode": false,
-  "transcription": {
-    "backend": "openai",
-    "openai": {
-      "apiKey": "your-openai-api-key-here",
-      "model": "whisper-1"
-    },
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "apiKey": "none",
-      "model": "Systran/faster-whisper-base"
-    }
-  },
-  "formatter": {
-    "backend": "openai",
-    "openai": {
-      "apiKey": "your-openai-api-key-here",
-      "model": "gpt-4o-mini"
-    },
-    "ollama": {
-      "url": "http://localhost:11434",
-      "model": "llama3.1:8b"
-    }
-  },
-  "activePersonalities": [
-    "builtin:default",
-    "custom:myCustomStyle"
-  ],
-  "customPersonalities": {
-    "myCustomStyle": {
-      "name": "My Custom Style",
-      "description": "My personal formatting style",
-      "prompt": "Format text in my personal style with..."
-    }
-  }
+	"language": "en",
+	"benchmarkMode": false,
+	"transcription": {
+		"backend": "openai",
+		"openai": {
+			"apiKey": "your-openai-api-key-here",
+			"model": "whisper-1"
+		},
+		"speaches": {
+			"url": "http://localhost:8000/v1",
+			"apiKey": "none",
+			"model": "Systran/faster-whisper-base"
+		}
+	},
+	"formatter": {
+		"backend": "openai",
+		"openai": {
+			"apiKey": "your-openai-api-key-here",
+			"model": "gpt-4o-mini"
+		},
+		"ollama": {
+			"url": "http://localhost:11434",
+			"model": "llama3.1:8b"
+		}
+	},
+	"activePersonalities": ["builtin:default", "custom:myCustomStyle"],
+	"customPersonalities": {
+		"myCustomStyle": {
+			"name": "My Custom Style",
+			"description": "My personal formatting style",
+			"prompt": "Format text in my personal style with..."
+		}
+	},
+	"maxPromptLength": 4000
 }

@@ -53,6 +53,7 @@ describe("AudioProcessor", () => {
 				})
 			),
 			getPersonalityPrompt: mock(() => "test prompt"),
+			buildCompositePrompt: mock(() => "test prompt"),
 		} as any;
 
 		mockClipboardService = {
@@ -126,6 +127,24 @@ describe("AudioProcessor", () => {
 
 			expect(mockFormatterService.formatText).not.toHaveBeenCalled();
 			expect(mockClipboardService.writeText).not.toHaveBeenCalled();
+		});
+
+		it("should call buildCompositePrompt with multiple personalities", async () => {
+			const personalities = [
+				"builtin:professional",
+				"builtin:creative",
+				"custom:myStyle",
+			];
+
+			await audioProcessor.processAudioFile(testAudioFile, personalities);
+
+			expect(
+				mockFormatterService.buildCompositePrompt
+			).toHaveBeenCalledWith(personalities);
+			expect(mockFormatterService.formatText).toHaveBeenCalledWith(
+				"Test transcription",
+				{ promptOverride: "test prompt" }
+			);
 		});
 
 		it("should handle formatting failure gracefully", async () => {

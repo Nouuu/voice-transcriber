@@ -59,27 +59,28 @@ export class AudioProcessor {
 					`Formatting text with personalities: ${activePersonalities.join(", ")}`
 				);
 
-				// Apply each personality sequentially
-				for (const personality of activePersonalities) {
-					logger.debug(`Applying personality: ${personality}`);
-					const formatOptions = {
-						promptOverride:
-							this.formatterService.getPersonalityPrompt(
-								personality
-							),
-					};
+				// Build composite prompt from all active personalities
+				const compositePrompt =
+					this.formatterService.buildCompositePrompt(
+						activePersonalities
+					);
 
+				if (compositePrompt) {
 					const formatResult = await this.formatterService.formatText(
 						finalText,
-						formatOptions
+						{ promptOverride: compositePrompt }
 					);
 					if (formatResult.success && formatResult.text) {
 						finalText = formatResult.text;
 					} else {
 						logger.warn(
-							`Formatting with ${personality} failed: ${formatResult.error || "Unknown error"}`
+							`Formatting failed: ${formatResult.error || "Unknown error"}`
 						);
 					}
+				} else {
+					logger.warn(
+						"No valid prompts found for selected personalities"
+					);
 				}
 			} else {
 				logger.debug("No active personalities, skipping formatting");

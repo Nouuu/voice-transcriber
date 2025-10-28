@@ -49,6 +49,12 @@ describe("Integration: system tray -> recording -> formatting", () => {
 		capturedPromptOverride = null; // reset before each test
 		const mockFormatterService = {
 			getPersonalityPrompt: mock((p: string) => `prompt:${p}`),
+			buildCompositePrompt: mock((personalities: string[]) => {
+				// Simulate concatenating prompts
+				return personalities
+					.map(p => `prompt:${p}`)
+					.join("\n\n---\n\n");
+			}),
 			formatText: mock((text: string, options: any) => {
 				capturedPromptOverride = options?.promptOverride;
 				return Promise.resolve({

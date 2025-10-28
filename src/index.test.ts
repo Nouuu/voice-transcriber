@@ -373,6 +373,7 @@ describe("VoiceTranscriberApp", () => {
 					text: "Hello world.",
 				}),
 				getPersonalityPrompt: mock().mockReturnValue("test prompt"),
+				buildCompositePrompt: mock().mockReturnValue("test prompt"),
 			};
 
 			const mockClipboard = {
