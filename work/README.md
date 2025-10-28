@@ -66,7 +66,7 @@ Chaque fichier de tâche contient :
 
 ## Estimation totale restante
 
-**~3h** (30-60 min + 1h + 30 min + 30 min)
+**~2h-2h30** (30-60 min + 1h + 30 min)
 
 ---
 

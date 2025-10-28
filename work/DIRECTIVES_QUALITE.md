@@ -234,17 +234,6 @@ make format-check
 - Tester les icônes sur la plateforme cible
 - Synchroniser code et docs en même temps
 
-### TASK_4 : Cross-Platform Tests
-
-**Risques spécifiques** :
-- Assumer que ça marche sans tester
-- Ignorer les problèmes platform-specific
-- Tests flaky ou non-reproductibles
-
-**Contre-mesures** :
-- Tester vraiment sur chaque OS (ou documenter limitations)
-- Isoler le code platform-dependent
-- Tests déterministes et reproductibles
 
 ---
 

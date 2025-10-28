@@ -81,12 +81,9 @@ Priorité moyenne
     - Description : clarifier libellés, tooltips, séparation visuelle, ordre par défaut.
     - Acceptation : revue UX rapide et corrections mineures.
 
-5. Cross-platform testing and packaging checks — 0.5h
-    - Description : vérifier le comportement `node-systray-v2`/tray sur Linux/Mac/Windows (packaging via electron/tauri
-      ou binaire) ; s'assurer que `copyDir` / icones fonctionnent.
-    - Acceptation : smoke tests sur OS disponibles à portée.
+Total estimé restant : ≈ 2.0-2.5 h
 
-Total estimé restant : ≈ 3.0 h
+**Note** : Les tests cross-platform (initialement estimés à 0.5h) sont reportés à un sprint ultérieur
 
 ---
 
@@ -262,13 +259,12 @@ Tâches restantes (affinées) — Phase 2 / Phase 3
       min.
 - [ ] Phase 3.1 : Option "Save as default" (persist) — UX + confirmation + tests. Estimation : 1h
 - [ ] Phase 3.2 : UX polish (libellés, tooltips) et documentation utilisateur. Estimation : 0.5h
-- [ ] Phase 3.3 : Cross‑platform smoke tests / packaging. Estimation : 0.5h
 
-## Travail en cours (non commité)
+## Travail en cours
 
 **Date**: 2025-10-28
 
-### Modifications en attente de commit
+### ✅ Modifications commitées (logging amélioré)
 
 - ✅ **Logger amélioré avec truncation intelligente** (`src/utils/logger.ts`)
     - Ajout de `logConditional()` : affiche le texte complet en DEBUG et une version tronquée en INFO si > threshold
@@ -287,15 +283,47 @@ Tâches restantes (affinées) — Phase 2 / Phase 3
 - ✅ **Initialisation dans l'app** (`src/index.ts`)
     - Application du threshold depuis la config au démarrage
 
-- 📝 **Tests étendus** (`src/services/transcription.test.ts`)
+- ✅ **Tests étendus** (`src/services/transcription.test.ts`)
     - Réorganisation majeure des tests (338 lignes de changements)
 
-### À faire avant commit
+- ✅ **Validation**
+    - Tous les tests passent : 112/112 ✅
+    - Linting : 0 errors, 34 warnings acceptables ✅
 
-1. [x] Vérifier que tous les tests passent (`bun test`) - ✅ 112/112 tests
-2. [x] Vérifier le linting (`make lint`) - ✅ 0 errors, 34 warnings acceptables
-3. [x] Corriger les tests unitaires et la gestion des fichiers temporaires
-4. [x] Améliorer la configuration ESLint pour être plus stricte et cohérente
+---
+
+### 🚧 Tâches en cours (Phase 2-3)
+
+**Fichiers de travail créés** :
+
+1. ✅ `work/TASK_1_PROMPT_CONCATENATION.md` - Gestion prompts longs/concatenation (30-60 min)
+2. ✅ `work/TASK_2_SAVE_AS_DEFAULT.md` - Option "Save as Default" / Persistance (1h)
+3. ✅ `work/TASK_3_UX_POLISH_DOCS.md` - UX Polish & Documentation (30 min)
+
+**Prochaines étapes** : Exécuter les 3 tâches dans l'ordre
+
+**Note** : Les tests cross-platform seront faits ultérieurement (hors scope de ce sprint)
+
+---
+
+### ⚠️ AVANT DE COMMENCER
+
+**📖 LIRE OBLIGATOIREMENT** : `work/DIRECTIVES_QUALITE.md`
+
+Chaque fichier de tâche contient :
+- ✅ Directives qualité spécifiques à la tâche
+- ✅ Risques à éviter
+- ✅ Checklist de validation
+- ✅ Approche recommandée
+
+**Principes clés** :
+- 🚫 Zéro hallucination (vérifier avant de modifier)
+- 🚫 Zéro régression (tous les tests doivent passer)
+- ✅ Code minimal et simple (pas d'over-engineering)
+- ✅ Tests obligatoires (couverture 80%+)
+- ✅ Validation systématique (test + lint + manual)
+
+---
 
 Proposition concrète pour next sprint (court)
 
