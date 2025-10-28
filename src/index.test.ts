@@ -192,12 +192,10 @@ describe("VoiceTranscriberApp", () => {
 					prompt: "test",
 					backend: "openai",
 					model: "gpt-4o-mini",
-					personalityName: null,
-					personalityPrompt: null,
-					personalityEnabled: false,
 					selectedPersonalities: [],
 					activePersonalities: [],
-					personalities: {},
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 				benchmarkMode: false,
 			};
@@ -239,12 +237,10 @@ describe("VoiceTranscriberApp", () => {
 				prompt: "old",
 				backend: "openai" as const,
 				model: "gpt-4o-mini",
-				personalityName: null,
-				personalityPrompt: null,
-				personalityEnabled: false,
 				selectedPersonalities: [],
 				activePersonalities: [],
-				personalities: {},
+				builtinPersonalities: {},
+				customPersonalities: {},
 			};
 
 			const mockConfig = {
@@ -292,12 +288,10 @@ describe("VoiceTranscriberApp", () => {
 					prompt: "test",
 					backend: "openai",
 					model: "gpt-4o-mini",
-					personalityName: null,
-					personalityPrompt: null,
-					personalityEnabled: false,
 					selectedPersonalities: [],
 					activePersonalities: [],
-					personalities: {},
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 			};
 
@@ -305,8 +299,8 @@ describe("VoiceTranscriberApp", () => {
 			(app as any).systemTrayService = mockTray;
 			(app as any).config = mockConfig;
 
-			// Should not throw
-			await expect((app as any).handleReload()).resolves.toBeUndefined();
+			// Should not throw (handleReload is synchronous)
+			expect(() => (app as any).handleReload()).not.toThrow();
 		});
 
 		it("should handle benchmarkMode change on reload", async () => {
@@ -338,12 +332,10 @@ describe("VoiceTranscriberApp", () => {
 					prompt: "test",
 					backend: "openai",
 					model: "gpt-4o-mini",
-					personalityName: null,
-					personalityPrompt: null,
-					personalityEnabled: false,
 					selectedPersonalities: [],
 					activePersonalities: [],
-					personalities: {},
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 			};
 

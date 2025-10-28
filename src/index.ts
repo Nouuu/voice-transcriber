@@ -110,13 +110,24 @@ export class VoiceTranscriberApp {
 			// Initialize system tray
 			this.systemTrayService = new SystemTrayService({
 				callbacks: {
-					onRecordingStart: () => this.handleRecordingStart(),
-					onRecordingStop: () => this.handleRecordingStop(),
-					onPersonalityToggle: (personality: string) =>
-						this.handlePersonalityToggle(personality),
-					onOpenConfig: () => this.handleOpenConfig(),
-					onReload: () => this.handleReload(),
-					onQuit: () => this.handleQuit(),
+					onRecordingStart: () => {
+						void this.handleRecordingStart();
+					},
+					onRecordingStop: () => {
+						void this.handleRecordingStop();
+					},
+					onPersonalityToggle: (personality: string) => {
+						this.handlePersonalityToggle(personality);
+					},
+					onOpenConfig: () => {
+						this.handleOpenConfig();
+					},
+					onReload: () => {
+						void this.handleReload();
+					},
+					onQuit: () => {
+						void this.handleQuit();
+					},
 				},
 				activePersonalities: this.runtimeState.activePersonalities,
 				selectedPersonalities: this.config.selectedPersonalities,
@@ -399,7 +410,7 @@ export class VoiceTranscriberApp {
 	 * Convert Config.getFormatterConfig() output into the FormatterService expected config shape.
 	 */
 	private buildFormatterConfig(
-		cfg: any,
+		cfg: ReturnType<Config["getFormatterConfig"]>,
 		transcriptionPrompt?: string
 	): FormatterConfig {
 		// Compose personalities map with keys matching runtime ids (builtin:<key> / custom:<id>)
@@ -408,24 +419,28 @@ export class VoiceTranscriberApp {
 			{ name: string; description?: string; prompt?: string | null }
 		> = {};
 
-		const builtin = cfg.builtinPersonalities || {};
+		const builtin = cfg.builtinPersonalities;
 		for (const k of Object.keys(builtin)) {
 			const p = builtin[k];
-			personalities[`builtin:${k}`] = {
-				name: p.name,
-				description: p.description,
-				prompt: p.prompt ?? null,
-			};
+			if (p) {
+				personalities[`builtin:${k}`] = {
+					name: p.name,
+					description: p.description,
+					prompt: p.prompt ?? null,
+				};
+			}
 		}
 
-		const custom = cfg.customPersonalities || {};
+		const custom = cfg.customPersonalities;
 		for (const k of Object.keys(custom)) {
 			const p = custom[k];
-			personalities[`custom:${k}`] = {
-				name: p.name || k,
-				description: p.description,
-				prompt: p.prompt ?? null,
-			};
+			if (p) {
+				personalities[`custom:${k}`] = {
+					name: p.name || k,
+					description: p.description,
+					prompt: p.prompt ?? null,
+				};
+			}
 		}
 
 		return {
@@ -471,16 +486,20 @@ async function main() {
 	process.stdin.resume();
 
 	// Handle graceful shutdown
-	process.on("SIGINT", async () => {
-		logger.info("Received SIGINT, shutting down...");
-		await app.shutdown();
-		process.exit(0);
+	process.on("SIGINT", () => {
+		void (async () => {
+			logger.info("Received SIGINT, shutting down...");
+			await app.shutdown();
+			process.exit(0);
+		})();
 	});
 
-	process.on("SIGTERM", async () => {
-		logger.info("Received SIGTERM, shutting down...");
-		await app.shutdown();
-		process.exit(0);
+	process.on("SIGTERM", () => {
+		void (async () => {
+			logger.info("Received SIGTERM, shutting down...");
+			await app.shutdown();
+			process.exit(0);
+		})();
 	});
 }
 
