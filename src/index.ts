@@ -26,6 +26,7 @@ export class VoiceTranscriberApp {
 
 	constructor(configPath?: string) {
 		this.config = new Config(configPath);
+
 		this.audioRecorder = new AudioRecorder();
 		this.clipboardService = new ClipboardService();
 
@@ -119,11 +120,14 @@ export class VoiceTranscriberApp {
 					onPersonalityToggle: (personality: string) => {
 						this.handlePersonalityToggle(personality);
 					},
+					onSaveAsDefault: async () => {
+						await this.handleSaveAsDefault();
+					},
 					onOpenConfig: () => {
 						this.handleOpenConfig();
 					},
-					onReload: () => {
-						void this.handleReload();
+					onReload: async () => {
+						await this.handleReload();
 					},
 					onQuit: () => {
 						void this.handleQuit();
@@ -238,6 +242,26 @@ export class VoiceTranscriberApp {
 		}
 	}
 
+	private async handleSaveAsDefault(): Promise<void> {
+		try {
+			// Sync runtime state back to config before saving
+			this.config.activePersonalities = [
+				...this.runtimeState.activePersonalities,
+			];
+
+			// Save entire configuration to file
+			await this.config.save();
+
+			logger.info("✅ Configuration saved to file successfully");
+			logger.info(`Config file: ${this.config.getConfigPath()}`);
+			logger.info(
+				`Active personalities saved: ${this.config.activePersonalities.length > 0 ? this.config.activePersonalities.join(", ") : "none"}`
+			);
+		} catch (error) {
+			logger.error(`❌ Failed to save configuration: ${error}`);
+		}
+	}
+
 	private handleOpenConfig(): void {
 		try {
 			const configPath = this.config.getConfigPath();
@@ -250,6 +274,217 @@ export class VoiceTranscriberApp {
 			child.unref();
 		} catch (error) {
 			logger.error(`Failed to open config file: ${error}`);
+		}
+	}
+
+	private logConfigChanges(old: {
+		oldTranscriptionConfig: {
+			apiKey: string;
+			language: string;
+			prompt: string;
+			backend: "openai" | "speaches";
+			model: string;
+			speachesUrl?: string;
+		};
+		oldFormatterConfig: {
+			apiKey: string;
+			language: string;
+			activePersonalities: string[];
+			builtinPersonalities: Record<
+				string,
+				{ name: string; description?: string; prompt?: string | null }
+			>;
+			customPersonalities: Record<
+				string,
+				{ name: string; description?: string; prompt?: string | null }
+			>;
+			backend: "openai" | "ollama";
+			model: string;
+			ollamaUrl?: string;
+			prompt?: string | null;
+		};
+		oldActivePersonalities: string[];
+		oldCustomPersonalities: Record<
+			string,
+			{ name: string; description?: string; prompt?: string | null }
+		>;
+		oldSelectedPersonalities: string[];
+		oldLanguage: string;
+		oldBenchmarkMode: boolean;
+	}): void {
+		const newTranscriptionConfig = this.config.getTranscriptionConfig();
+		const newFormatterConfig = this.config.getFormatterConfig();
+		const newActivePersonalities = this.config.activePersonalities || [];
+		const newCustomPersonalities = this.config.customPersonalities || {};
+		const newSelectedPersonalities =
+			this.config.selectedPersonalities || [];
+		const newLanguage = this.config.language;
+		const newBenchmarkMode = this.config.benchmarkMode;
+
+		const changes: string[] = [];
+
+		// Check transcription backend changes
+		if (
+			old.oldTranscriptionConfig.backend !==
+			newTranscriptionConfig.backend
+		) {
+			changes.push(
+				`Transcription backend: ${old.oldTranscriptionConfig.backend} → ${newTranscriptionConfig.backend}`
+			);
+		}
+
+		// Check transcription model changes
+		if (old.oldTranscriptionConfig.model !== newTranscriptionConfig.model) {
+			changes.push(
+				`Transcription model: ${old.oldTranscriptionConfig.model} → ${newTranscriptionConfig.model}`
+			);
+		}
+
+		// Check language changes
+		if (old.oldLanguage !== newLanguage) {
+			changes.push(`Language: ${old.oldLanguage} → ${newLanguage}`);
+		}
+
+		// Check formatter backend changes
+		if (old.oldFormatterConfig.backend !== newFormatterConfig.backend) {
+			changes.push(
+				`Formatter backend: ${old.oldFormatterConfig.backend} → ${newFormatterConfig.backend}`
+			);
+		}
+
+		// Check formatter model changes
+		if (old.oldFormatterConfig.model !== newFormatterConfig.model) {
+			changes.push(
+				`Formatter model: ${old.oldFormatterConfig.model} → ${newFormatterConfig.model}`
+			);
+		}
+
+		// Check active personalities changes
+		const oldActiveSet = new Set(old.oldActivePersonalities);
+		const newActiveSet = new Set(newActivePersonalities);
+
+		const activeAdded = newActivePersonalities.filter(
+			p => !oldActiveSet.has(p)
+		);
+		const activeRemoved = old.oldActivePersonalities.filter(
+			p => !newActiveSet.has(p)
+		);
+
+		if (activeAdded.length > 0 || activeRemoved.length > 0) {
+			const oldStr =
+				old.oldActivePersonalities.length > 0
+					? old.oldActivePersonalities.join(", ")
+					: "none";
+			const newStr =
+				newActivePersonalities.length > 0
+					? newActivePersonalities.join(", ")
+					: "none";
+			changes.push(`Active personalities: ${oldStr} → ${newStr}`);
+		}
+
+		// Check custom personalities changes
+		const oldCustomKeys = new Set(Object.keys(old.oldCustomPersonalities));
+		const newCustomKeys = new Set(Object.keys(newCustomPersonalities));
+
+		const customAdded = Array.from(newCustomKeys).filter(
+			k => !oldCustomKeys.has(k)
+		);
+		const customRemoved = Array.from(oldCustomKeys).filter(
+			k => !newCustomKeys.has(k)
+		);
+		const customModified: string[] = [];
+
+		// Check for modified custom personalities
+		for (const key of Array.from(oldCustomKeys)) {
+			if (newCustomKeys.has(key)) {
+				const oldP = old.oldCustomPersonalities[key];
+				const newP = newCustomPersonalities[key];
+				if (oldP && newP) {
+					if (
+						oldP.name !== newP.name ||
+						oldP.description !== newP.description ||
+						oldP.prompt !== newP.prompt
+					) {
+						customModified.push(key);
+					}
+				}
+			}
+		}
+
+		if (customAdded.length > 0) {
+			changes.push(
+				`Custom personalities added: ${customAdded.join(", ")}`
+			);
+		}
+		if (customRemoved.length > 0) {
+			changes.push(
+				`Custom personalities removed: ${customRemoved.join(", ")}`
+			);
+		}
+		if (customModified.length > 0) {
+			changes.push(
+				`Custom personalities modified: ${customModified.join(", ")}`
+			);
+		}
+
+		// Check selected personalities changes (menu visibility)
+		const oldSelectedSet = new Set(old.oldSelectedPersonalities);
+		const newSelectedSet = new Set(newSelectedPersonalities);
+
+		const selectedAdded = newSelectedPersonalities.filter(
+			p => !oldSelectedSet.has(p)
+		);
+		const selectedRemoved = old.oldSelectedPersonalities.filter(
+			p => !newSelectedSet.has(p)
+		);
+
+		if (selectedAdded.length > 0 || selectedRemoved.length > 0) {
+			if (selectedAdded.length > 0) {
+				changes.push(
+					`Selected personalities added to menu: ${selectedAdded.join(", ")}`
+				);
+			}
+			if (selectedRemoved.length > 0) {
+				changes.push(
+					`Selected personalities removed from menu: ${selectedRemoved.join(", ")}`
+				);
+			}
+		}
+
+		// Check benchmark mode changes
+		if (old.oldBenchmarkMode !== newBenchmarkMode) {
+			changes.push(
+				`Benchmark mode: ${old.oldBenchmarkMode} → ${newBenchmarkMode}`
+			);
+		}
+
+		// Check API URL changes (Speaches)
+		if (
+			old.oldTranscriptionConfig.speachesUrl !==
+			newTranscriptionConfig.speachesUrl
+		) {
+			changes.push(
+				`Speaches URL: ${old.oldTranscriptionConfig.speachesUrl} → ${newTranscriptionConfig.speachesUrl}`
+			);
+		}
+
+		// Check Ollama URL changes
+		if (old.oldFormatterConfig.ollamaUrl !== newFormatterConfig.ollamaUrl) {
+			changes.push(
+				`Ollama URL: ${old.oldFormatterConfig.ollamaUrl} → ${newFormatterConfig.ollamaUrl}`
+			);
+		}
+
+		// Log results
+		if (changes.length > 0) {
+			logger.debug("🔄 Configuration changes detected:");
+			changes.forEach(change => {
+				logger.debug(`  └─ ${change}`);
+			});
+		} else {
+			logger.debug(
+				"✓ No configuration changes detected (config file matches live state)"
+			);
 		}
 	}
 
@@ -276,10 +511,32 @@ export class VoiceTranscriberApp {
 			// 2. Backup current config values in case of failure
 			const oldTranscriptionConfig = this.config.getTranscriptionConfig();
 			const oldFormatterConfig = this.config.getFormatterConfig();
+			const oldActivePersonalities = [
+				...this.runtimeState.activePersonalities,
+			];
+			const oldCustomPersonalities = {
+				...(this.config.customPersonalities || {}),
+			};
+			const oldSelectedPersonalities = [
+				...(this.config.selectedPersonalities || []),
+			];
+			const oldLanguage = this.config.language;
+			const oldBenchmarkMode = this.config.benchmarkMode;
 
 			try {
 				// 3. Reload config from file
 				await this.config.load();
+
+				// 3.1. Detect and log configuration changes in debug mode
+				this.logConfigChanges({
+					oldTranscriptionConfig,
+					oldFormatterConfig,
+					oldActivePersonalities,
+					oldCustomPersonalities,
+					oldSelectedPersonalities,
+					oldLanguage,
+					oldBenchmarkMode,
+				});
 
 				// 4. Validate new config
 				const transcriptionConfig =

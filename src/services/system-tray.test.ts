@@ -33,6 +33,7 @@ describe("SystemTrayService", () => {
 				onRecordingStart: mock(),
 				onRecordingStop: mock(),
 				onPersonalityToggle: mock(),
+				onSaveAsDefault: mock(),
 				onOpenConfig: mock(),
 				onReload: mock(),
 				onQuit: mock(),
@@ -153,13 +154,23 @@ describe("SystemTrayService", () => {
 			expect(config.callbacks.onPersonalityToggle).toHaveBeenCalled();
 		});
 
+		it("should route to onSaveAsDefault", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Save as Default is at seq_id 9 (after personalities and separator)
+			onClickCallback({ seq_id: 9, item: { title: "Save as Default" } });
+			expect(config.callbacks.onSaveAsDefault).toHaveBeenCalled();
+		});
+
 		it("should route to onOpenConfig", async () => {
 			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			// Adjust seq_id based on number of personalities (5 personalities + 3 separators + 2 actions = ~10)
-			onClickCallback({ seq_id: 9, item: { title: "Open Config" } });
+			// Open Config is now at seq_id 10 (shifted by Save as Default)
+			onClickCallback({ seq_id: 10, item: { title: "Open Config" } });
 			expect(config.callbacks.onOpenConfig).toHaveBeenCalled();
 		});
 
@@ -168,7 +179,8 @@ describe("SystemTrayService", () => {
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 10, item: { title: "Reload Config" } });
+			// Reload Config is now at seq_id 11 (shifted by Save as Default)
+			onClickCallback({ seq_id: 11, item: { title: "Reload Config" } });
 			expect(config.callbacks.onReload).toHaveBeenCalled();
 		});
 
@@ -177,7 +189,8 @@ describe("SystemTrayService", () => {
 			if (!onClickCallback) {
 				throw new Error("onClick callback not registered");
 			}
-			onClickCallback({ seq_id: 11, item: { title: "Exit" } });
+			// Exit is now at seq_id 12 (shifted by Save as Default)
+			onClickCallback({ seq_id: 12, item: { title: "Exit" } });
 			expect(config.callbacks.onQuit).toHaveBeenCalled();
 		});
 	});

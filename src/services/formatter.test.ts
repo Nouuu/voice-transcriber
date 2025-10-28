@@ -169,6 +169,7 @@ describe("FormatterService", () => {
 				enabled: false,
 				language: "en",
 				prompt: "Format this text:",
+				personalities: {},
 			});
 
 			// Inject mock into the disabled instance

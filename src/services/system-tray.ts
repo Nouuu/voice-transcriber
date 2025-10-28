@@ -11,6 +11,7 @@ export interface TrayConfig {
 		onRecordingStart: () => void;
 		onRecordingStop: () => void;
 		onPersonalityToggle: (personality: string) => void;
+		onSaveAsDefault: () => Promise<void>;
 		onOpenConfig: () => void;
 		onReload: () => Promise<void>;
 		onQuit: () => void;
@@ -42,6 +43,7 @@ enum MenuItemType {
 	STOP_RECORDING = "STOP_RECORDING",
 	SEPARATOR = "SEPARATOR",
 	PERSONALITY = "PERSONALITY",
+	SAVE_AS_DEFAULT = "SAVE_AS_DEFAULT",
 	OPEN_CONFIG = "OPEN_CONFIG",
 	RELOAD_CONFIG = "RELOAD_CONFIG",
 	EXIT = "EXIT",
@@ -126,6 +128,9 @@ export class SystemTrayService {
 								menuItem.personality
 							);
 						}
+						break;
+					case MenuItemType.SAVE_AS_DEFAULT:
+						void this.callbacks.onSaveAsDefault();
 						break;
 					case MenuItemType.OPEN_CONFIG:
 						this.callbacks.onOpenConfig();
@@ -290,6 +295,21 @@ export class SystemTrayService {
 			tooltip: "",
 			enabled: false,
 			checked: false,
+		});
+
+		// Add Save as Default
+		this.menuItemMap.push({
+			type: MenuItemType.SAVE_AS_DEFAULT,
+			title: "💾 Save as Default",
+			tooltip: "Save current active personalities as default",
+			enabled: state === TrayState.IDLE,
+			checked: false,
+		});
+		items.push({
+			title: "💾 Save as Default",
+			tooltip: "Save current active personalities as default",
+			checked: false,
+			enabled: state === TrayState.IDLE,
 		});
 
 		// Add Open Config
