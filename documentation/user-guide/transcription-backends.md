@@ -66,13 +66,19 @@ nano ~/.config/voice-transcriber/config.json
 ```json
 {
   "language": "fr",
-  "formatterEnabled": false,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
     "backend": "speaches",
     "speaches": {
       "url": "http://localhost:8000/v1",
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-..."
     }
   }
 }
@@ -158,8 +164,14 @@ Change:
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
+  },
+  "formatter": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-your-api-key-here"

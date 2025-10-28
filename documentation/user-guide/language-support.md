@@ -25,8 +25,14 @@ Set the `language` field:
 ```json
 {
   "language": "fr",
-  "formatterEnabled": true,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-..."
+    }
+  },
+  "formatter": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-..."
