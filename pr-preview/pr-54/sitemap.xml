@@ -2,82 +2,86 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/MIGRATION_GUIDE/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/contributing/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/advanced/configuration-management/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/advanced/debug-mode/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/advanced/local-inference/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/advanced/speaches-integration/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/advanced/whisper-models/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/development/api-reference/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/development/architecture/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/development/development-guide/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/development/testing/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/getting-started/configuration/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/getting-started/first-run/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/getting-started/installation/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
+    </url>
+    <url>
+         <loc>https://nouuu.github.io/voice-transcriber/getting-started/quickstart/</loc>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/user-guide/basic-usage/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/user-guide/formatting-personalities/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/user-guide/language-support/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/user-guide/transcription-backends/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
     <url>
          <loc>https://nouuu.github.io/voice-transcriber/user-guide/troubleshooting/</loc>
-         <lastmod>2025-10-28</lastmod>
+         <lastmod>2025-10-29</lastmod>
     </url>
 </urlset>
