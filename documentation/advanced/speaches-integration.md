@@ -45,6 +45,9 @@ Complete guide for setting up self-hosted transcription with [Speaches](https://
 
 ## Quick Setup
 
+!!! success "Ready in 5 Minutes"
+    Set up your own self-hosted transcription server in just 3 Docker commands. No API keys, no usage limits!
+
 ### Step 1: Create Docker Compose File
 
 Create `docker-compose.speaches.yml`:
@@ -110,6 +113,188 @@ voice-transcriber
 
 ![Speaches Backend Configuration](../../assets/screenshots/speaches-setup.png)
 *Speaches running locally with Docker showing health check status*
+
+## Security & Authentication
+
+### Local Development (No API Key)
+
+For **local-only usage**, you can run Speaches without authentication:
+
+```yaml
+services:
+  speaches:
+    environment:
+      # No API_KEY variable = open access
+      - STT_MODEL_TTL=-1
+      - WHISPER__INFERENCE_DEVICE=cpu
+```
+
+```json
+{
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://localhost:8000/v1",
+      "apiKey": "none",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+!!! warning "Security Risk"
+    Running without authentication is **only safe for localhost**. Never expose an unauthenticated Speaches instance to a network.
+
+### Self-Hosted with API Key (Recommended)
+
+For **remote access** or **VPS deployment**, secure your Speaches instance with an API key:
+
+#### Step 1: Generate Secure API Key
+
+```bash
+# Generate a 32-byte random key
+openssl rand -hex 32
+```
+
+Example output: `QpJhqVNdqPbNiPxHkAB6CztKvRkTLKxj`
+
+#### Step 2: Configure Speaches with API Key
+
+Update `docker-compose.speaches.yml`:
+
+```yaml
+services:
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
+    environment:
+      - API_KEY=<API_KEY>  # Your secure key
+      - STT_MODEL_TTL=-1
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=8
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+```
+
+#### Step 3: Configure Voice Transcriber
+
+Update `~/.config/voice-transcriber/config.json`:
+
+```json
+{
+  "language": "fr",
+  "formatterEnabled": false,
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "http://your-server.com:8000/v1",
+      "apiKey": "<API_KEY>",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
+
+!!! success "Production Ready"
+    With API key authentication, your Speaches instance is secure for remote access and shared usage.
+
+### Best Practices
+
+**API Key Management**:
+- ✅ Use `openssl rand -hex 32` to generate cryptographically secure keys
+- ✅ Store keys in environment variables or secret management systems
+- ✅ Rotate keys periodically (every 3-6 months)
+- ✅ Use different keys for different environments (dev, staging, prod)
+- ❌ Never commit API keys to version control
+- ❌ Never share keys in public channels or documentation
+
+**Network Security**:
+- Use HTTPS with reverse proxy (Traefik, Nginx, Caddy) for production
+- Restrict firewall rules to known IP addresses when possible
+- Monitor access logs for suspicious activity
+- Consider VPN access for sensitive deployments
+
+**Example with HTTPS (Traefik)**:
+
+```yaml
+# docker-compose.speaches-prod.yml
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - speaches
+
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    environment:
+      - API_KEY=${SPEACHES_API_KEY}
+      - STT_MODEL_TTL=-1
+      - WHISPER__INFERENCE_DEVICE=cpu
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=8
+    volumes:
+      - ./hf-cache:/home/ubuntu/.cache/huggingface/hub
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.speaches.rule=Host(`speaches.yourdomain.com`)"
+      - "traefik.http.routers.speaches.entrypoints=websecure"
+      - "traefik.http.routers.speaches.tls.certresolver=letsencrypt"
+      - "traefik.http.services.speaches.loadbalancer.server.port=8000"
+    networks:
+      - speaches
+
+networks:
+  speaches:
+    driver: bridge
+```
+
+**.env file**:
+```bash
+SPEACHES_API_KEY=your-secure-api-key-here
+```
+
+**Deploy with Traefik**:
+```bash
+# Create .env file with your API key
+echo "SPEACHES_API_KEY=$(openssl rand -hex 32)" > .env
+
+# Start services
+docker compose -f docker-compose.speaches-prod.yml up -d
+```
+
+**Voice Transcriber Configuration**:
+```json
+{
+  "transcription": {
+    "backend": "speaches",
+    "speaches": {
+      "url": "https://speaches.yourdomain.com/v1",
+      "apiKey": "your-secure-api-key-here",
+      "model": "Systran/faster-whisper-base"
+    }
+  }
+}
+```
 
 ## Available Models
 

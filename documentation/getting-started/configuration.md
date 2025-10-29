@@ -168,8 +168,13 @@ Backend configuration for transcription service.
 - `openai.apiKey` (required for OpenAI): Your OpenAI API key
 - `openai.model` (optional): Whisper model, default `"whisper-1"`
 - `speaches.url` (required for Speaches): Speaches server URL
-- `speaches.apiKey` (optional): API key for Speaches, default `"none"`
+- `speaches.apiKey` (required for remote Speaches): API key for authentication. Use `"none"` for local-only instances without authentication
 - `speaches.model` (optional): Whisper model, default `"Systran/faster-whisper-base"`
+
+!!! tip "Speaches API Key"
+    - **Local development**: Use `"apiKey": "none"` for localhost
+    - **Remote/VPS**: Generate secure key with `openssl rand -hex 32` and configure in both Speaches server and Voice Transcriber
+    - See [Speaches Integration Guide](../advanced/speaches-integration.md#security--authentication) for security details
 
 **Note**: For `benchmarkMode`, both `openai` and `speaches` sections must be configured.
 

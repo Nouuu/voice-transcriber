@@ -29,6 +29,9 @@ make run
 
 Click the system tray icon to record. Click again to stop and transcribe.
 
+!!! success "Ready in 5 Minutes"
+    This guide will have you recording and transcribing in under 5 minutes. No complex configuration needed!
+
 ## Visual Workflow
 
 ```
@@ -97,6 +100,9 @@ The absolute minimum config to get started:
 
 ### Get Your OpenAI API Key
 
+!!! info "API Key Required"
+    You need an OpenAI API key to use Voice Transcriber. Don't have one? It takes 2 minutes to create.
+
 1. Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 2. Click **"Create new secret key"**
 3. Copy the key (starts with `sk-`)
@@ -153,6 +159,9 @@ Click the tray icon again to start a new recording. Repeat!
 
 ## Top 3 Beginner Issues
 
+!!! warning "Common Problems & Quick Fixes"
+    Most installation issues can be solved in under 2 minutes. Here are the top 3 problems beginners encounter.
+
 ### Issue 1: "No system tray icon appears"
 
 **Check your desktop environment**:
@@ -202,6 +211,9 @@ cat ~/.config/voice-transcriber/config.json | grep apiKey
 Should show: `"apiKey": "sk-proj..."`
 
 ## Quick Tips
+
+!!! tip "Pro Tips for Power Users"
+    These optional configurations can enhance your transcription workflow.
 
 ### Change Language
 
