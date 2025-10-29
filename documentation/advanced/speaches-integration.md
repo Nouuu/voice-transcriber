@@ -1,3 +1,14 @@
+---
+title: Speaches Integration Guide
+description: Complete setup guide for self-hosted offline transcription with Speaches
+tags:
+  - advanced
+  - integration
+  - backends
+  - self-hosted
+keywords: speaches, self-hosted, offline, privacy, local, docker, whisper, faster-whisper
+---
+
 # Speaches Integration Guide
 
 Complete guide for setting up self-hosted transcription with [Speaches](https://github.com/speaches-ai/speaches).

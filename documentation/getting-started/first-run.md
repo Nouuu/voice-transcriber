@@ -1,3 +1,13 @@
+---
+title: First Run Guide
+description: Step-by-step walkthrough for your first Voice Transcriber recording session
+tags:
+  - beginner
+  - tutorial
+  - usage
+keywords: first run, getting started, recording, tutorial, walkthrough, system tray, workflow
+---
+
 # First Run Guide
 
 This guide walks you through your first recording with Voice Transcriber.

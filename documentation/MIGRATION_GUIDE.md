@@ -1,3 +1,13 @@
+---
+title: Documentation Migration Guide
+description: Migration guide from inline README to structured MkDocs documentation
+tags:
+  - development
+  - reference
+  - documentation
+keywords: migration, mkdocs, documentation, github pages, deployment, ci/cd, structure
+---
+
 # Documentation Migration Guide
 
 ## Summary of Changes

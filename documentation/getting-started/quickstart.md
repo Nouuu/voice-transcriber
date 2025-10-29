@@ -1,3 +1,14 @@
+---
+title: Quickstart Guide
+description: Get started with Voice Transcriber in 5 minutes or less
+tags:
+  - beginner
+  - guide
+  - setup
+  - tutorial
+keywords: quickstart, getting started, setup, installation, first steps, 5 minutes
+---
+
 # Quickstart
 
 Get started with Voice Transcriber in **5 minutes** or less.
@@ -250,7 +261,7 @@ Shows:
 ### For Power Users
 
 - [Speaches Integration](../advanced/speaches-integration.md) - Self-hosted, offline transcription
-- [Development Guide](../development/contributing.md) - Build from source, contribute
+- [Contributing Guide](../contributing.md) - Build from source, contribute
 
 ## Common Workflows
 
@@ -313,3 +324,10 @@ Shows:
 ---
 
 **Ready to dive deeper?** Check out the [Complete Installation Guide](installation.md) for advanced setup options.
+
+## Next Steps
+
+- [Complete Installation Guide](installation.md) - Detailed installation with all options
+- [Configuration Guide](configuration.md) - All configuration options and settings
+- [First Run Guide](first-run.md) - Step-by-step first recording walkthrough
+- [Basic Usage](../user-guide/basic-usage.md) - Learn all features and workflows

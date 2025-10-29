@@ -1,3 +1,13 @@
+---
+title: Configuration Guide
+description: Complete configuration reference for Voice Transcriber settings and options
+tags:
+  - intermediate
+  - reference
+  - configuration
+keywords: config, settings, json, personalities, backends, languages, prompts, formatter, transcription
+---
+
 # Configuration Guide
 
 ## Overview

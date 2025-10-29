@@ -1,3 +1,14 @@
+---
+title: Basic Usage Guide
+description: Learn how to use Voice Transcriber effectively for everyday voice-to-text transcription
+tags:
+  - beginner
+  - guide
+  - usage
+  - tutorial
+keywords: usage, recording, system tray, clipboard, workflow, controls, menu, shortcuts
+---
+
 # Basic Usage Guide
 
 Learn how to use Voice Transcriber effectively for everyday voice-to-text transcription.

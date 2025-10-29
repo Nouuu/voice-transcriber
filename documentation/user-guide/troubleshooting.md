@@ -1,3 +1,13 @@
+---
+title: Troubleshooting Guide
+description: Solutions to common Voice Transcriber issues and problems
+tags:
+  - troubleshooting
+  - reference
+  - debugging
+keywords: troubleshooting, errors, problems, solutions, debugging, fixes, issues, help
+---
+
 # Voice Transcriber - Troubleshooting Guide
 
 ## Quick Diagnostics
@@ -816,3 +826,10 @@ Output of: make check-deps
 - **npm Package**: https://www.npmjs.com/package/voice-transcriber
 
 This troubleshooting guide covers the most common issues encountered with Voice Transcriber. Most problems can be resolved by following these step-by-step solutions.
+
+## Related Pages
+
+- [Installation Guide](../getting-started/installation.md) - System dependencies and setup
+- [Configuration Guide](../getting-started/configuration.md) - Configuration options and validation
+- [Debug Mode](../advanced/debug-mode.md) - Advanced debugging and performance analysis
+- [Basic Usage](basic-usage.md) - How to use Voice Transcriber effectively

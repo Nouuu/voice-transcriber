@@ -1,3 +1,14 @@
+---
+title: Installation Guide
+description: Complete installation guide for Voice Transcriber on Linux systems
+tags:
+  - beginner
+  - guide
+  - setup
+  - installation
+keywords: install, setup, dependencies, bun, arecord, xsel, linux, ubuntu, prerequisites
+---
+
 # Installation Guide
 
 This guide will help you install Voice Transcriber on your Linux system.

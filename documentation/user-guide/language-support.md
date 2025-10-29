@@ -1,3 +1,14 @@
+---
+title: Language Support
+description: Multilingual transcription with strong language enforcement for French, English, Spanish, German, and Italian
+tags:
+  - intermediate
+  - guide
+  - languages
+  - transcription
+keywords: languages, multilingual, french, english, spanish, german, italian, fr, en, es, de, it, language enforcement
+---
+
 # Language Support
 
 Voice Transcriber supports multiple languages with strong language enforcement to prevent unwanted language switching during transcription.

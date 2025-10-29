@@ -1,3 +1,13 @@
+---
+title: Debug Mode
+description: Comprehensive debug mode guide for troubleshooting, performance analysis, and development
+tags:
+  - advanced
+  - debugging
+  - development
+keywords: debug, debugging, logs, troubleshooting, performance, verbose, development, benchmark
+---
+
 # Debug Mode
 
 Comprehensive guide to Voice Transcriber's debug mode for troubleshooting, performance analysis, and development.

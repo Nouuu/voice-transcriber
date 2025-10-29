@@ -1,3 +1,15 @@
+---
+title: Formatting Personalities
+description: Customize text formatting with multiple personality styles for different use cases
+tags:
+  - intermediate
+  - guide
+  - formatting
+  - personalities
+  - configuration
+keywords: formatting, personalities, styles, prompts, custom, builtin, professional, concise, creative
+---
+
 # Formatting Personalities
 
 Voice Transcriber uses "personalities" to format transcribed text according to different styles. You can use multiple personalities simultaneously, and they can be quickly toggled from the system tray menu.

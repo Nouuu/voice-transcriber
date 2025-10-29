@@ -1,3 +1,13 @@
+---
+title: Configuration Management
+description: Advanced guide for live configuration reload and Save as Default feature
+tags:
+  - advanced
+  - guide
+  - configuration
+keywords: config, reload, live reload, save as default, change detection, configuration management
+---
+
 # Configuration Management
 
 Advanced guide for managing Voice Transcriber configuration dynamically without restarting the application.

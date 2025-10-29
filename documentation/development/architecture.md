@@ -1,3 +1,14 @@
+---
+title: Technical Architecture
+description: Comprehensive technical architecture guide for Voice Transcriber system design and components
+tags:
+  - expert
+  - reference
+  - development
+  - architecture
+keywords: architecture, design, components, services, system, structure, technical, flow, stack, performance
+---
+
 # Voice Transcriber - Technical Architecture
 
 ## Overview
@@ -324,3 +335,10 @@ npm publish           # Publish to npm
 - Keyboard shortcut integration (when Wayland supports it)
 - Multiple output formats (Markdown, structured text)
 - Batch processing capabilities
+
+## Related Pages
+
+- [API Reference](api-reference.md) - Complete API documentation for all services
+- [Development Guide](development-guide.md) - Development workflow and best practices
+- [Testing Guide](testing.md) - Testing strategies and patterns
+- [Contributing Guide](../contributing.md) - How to contribute to the project
