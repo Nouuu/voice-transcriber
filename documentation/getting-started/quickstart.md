@@ -112,9 +112,15 @@ make run
 
 Look for the **⚫ black circle icon** in your system tray (usually top-right corner).
 
+![System Tray Idle State](../../assets/screenshots/tray-idle.png)
+*System tray showing Voice Transcriber in idle state*
+
 ### 2. Click to Record
 
 **Click the tray icon once** → Icon changes to **🔴 red** (recording in progress)
+
+![System Tray Recording State](../../assets/screenshots/tray-recording.png)
+*System tray showing active recording (red icon)*
 
 **Speak clearly** into your microphone:
 
@@ -125,6 +131,9 @@ Look for the **⚫ black circle icon** in your system tray (usually top-right co
 ### 3. Click to Stop
 
 **Click the tray icon again** → Icon changes to **⏳ hourglass** (processing)
+
+![System Tray Processing State](../../assets/screenshots/tray-processing.png)
+*System tray showing processing state (hourglass icon)*
 
 Processing usually takes **2-3 seconds** for a 30-second recording.
 
@@ -157,6 +166,9 @@ echo $XDG_CURRENT_DESKTOP
 - **Gnome**: Install [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/)
 - **KDE**: System tray should work out of the box
 - **XFCE**: Install `xfce4-indicator-plugin`
+
+![Gnome AppIndicator Extension](../../assets/screenshots/gnome-appindicator.png)
+*Installing AppIndicator extension in Gnome Extensions*
 
 ### Issue 2: "Recording failed - arecord: command not found"
 

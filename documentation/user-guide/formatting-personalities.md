@@ -276,6 +276,9 @@ Add to `customPersonalities` in config:
 
 ### How Concatenation Works
 
+![Multiple Personalities Selection](../../assets/screenshots/multiple-personalities.png)
+*Selecting multiple personalities from system tray menu*
+
 When you activate multiple personalities, their prompts are combined with a separator:
 
 ```

@@ -87,6 +87,23 @@ Once processing completes:
 2. Transcribed text is **automatically copied to your clipboard**
 3. Paste anywhere with `Ctrl+V` (Linux) or `Cmd+V` (macOS)
 
+## Recording Workflow
+
+```mermaid
+flowchart LR
+    A["🟢 IDLE<br/>Click icon"] --> B["🔴 RECORDING<br/>Speak"]
+    B --> C["🔴 RECORDING<br/>Click again"]
+    C --> D["🟣 PROCESSING<br/>Wait 2-3s"]
+    D --> E["🟢 IDLE<br/>✅ Clipboard updated"]
+    E -.-> A
+
+    style A fill:#90EE90
+    style B fill:#FFB6C6
+    style C fill:#FFB6C6
+    style D fill:#DDA0DD
+    style E fill:#90EE90
+```
+
 ## Example Workflow
 
 === "Quick Note"
@@ -139,6 +156,9 @@ Right-click the tray icon for available actions:
 ├── 🔄 Reload Config
 └── ❌ Exit
 ```
+
+![System Tray Context Menu](../../assets/screenshots/tray-menu.png)
+*Complete context menu with all available actions*
 
 ### Core Actions
 

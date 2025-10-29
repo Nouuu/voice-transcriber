@@ -65,6 +65,9 @@ No configuration found. Let's set up your OpenAI API key.
 Enter your OpenAI API key: _
 ```
 
+![Configuration Wizard](../../assets/screenshots/first-run-wizard.png)
+*Interactive configuration wizard on first run*
+
 Enter your API key when prompted. The wizard will:
 
 1. Validate your API key

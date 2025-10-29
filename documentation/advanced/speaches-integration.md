@@ -17,29 +17,29 @@ Complete guide for setting up self-hosted transcription with [Speaches](https://
 
 <div class="grid cards" markdown>
 
--   💰 **Zero Cost**
+- 💰 **Zero Cost**
 
-    ---
+  ---
 
-    No API fees - unlimited transcriptions for free
+  No API fees - unlimited transcriptions for free
 
--   🔒 **Complete Privacy**
+- 🔒 **Complete Privacy**
 
-    ---
+  ---
 
-    100% offline - audio never leaves your machine
+  100% offline - audio never leaves your machine
 
--   ⚡ **Same Speed**
+- ⚡ **Same Speed**
 
-    ---
+  ---
 
-    Base model performs identically to OpenAI (3.7s vs 3.8s)
+  Base model performs identically to OpenAI (3.7s vs 3.8s)
 
--   🎯 **High Accuracy**
+- 🎯 **High Accuracy**
 
-    ---
+  ---
 
-    91-100% text similarity with OpenAI depending on model
+  91-100% text similarity with OpenAI depending on model
 
 </div>
 
@@ -63,7 +63,7 @@ services:
       - WHISPER__COMPUTE_TYPE=int8
       - WHISPER__CPU_THREADS=8
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
 ```
 
 ### Step 2: Start Speaches
@@ -108,35 +108,62 @@ voice-transcriber
 
 ✅ **Done!** First transcription will auto-download the model.
 
+![Speaches Backend Configuration](../../assets/screenshots/speaches-setup.png)
+*Speaches running locally with Docker showing health check status*
+
 ## Available Models
 
-| Model | Size | Memory | Speed | Accuracy | Use Case |
-|-------|------|--------|-------|----------|----------|
-| **tiny** | 75 MB | ~273 MB | ⚡⚡⚡ | ⭐⭐ | Quick testing |
-| **base** ⭐ | 142 MB | ~388 MB | ⚡⚡ | ⭐⭐⭐ | **Recommended** |
-| **small** | 466 MB | ~852 MB | ⚡ | ⭐⭐⭐⭐ | Better accuracy |
-| **medium** | 1.5 GB | ~2.1 GB | 🐢 | ⭐⭐⭐⭐⭐ | High accuracy |
-| **large-v3** | 2.9 GB | ~3.9 GB | 🐢🐢 | ⭐⭐⭐⭐⭐ | Maximum accuracy |
+| Model        | Size   | Memory  | Speed | Accuracy | Use Case         |
+|--------------|--------|---------|-------|----------|------------------|
+| **tiny**     | 75 MB  | ~273 MB | ⚡⚡⚡   | ⭐⭐       | Quick testing    |
+| **base** ⭐   | 142 MB | ~388 MB | ⚡⚡    | ⭐⭐⭐      | **Recommended**  |
+| **small**    | 466 MB | ~852 MB | ⚡     | ⭐⭐⭐⭐     | Better accuracy  |
+| **medium**   | 1.5 GB | ~2.1 GB | 🐢    | ⭐⭐⭐⭐⭐    | High accuracy    |
+| **large-v3** | 2.9 GB | ~3.9 GB | 🐢🐢  | ⭐⭐⭐⭐⭐    | Maximum accuracy |
 
 !!! success "Recommendation: Base Model"
-    - Comparable speed to OpenAI (0.97x)
-    - 91% accuracy - excellent for daily use
-    - Low resource usage (~400MB RAM)
-    - Zero cost
+- Comparable speed to OpenAI (0.97x)
+- 91% accuracy - excellent for daily use
+- Low resource usage (~400MB RAM)
+- Zero cost
 
 ## Performance Comparison
 
 **Benchmark**: 30s French audio, Remote server (8 CPU / 8GB RAM)
 
+```mermaid
+graph LR
+subgraph "OpenAI Whisper ☁️"
+O1[Upload<br/>~1s]
+O2[Process<br/>2-4s]
+O3[Download<br/>~0.5s]
+O1 --> O2 --> O3
+end
+
+subgraph "Speaches Local 🏠"
+S1[No Upload<br/>0s]
+S2[Process<br/>2-4s]
+S3[No Download<br/>0s]
+S1 --> S2 -->S3
+end
+
+style O1 fill: #FFE4B5
+style O2 fill: #87CEEB
+style O3 fill: #FFE4B5
+style S1 fill: #90EE90
+style S2 fill: #87CEEB
+style S3 fill: #90EE90
+```
+
 **Real-World Performance Benchmark:**
 
-| Model | OpenAI Whisper | Speaches (CPU) | Speed Ratio | Text Similarity |
-|-------|----------------|----------------|-------------|-----------------|
-| **tiny** | 1.98s | 2.81s | **0.70x** (comparable) | 92.4% |
-| **base** ⭐ | 3.70s | 3.81s | **0.97x** (comparable) | 91.4% |
-| **small** | 2.23s | 7.15s | 0.31x (3x slower) | 97.4% |
-| **medium** | 3.70s | 25.82s | 0.14x (7x slower) | 96.1% |
-| **large-v3** | 2.55s | 30.80s | 0.08x (12x slower) | 100.0% |
+| Model        | OpenAI Whisper | Speaches (CPU) | Speed Ratio            | Text Similarity |
+|--------------|----------------|----------------|------------------------|-----------------|
+| **tiny**     | 1.98s          | 2.81s          | **0.70x** (comparable) | 92.4%           |
+| **base** ⭐   | 3.70s          | 3.81s          | **0.97x** (comparable) | 91.4%           |
+| **small**    | 2.23s          | 7.15s          | 0.31x (3x slower)      | 97.4%           |
+| **medium**   | 3.70s          | 25.82s         | 0.14x (7x slower)      | 96.1%           |
+| **large-v3** | 2.55s          | 30.80s         | 0.08x (12x slower)     | 100.0%          |
 
 **Key Insights:**
 
@@ -151,7 +178,8 @@ voice-transcriber
 - **For maximum quality**: Use `medium` or `large-v3` - 96-100% accuracy but significantly slower (7-12x)
 
 !!! note "Performance Context"
-    Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
+Performance tested on remote server (8 CPU cores, 8GB RAM). GPU acceleration would significantly improve medium/large
+model speeds (5-10x faster). Tiny and base models are CPU-optimized and run efficiently without GPU.
 
 ## Changing Models
 
@@ -169,6 +197,7 @@ Edit config to use different model:
 ```
 
 **Available models**:
+
 - `Systran/faster-whisper-tiny`
 - `Systran/faster-whisper-base` ⭐
 - `Systran/faster-whisper-small`
@@ -258,17 +287,19 @@ Run Speaches on a VPS and connect remotely:
 ## Cost Comparison
 
 **OpenAI Whisper**:
+
 - $0.006 per minute
 - 100 hours = $36/month
 - No local resources needed
 
 **Speaches (Self-Hosted)**:
+
 - $0 transcription cost
 - VPS: ~$5-10/month (optional)
 - Requires local/VPS resources
 
 !!! success "Break-Even Point"
-    After ~100 hours of transcription, Speaches becomes more cost-effective than OpenAI.
+After ~100 hours of transcription, Speaches becomes more cost-effective than OpenAI.
 
 ## Next Steps
 
@@ -279,5 +310,5 @@ Run Speaches on a VPS and connect remotely:
 ---
 
 !!! question "Need Help?"
-    - [Speaches Documentation](https://github.com/speaches-ai/speaches)
-    - [Voice Transcriber Issues](https://github.com/Nouuu/voice-transcriber/issues)
+- [Speaches Documentation](https://github.com/speaches-ai/speaches)
+- [Voice Transcriber Issues](https://github.com/Nouuu/voice-transcriber/issues)

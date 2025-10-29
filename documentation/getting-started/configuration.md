@@ -371,6 +371,9 @@ voice-transcriber
 # 4. Restart → Professional + Emojify are active by default ✅
 ```
 
+![Save as Default Feature](../../assets/screenshots/save-as-default.png)
+*Using "Save as Default" to persist personality preferences*
+
 #### Safety Features
 
 - **State check**: Only available when app is IDLE (not during recording/processing)

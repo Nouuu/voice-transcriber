@@ -170,6 +170,43 @@ sudo apt-get install alsa-utils
 ## Data Flow
 
 ### Recording Workflow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Tray as System Tray
+    participant Audio as Audio Recorder
+    participant MP3 as MP3 Encoder
+    participant Trans as Transcription
+    participant Format as Formatter
+    participant Clip as Clipboard
+
+    User->>Tray: Click icon
+    Tray->>Tray: State → RECORDING
+    Tray->>Audio: Start recording
+    Audio->>Audio: Spawn arecord
+    Note over User,Audio: User speaks...
+    User->>Tray: Click again
+    Tray->>Audio: Stop recording
+    Audio-->>Tray: WAV file path
+    Tray->>Tray: State → PROCESSING
+    Tray->>MP3: Convert WAV→MP3
+    MP3-->>Tray: MP3 file (75% smaller)
+    Tray->>Trans: Transcribe audio
+    Trans->>Trans: Call Whisper API
+    Trans-->>Tray: Transcribed text
+    alt Formatter enabled
+        Tray->>Format: Format text
+        Format->>Format: Call GPT API
+        Format-->>Tray: Formatted text
+    end
+    Tray->>Clip: Copy to clipboard
+    Clip-->>Tray: Success
+    Tray->>Tray: State → IDLE
+    Tray-->>User: ✅ Ready (text in clipboard)
+```
+
+**Text-based flow**:
 ```
 1. User clicks tray icon
    ↓

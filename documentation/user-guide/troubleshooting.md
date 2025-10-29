@@ -42,6 +42,9 @@ ls -la ~/.config/voice-transcriber/  # Check config directory
 ls -la /tmp/transcriber/  # Check temp files
 ```
 
+![Debug Output Example](../../assets/screenshots/debug-output.png)
+*Example debug output showing diagnostic information*
+
 ## Common Issues and Solutions
 
 ### 🚨 Application Won't Start
