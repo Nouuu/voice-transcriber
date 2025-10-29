@@ -1,3 +1,13 @@
+---
+title: Configuration Guide
+description: Complete configuration reference for Voice Transcriber settings and options
+tags:
+  - intermediate
+  - reference
+  - configuration
+keywords: config, settings, json, personalities, backends, languages, prompts, formatter, transcription
+---
+
 # Configuration Guide
 
 ## Overview
@@ -59,21 +69,6 @@ The primary language for transcription and formatting.
 }
 ```
 
-#### `formatterEnabled` (boolean)
-Enable or disable GPT text formatting after transcription.
-
-**When enabled**: Transcribed text is formatted with proper grammar and punctuation
-**When disabled**: Raw transcription is copied directly to clipboard
-
-**Default**: `true`
-
-**Example**:
-```json
-{
-  "formatterEnabled": true
-}
-```
-
 #### `transcriptionPrompt` (string or null)
 Custom prompt for Whisper transcription.
 
@@ -95,25 +90,6 @@ Do NOT switch to English or translate. Keep all content in [Language], preservin
 }
 ```
 
-#### `formattingPrompt` (string or null)
-Custom prompt for GPT text formatting.
-
-**Default**: `null` (uses automatic language-aware prompt)
-
-**When to use**: Only if you need specific formatting rules beyond grammar and punctuation.
-
-**Built-in prompt (when null)**:
-```
-Format this [Language] text with proper grammar, punctuation, and structure.
-Keep the text in [Language]. Do not translate to another language.
-```
-
-**Example**:
-```json
-{
-  "formattingPrompt": "Format this French text in a formal business style with proper punctuation."
-}
-```
 
 #### `benchmarkMode` (boolean)
 
@@ -192,24 +168,304 @@ Backend configuration for transcription service.
 - `openai.apiKey` (required for OpenAI): Your OpenAI API key
 - `openai.model` (optional): Whisper model, default `"whisper-1"`
 - `speaches.url` (required for Speaches): Speaches server URL
-- `speaches.apiKey` (optional): API key for Speaches, default `"none"`
+- `speaches.apiKey` (required for remote Speaches): API key for authentication. Use `"none"` for local-only instances without authentication
 - `speaches.model` (optional): Whisper model, default `"Systran/faster-whisper-base"`
+
+!!! tip "Speaches API Key"
+    - **Local development**: Use `"apiKey": "none"` for localhost
+    - **Remote/VPS**: Generate secure key with `openssl rand -hex 32` and configure in both Speaches server and Voice Transcriber
+    - See [Speaches Integration Guide](../advanced/speaches-integration.md#security--authentication) for security details
 
 **Note**: For `benchmarkMode`, both `openai` and `speaches` sections must be configured.
 
+#### `formatter` (object)
+
+Backend configuration for text formatting service.
+
+**Structure**:
+```json
+{
+  "formatter": {
+    "backend": "openai" | "ollama",
+    "openai": {
+      "apiKey": "string",
+      "model": "string"
+    },
+    "ollama": {
+      "url": "string",
+      "model": "string"
+    }
+  }
+}
+```
+
+**Fields**:
+
+- `backend` (required): `"openai"` or `"ollama"` - which backend to use for formatting
+- `openai.apiKey` (required for OpenAI): Your OpenAI API key
+- `openai.model` (optional): GPT model, default `"gpt-4o-mini"`
+- `ollama.url` (optional): Ollama server URL, default `"http://localhost:11434"`
+- `ollama.model` (optional): Model name, default `"llama3.1:8b"`
+
+#### `activePersonalities` (array of strings)
+
+List of personalities to apply during formatting. Multiple personalities can be active simultaneously, and their prompts will be concatenated into a single request.
+
+**Default**: `["builtin:default"]`
+
+**Format**: `"builtin:<name>"` for built-in personalities, `"custom:<id>"` for custom ones
+
+**Built-in personalities**:
+- `builtin:default` - Minimal formatting, fix grammar only
+- `builtin:professional` - Business communication style
+- `builtin:technical` - Technical documentation style
+- `builtin:creative` - Expressive and natural style
+- `builtin:emojify` - Add context-appropriate emojis
+
+**Example**:
+```json
+{
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:emojify",
+    "custom:myStyle"
+  ]
+}
+```
+
+#### `customPersonalities` (object)
+
+Define your own custom formatting styles.
+
+**Structure**:
+```json
+{
+  "customPersonalities": {
+    "myStyleId": {
+      "name": "Display Name",
+      "description": "Optional description",
+      "prompt": "Formatting instructions for GPT"
+    }
+  }
+}
+```
+
+**Example**:
+```json
+{
+  "customPersonalities": {
+    "technical-french": {
+      "name": "Technical French",
+      "description": "French technical documentation style",
+      "prompt": "Format as French technical documentation. Keep technical English terms. Use formal tone."
+    },
+    "email-style": {
+      "name": "Email Style",
+      "description": "Professional email format",
+      "prompt": "Format as a professional email: greeting, body, closing signature."
+    }
+  }
+}
+```
+
+#### `maxPromptLength` (number)
+
+Maximum total length (in characters) when concatenating multiple personality prompts.
+
+**Default**: `4000`
+
+**How it works**:
+- When multiple personalities are active, their prompts are concatenated with `\n\n---\n\n` separator
+- If adding a new prompt would exceed `maxPromptLength`, concatenation stops
+- Helps prevent exceeding LLM token limits while using multiple personalities
+
+**Example**:
+```json
+{
+  "maxPromptLength": 4000,
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:technical",
+    "custom:myLongPrompt"
+  ]
+}
+```
+
+!!! tip "Personality Concatenation"
+    When using multiple personalities, they are combined into a single formatting request rather than applied sequentially. This is faster and more cost-effective, but means personalities should be complementary rather than contradictory.
+
+#### `selectedPersonalities` (array of strings)
+
+List of personalities that appear in the system tray menu. This controls **which** personalities are visible, while `activePersonalities` controls **which** ones are checked/enabled by default.
+
+**Default**: All built-in personalities
+
+**Format**: `"builtin:<name>"` for built-in personalities, `"custom:<id>"` for custom ones
+
+**Example**:
+```json
+{
+  "selectedPersonalities": [
+    "builtin:default",
+    "builtin:professional",
+    "custom:myStyle"
+  ]
+}
+```
+
+**Use cases**:
+- Hide personalities you never use to keep the menu clean
+- Show only personalities relevant to your workflow
+- Add custom personalities to the menu
+
+!!! tip "Menu Organization"
+    Keep `selectedPersonalities` short (3-5 items) for a cleaner menu. You can always add personalities when needed by editing the config and reloading.
+
+## Managing Configuration
+
+### Save as Default (System Tray)
+
+**NEW in v1.x** - You can now save your current configuration directly from the system tray menu, eliminating the need to manually edit `config.json` for common changes.
+
+#### How It Works
+
+1. **Adjust Settings**: Use the system tray menu to check/uncheck personalities
+2. **Save**: Click "💾 Save as Default" in the menu
+3. **Persist**: Your current settings are saved to `config.json`
+4. **Restart**: Next time you start the app, your preferences are restored
+
+#### What Gets Saved
+
+When you click "💾 Save as Default", the **entire configuration** is saved:
+
+- ✅ Active personalities (`activePersonalities`)
+- ✅ Selected personalities (menu visibility)
+- ✅ Custom personalities
+- ✅ Language setting
+- ✅ Transcription backend and settings
+- ✅ Formatter backend and settings
+- ✅ All other configuration parameters
+
+!!! warning "Complete Save"
+    "Save as Default" saves **everything**, not just personalities. Any changes made via the config file and reloaded are included in the save.
+
+#### When to Use
+
+**Perfect for**:
+- Saving your preferred personality combinations
+- Quick workflow adjustments
+- Testing different setups before committing
+
+**Not ideal for**:
+- Complex configuration changes (use config file directly)
+- Temporary testing (changes will persist)
+
+#### Example Workflow
+
+```bash
+# 1. Start the application
+voice-transcriber
+
+# 2. Via system tray menu:
+#    ☑ Professional
+#    ☑ Emojify
+#    ☐ Default (uncheck)
+
+# 3. Click "💾 Save as Default"
+
+# 4. Restart → Professional + Emojify are active by default ✅
+```
+
+![Save as Default Feature](../../assets/screenshots/save-as-default.png)
+*Using "Save as Default" to persist personality preferences*
+
+#### Safety Features
+
+- **State check**: Only available when app is IDLE (not during recording/processing)
+- **Confirmation**: Logs confirm successful save with details
+- **Rollback**: Edit `config.json` and reload if needed
+
+#### Logs
+
+When you save, you'll see:
+```
+[INFO] ✅ Configuration saved to file successfully
+[INFO] Config file: /home/user/.config/voice-transcriber/config.json
+[INFO] Active personalities saved: builtin:professional, builtin:emojify
+```
+
+### Change Detection (Debug Mode)
+
+**NEW in v1.x** - When reloading configuration in debug mode, the application detects and displays all changes between the live configuration and the file.
+
+#### How to See Change Detection
+
+1. **Start in debug mode**:
+   ```bash
+   voice-transcriber --debug
+   # or
+   voice-transcriber -d
+   ```
+
+2. **Modify** `config.json` manually
+
+3. **Reload** via "🔄 Reload Config" in system tray
+
+4. **See changes** in the terminal output
+
+#### What Is Detected
+
+The system detects **15+ types of changes**:
+
+**Transcription**:
+- Backend (openai ↔ speaches)
+- Model changes
+- Speaches URL changes
+
+**Formatter**:
+- Backend (openai ↔ ollama)
+- Model changes
+- Ollama URL changes
+
+**Personalities**:
+- Active personalities added/removed
+- Custom personalities added
+- Custom personalities removed
+- Custom personalities modified
+- Selected personalities (menu visibility)
+
+**General**:
+- Language changes
+- Benchmark mode toggled
+
+#### Example Output
+
+**No changes**:
+```
+[INFO] Reloading configuration...
+[DEBUG] ✓ No configuration changes detected (config file matches live state)
+[INFO] ✅ Configuration reloaded successfully
+```
 ## Complete Configuration Examples
 
 ### Minimal Configuration (OpenAI Backend)
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
   "transcription": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-proj-abc123..."
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": ["builtin:default"]
 }
 ```
 
@@ -217,9 +473,7 @@ Backend configuration for transcription service.
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
   "transcriptionPrompt": null,
-  "formattingPrompt": null,
   "benchmarkMode": false,
   "transcription": {
     "backend": "openai",
@@ -232,15 +486,36 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    },
+    "ollama": {
+      "url": "http://localhost:11434",
+      "model": "llama3.1:8b"
+    }
+  },
+  "activePersonalities": ["builtin:default"],
+  "selectedPersonalities": [
+    "builtin:default",
+    "builtin:professional",
+    "builtin:technical",
+    "builtin:creative",
+    "builtin:emojify"
+  ],
+  "customPersonalities": {},
+  "maxPromptLength": 4000,
+  "logTruncateThreshold": 1000
 }
 ```
 
-### Speaches Backend Configuration
+### Speaches Backend Configuration (No Formatting)
 ```json
 {
   "language": "fr",
-  "formatterEnabled": false,
   "transcription": {
     "backend": "speaches",
     "speaches": {
@@ -248,7 +523,41 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
     }
-  }
+  },
+  "activePersonalities": []
+}
+```
+
+### Multiple Personalities Configuration
+```json
+{
+  "language": "fr",
+  "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": [
+    "builtin:professional",
+    "builtin:emojify",
+    "custom:myStyle"
+  ],
+  "customPersonalities": {
+    "myStyle": {
+      "name": "My Custom Style",
+      "description": "My personal formatting style",
+      "prompt": "Format text in my personal style with..."
+    }
+  },
+  "maxPromptLength": 4000
 }
 ```
 
@@ -256,7 +565,6 @@ Backend configuration for transcription service.
 ```json
 {
   "language": "fr",
-  "formatterEnabled": true,
   "benchmarkMode": true,
   "transcription": {
     "backend": "speaches",
@@ -269,7 +577,15 @@ Backend configuration for transcription service.
       "apiKey": "none",
       "model": "Systran/faster-whisper-medium"
     }
-  }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123...",
+      "model": "gpt-4o-mini"
+    }
+  },
+  "activePersonalities": ["builtin:default"]
 }
 ```
 
@@ -277,13 +593,25 @@ Backend configuration for transcription service.
 ```json
 {
   "language": "fr",
-  "formatterEnabled": true,
   "transcriptionPrompt": "Transcribe this French audio with proper names and technical terms.",
-  "formattingPrompt": "Format this French text in a concise, professional style.",
   "transcription": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-proj-abc123..."
+    }
+  },
+  "activePersonalities": ["builtin:professional"],
+  "customPersonalities": {
+    "myStyle": {
+      "name": "My Custom Style",
+      "description": "Concise professional style",
+      "prompt": "Format this French text in a concise, professional style."
     }
   }
 }

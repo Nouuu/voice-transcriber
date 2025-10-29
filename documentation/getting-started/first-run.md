@@ -1,3 +1,13 @@
+---
+title: First Run Guide
+description: Step-by-step walkthrough for your first Voice Transcriber recording session
+tags:
+  - beginner
+  - tutorial
+  - usage
+keywords: first run, getting started, recording, tutorial, walkthrough, system tray, workflow
+---
+
 # First Run Guide
 
 This guide walks you through your first recording with Voice Transcriber.
@@ -54,6 +64,9 @@ No configuration found. Let's set up your OpenAI API key.
 
 Enter your OpenAI API key: _
 ```
+
+![Configuration Wizard](../../assets/screenshots/first-run-wizard.png)
+*Interactive configuration wizard on first run*
 
 Enter your API key when prompted. The wizard will:
 

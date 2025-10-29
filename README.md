@@ -20,13 +20,16 @@ Lightweight desktop voice-to-text transcription with OpenAI Whisper and system t
 ## ✨ Features
 
 - **🎯 System Tray Integration**: Click to record, visual state feedback (green=idle, red=recording, purple=processing)
-- **⚙️ Live Configuration Management**: Edit config and reload without restart - switch backends, languages, API keys on-the-fly
+- **💾 Save as Default**: One-click save of your current configuration directly from the system tray - no manual config editing needed
+- **⚙️ Live Configuration Management**: Edit config and reload without restart - switch backends, languages, API keys on-the-fly with detailed change detection
+- **🎭 Multiple Personalities**: Activate multiple formatting styles simultaneously (Professional + Emojify, Technical + Creative, etc.) - [Learn more](https://nouuu.github.io/voice-transcriber/latest/user-guide/formatting-personalities/)
+- **🎨 Custom Personalities**: Create your own formatting styles with custom prompts - perfect for specific workflows
 - **🎙️ High-Quality Recording**: Audio capture using arecord on Linux
 - **🌍 Multilingual Support**: French, English, Spanish, German, Italian with strong language enforcement
-- **✍️ Text Formatting**: Optional GPT-based grammar improvement
+- **✍️ Text Formatting**: Optional GPT-based grammar improvement with concatenated personality prompts (faster, cheaper)
 - **📋 Clipboard Integration**: Automatic result copying to clipboard
 - **🏠 Self-Hosted Option**: Run 100% offline with [Speaches](https://github.com/speaches-ai/speaches) - same quality as OpenAI Whisper, zero cost, complete privacy
-- **🔄 Smart Reload**: Configuration validation with automatic rollback on errors
+- **🔄 Smart Reload**: Configuration validation with automatic rollback on errors and change detection in debug mode
 
 ## 🚀 Quick Start
 
@@ -70,7 +73,7 @@ Add your OpenAI API key:
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
     "backend": "openai",
     "openai": {
@@ -127,6 +130,16 @@ Enable debug mode to see detailed information about:
 2025-10-11T10:30:16.789Z [INFO] OpenAI transcription completed in 1.55s
 2025-10-11T10:30:16.789Z [DEBUG]   └─ Estimated breakdown: upload ~0.47s, processing ~0.93s, receive ~0.16s
 2025-10-11T10:30:16.789Z [DEBUG]   └─ Transcription length: 142 characters
+```
+
+Debug mode also shows **configuration changes** when reloading:
+```
+2025-10-11T10:30:15.123Z [INFO] Reloading configuration...
+2025-10-11T10:30:15.123Z [DEBUG] ⚙️  Configuration reloaded
+2025-10-11T10:30:15.123Z [DEBUG] 📊 Changes detected:
+2025-10-11T10:30:15.123Z [DEBUG]   • Language: en → fr
+2025-10-11T10:30:15.123Z [DEBUG]   • Active personalities: +builtin:professional
+2025-10-11T10:30:15.123Z [INFO] ✅ Configuration reloaded successfully
 ```
 
 ### Usage
@@ -325,14 +338,14 @@ make test-file FILE=src/services/system-tray.test.ts
 - OpenAI GPT formatting service (70 lines, simplified from complex)
 
 **Phase 3: System Integration** ✅
+- System tray integration with dynamic menu and personality management
 - Live configuration management with validation and rollback
-- **All 93 tests passing** with comprehensive coverage (including config management tests)
 - Cross-platform clipboard service (66 lines, simplified from 460)
 
 **Phase 4: Main Application** ✅
 - Complete workflow: Record → Transcribe → Format → Clipboard
 - Graceful shutdown handling and error management
-- **All 49 tests passing** with comprehensive coverage (including MP3 encoder tests)
+- **All 121 tests passing** with comprehensive coverage (including personality system, config management, and MP3 encoder tests)
 
 ### 🎯 Implementation Philosophy
 - **KEEP IT SIMPLE** - No overengineering

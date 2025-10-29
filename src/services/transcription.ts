@@ -226,6 +226,9 @@ export class TranscriptionService {
 				`  └─ Transcription length: ${response.text.length} characters`
 			);
 
+			// Log transcription text with the conditional rule
+			logger.logConditional("Transcription text", response.text);
+
 			return {
 				success: true,
 				text: response.text.trim(),
@@ -255,4 +258,7 @@ export class TranscriptionService {
 		}
 		return { success: true };
 	}
+
+	// NOTE: utility functions for text differences and file cleanup are handled
+	// in AudioProcessor; not needed here to avoid duplication.
 }

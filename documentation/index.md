@@ -10,6 +10,7 @@ Lightweight desktop voice-to-text transcription with OpenAI Whisper and system t
 [![Test](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml/badge.svg)](https://github.com/Nouuu/voice-transcriber/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nouuu/voice-transcriber/blob/main/LICENSE)
 [![Bun](https://img.shields.io/badge/bun-%3E%3D1.2.0-black)](https://bun.sh)
+[![Setup](https://img.shields.io/badge/⚡_5min_setup-quickstart-success)](getting-started/quickstart.md)
 
 </div>
 
@@ -102,6 +103,7 @@ Get started in under 5 minutes:
     ```
 
 !!! tip "Next Steps"
+    - [⚡ Quickstart](getting-started/quickstart.md) - Get started in 5 minutes
     - [Installation Guide](getting-started/installation.md) - Detailed setup instructions
     - [Configuration](getting-started/configuration.md) - Configure languages and backends
     - [Basic Usage](user-guide/basic-usage.md) - Learn how to use the app

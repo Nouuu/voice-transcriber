@@ -1,3 +1,13 @@
+---
+title: Contributing Guide
+description: Guidelines and best practices for contributing to Voice Transcriber development
+tags:
+  - development
+  - guide
+  - contributing
+keywords: contributing, pull requests, bugs, features, development, workflow, code style, testing, documentation
+---
+
 # Contributing Guide
 
 Thank you for considering contributing to Voice Transcriber! This guide will help you get started.
@@ -197,3 +207,10 @@ All contributors will be recognized in the project's README and release notes.
 ---
 
 Thank you for contributing to Voice Transcriber! 🎤
+
+## Related Pages
+
+- [Development Guide](development/development-guide.md) - Complete development workflow and setup
+- [Technical Architecture](development/architecture.md) - System architecture overview
+- [Testing Guide](development/testing.md) - Testing strategies and patterns
+- [API Reference](development/api-reference.md) - API documentation for all services

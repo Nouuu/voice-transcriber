@@ -1,15 +1,53 @@
 {
-  "benchmarkMode": false,
-  "transcription": {
-    "backend": "openai",
-    "openai": {
-      "apiKey": "your-openai-api-key-here",
-      "model": "whisper-1"
-    },
-    "speaches": {
-      "url": "http://localhost:8000/v1",
-      "apiKey": "none",
-      "model": "Systran/faster-whisper-base"
-    }
-  }
+	"_comment_language": "Primary language for transcription: 'en', 'fr', 'es', 'de', 'it'",
+	"language": "en",
+
+	"_comment_benchmark": "Compare OpenAI vs Speaches side-by-side (requires --debug flag)",
+	"benchmarkMode": false,
+
+	"transcription": {
+		"backend": "openai",
+		"openai": {
+			"apiKey": "your-openai-api-key-here",
+			"model": "whisper-1"
+		},
+		"speaches": {
+			"url": "http://localhost:8000/v1",
+			"apiKey": "none",
+			"model": "Systran/faster-whisper-base"
+		}
+	},
+	"formatter": {
+		"backend": "openai",
+		"openai": {
+			"apiKey": "your-openai-api-key-here",
+			"model": "gpt-4o-mini"
+		},
+		"ollama": {
+			"url": "http://localhost:11434",
+			"model": "llama3.1:8b"
+		}
+	},
+	"_comment_active": "Personalities applied during formatting (can be multiple)",
+	"activePersonalities": ["builtin:default"],
+
+	"_comment_selected": "Personalities visible in system tray menu",
+	"selectedPersonalities": [
+		"builtin:default",
+		"builtin:professional",
+		"builtin:technical",
+		"builtin:creative",
+		"builtin:emojify",
+		"custom:myCustomStyle"
+	],
+
+	"_comment_custom": "Define your own formatting styles - See: https://nouuu.github.io/voice-transcriber/latest/user-guide/formatting-personalities/",
+	"customPersonalities": {
+		"myCustomStyle": {
+			"name": "My Custom Style",
+			"description": "My personal formatting style",
+			"prompt": "Format text in my personal style with..."
+		}
+	},
+	"maxPromptLength": 4000
 }

@@ -1,3 +1,14 @@
+---
+title: Development Guide
+description: Complete development guide for contributing to and extending Voice Transcriber
+tags:
+  - expert
+  - guide
+  - development
+  - setup
+keywords: development, contributing, workflow, setup, makefile, typescript, bun, patterns, debugging
+---
+
 # Voice Transcriber - Development Guide
 
 ## Quick Start
@@ -676,3 +687,10 @@ switch (platform()) {
 ```
 
 This development guide provides comprehensive information for contributing to and extending the Voice Transcriber application. Follow these patterns and practices to maintain code quality and consistency.
+
+## Related Pages
+
+- [Technical Architecture](architecture.md) - System architecture and design principles
+- [API Reference](api-reference.md) - Complete API documentation
+- [Testing Guide](testing.md) - Testing strategies and best practices
+- [Contributing Guide](../contributing.md) - Contributing guidelines and workflow
