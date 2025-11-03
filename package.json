@@ -23,7 +23,7 @@
 	},
 	"dependencies": {
 		"@breezystack/lamejs": "^1.2.7",
-		"clipboardy": "^4.0.0",
+		"clipboardy": "^5.0.0",
 		"node-systray-v2": "https://github.com/Edgar-P-yan/node-systray-v2.git",
 		"openai": "^6.7.0"
 	},
