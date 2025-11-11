@@ -30,9 +30,12 @@ export class AudioProcessor {
 	}
 
 	/**
-	 * Process audio file: transcribe, format (optional), and copy to clipboard
+	 * Process audio file: transcribe, format (optional with multiple personalities), and copy to clipboard
 	 */
-	async processAudioFile(filePath: string): Promise<void> {
+	async processAudioFile(
+		filePath: string,
+		activePersonalities?: string[]
+	): Promise<void> {
 		try {
 			logger.info("Transcribing audio...");
 
@@ -47,22 +50,44 @@ export class AudioProcessor {
 			}
 
 			let finalText = transcriptionResult.text;
-			logger.info(`Transcription result: ${finalText}`);
+			// Remplacement: logging conditionnel du résultat de transcription
+			logger.logConditional("Transcription result", finalText);
 
-			// Format text if enabled
-			if (this.config.formatterEnabled) {
-				logger.info("Formatting text...");
-				const formatResult =
-					await this.formatterService.formatText(finalText);
-				if (formatResult.success && formatResult.text) {
-					finalText = formatResult.text;
+			// Format text if at least one personality is active
+			if (activePersonalities && activePersonalities.length > 0) {
+				logger.info(
+					`Formatting text with personalities: ${activePersonalities.join(", ")}`
+				);
+
+				// Build composite prompt from all active personalities
+				const compositePrompt =
+					this.formatterService.buildCompositePrompt(
+						activePersonalities
+					);
+
+				if (compositePrompt) {
+					const formatResult = await this.formatterService.formatText(
+						finalText,
+						{ promptOverride: compositePrompt }
+					);
+					if (formatResult.success && formatResult.text) {
+						finalText = formatResult.text;
+					} else {
+						logger.warn(
+							`Formatting failed: ${formatResult.error || "Unknown error"}`
+						);
+					}
 				} else {
 					logger.warn(
-						`Formatting failed: ${formatResult.error || "Unknown error"}`
+						"No valid prompts found for selected personalities"
 					);
-					logger.warn("Using unformatted transcription");
 				}
+			} else {
+				logger.debug("No active personalities, skipping formatting");
 			}
+
+			// Remplacement: logging conditionnel du texte final formaté
+			logger.logConditional("Final formatted text", finalText);
 
 			// Copy to clipboard
 			logger.info("Copying to clipboard...");
@@ -240,10 +265,9 @@ export class AudioProcessor {
 
 		// Show transcription results
 		logger.debug(`\n📄 Transcription Results:`);
-		logger.debug(`   OpenAI Whisper:`);
-		logger.debug(`   "${textOpenAI}"`);
-		logger.debug(`\n   Speaches:`);
-		logger.debug(`   "${textSpeaches}"`);
+		// Utiliser la même règle de logging conditionnel pour afficher les textes
+		logger.logConditional("OpenAI Whisper", textOpenAI);
+		logger.logConditional("Speaches", textSpeaches);
 
 		// Show differences if texts are different
 		if (textOpenAI !== textSpeaches) {

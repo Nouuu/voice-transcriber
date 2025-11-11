@@ -1,3 +1,15 @@
+---
+title: Transcription Backends
+description: Compare OpenAI Whisper cloud transcription vs self-hosted Speaches for privacy and cost
+tags:
+  - intermediate
+  - guide
+  - backends
+  - transcription
+  - integration
+keywords: backends, openai, whisper, speaches, self-hosted, cloud, privacy, offline, benchmark
+---
+
 # Transcription Backends
 
 Voice Transcriber supports two transcription backends: **OpenAI Whisper** (cloud) and **Speaches** (self-hosted).
@@ -66,13 +78,19 @@ nano ~/.config/voice-transcriber/config.json
 ```json
 {
   "language": "fr",
-  "formatterEnabled": false,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
     "backend": "speaches",
     "speaches": {
       "url": "http://localhost:8000/v1",
       "apiKey": "none",
       "model": "Systran/faster-whisper-base"
+    }
+  },
+  "formatter": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-..."
     }
   }
 }
@@ -158,8 +176,14 @@ Change:
 ```json
 {
   "language": "en",
-  "formatterEnabled": true,
+  "activePersonalities": ["builtin:default"],
   "transcription": {
+    "backend": "openai",
+    "openai": {
+      "apiKey": "sk-your-api-key-here"
+    }
+  },
+  "formatter": {
     "backend": "openai",
     "openai": {
       "apiKey": "sk-your-api-key-here"

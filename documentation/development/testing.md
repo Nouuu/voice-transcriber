@@ -1,3 +1,14 @@
+---
+title: Testing Guide
+description: Comprehensive testing guide with strategies, patterns, and best practices for Voice Transcriber
+tags:
+  - expert
+  - guide
+  - development
+  - testing
+keywords: testing, tests, bun, unit, integration, mocks, tdd, coverage, quality, patterns
+---
+
 # Voice Transcriber - Testing Guide
 
 ## Testing Overview
@@ -569,3 +580,10 @@ grep -r "it\|test" src --include="*.test.ts" | grep -v "should"
 ```
 
 This testing guide provides comprehensive information for understanding, writing, and maintaining tests in the Voice Transcriber application. Follow these patterns to ensure robust and maintainable test coverage.
+
+## Related Pages
+
+- [Development Guide](development-guide.md) - Development workflow and setup
+- [API Reference](api-reference.md) - Service interfaces and methods to test
+- [Technical Architecture](architecture.md) - System architecture and components
+- [Contributing Guide](../contributing.md) - Contributing guidelines and testing requirements
