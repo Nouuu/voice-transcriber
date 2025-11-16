@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { SystemTrayService, type TrayConfig, TrayState } from "./system-tray";
 
 // Mock node-systray-v2 module completely before importing
 const mockSystray = {
@@ -16,8 +17,6 @@ mock.module("node-systray-v2", () => ({
 	SysTray: mockSysTrayConstructor,
 }));
 
-import { SystemTrayService, type TrayConfig, TrayState } from "./system-tray";
-
 describe("SystemTrayService", () => {
 	let service: SystemTrayService;
 	let config: TrayConfig;
@@ -33,11 +32,19 @@ describe("SystemTrayService", () => {
 			callbacks: {
 				onRecordingStart: mock(),
 				onRecordingStop: mock(),
+				onPersonalityToggle: mock(),
+				onSaveAsDefault: mock(),
+				onOpenConfig: mock(),
+				onReload: mock(),
 				onQuit: mock(),
 			},
+			activePersonalities: ["builtin:default"],
 		};
 
-		service = new SystemTrayService(config, mockSysTrayConstructor);
+		service = new SystemTrayService(
+			config,
+			mockSysTrayConstructor as unknown as typeof import("node-systray-v2").SysTray
+		);
 	});
 
 	describe("initialize", () => {
@@ -105,6 +112,115 @@ describe("SystemTrayService", () => {
 			const result = await service.shutdown();
 			expect(result.success).toBe(true);
 			// kill should not be called when not initialized
+		});
+	});
+
+	describe("onClick routing", () => {
+		beforeEach(async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+		});
+
+		it("should route seq_id 0 to onRecordingStart", async () => {
+			// Get the onClick callback that was registered
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+
+			// Simulate click on Start Recording (seq_id: 0)
+			onClickCallback({ seq_id: 0, item: { title: "Start Recording" } });
+
+			expect(config.callbacks.onRecordingStart).toHaveBeenCalled();
+		});
+
+		it("should route seq_id 1 to onRecordingStop", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			onClickCallback({ seq_id: 1, item: { title: "Stop Recording" } });
+			expect(config.callbacks.onRecordingStop).toHaveBeenCalled();
+		});
+
+		it("should route personality clicks to onPersonalityToggle", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Personality items start after separator (seq_id 2 is separator, 3+ are personalities)
+			onClickCallback({ seq_id: 3, item: { title: "Default" } });
+			expect(config.callbacks.onPersonalityToggle).toHaveBeenCalled();
+		});
+
+		it("should route to onSaveAsDefault", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Save as Default is at seq_id 9 (after personalities and separator)
+			onClickCallback({ seq_id: 9, item: { title: "Save as Default" } });
+			expect(config.callbacks.onSaveAsDefault).toHaveBeenCalled();
+		});
+
+		it("should route to onOpenConfig", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Open Config is now at seq_id 10 (shifted by Save as Default)
+			onClickCallback({ seq_id: 10, item: { title: "Open Config" } });
+			expect(config.callbacks.onOpenConfig).toHaveBeenCalled();
+		});
+
+		it("should route to onReload", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Reload Config is now at seq_id 11 (shifted by Save as Default)
+			onClickCallback({ seq_id: 11, item: { title: "Reload Config" } });
+			expect(config.callbacks.onReload).toHaveBeenCalled();
+		});
+
+		it("should route to onQuit", async () => {
+			const onClickCallback = mockSystray.onClick.mock.calls[0]?.[0];
+			if (!onClickCallback) {
+				throw new Error("onClick callback not registered");
+			}
+			// Exit is now at seq_id 12 (shifted by Save as Default)
+			onClickCallback({ seq_id: 12, item: { title: "Exit" } });
+			expect(config.callbacks.onQuit).toHaveBeenCalled();
+		});
+	});
+
+	describe("runtime state", () => {
+		it("should expose runtime state after initialize", async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			// Mock onReady to call callback immediately
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+
+			const runtime = service.getRuntimeState();
+			expect(Array.isArray(runtime.selectedPersonalities)).toBe(true);
+			expect(runtime.activePersonalities).toEqual(["builtin:default"]);
+		});
+
+		it("should reflect updates after updateActivePersonalities", async () => {
+			mockSysTrayConstructor.mockReturnValue(mockSystray);
+			mockSystray.onReady.mockImplementation(callback => callback());
+			await service.initialize();
+
+			service.updateActivePersonalities([
+				"builtin:creative",
+				"custom:my",
+			]);
+			const runtime = service.getRuntimeState();
+			expect(runtime.activePersonalities).toEqual([
+				"builtin:creative",
+				"custom:my",
+			]);
 		});
 	});
 });

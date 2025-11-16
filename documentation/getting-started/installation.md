@@ -1,8 +1,22 @@
+---
+title: Installation Guide
+description: Complete installation guide for Voice Transcriber on Linux systems
+tags:
+  - beginner
+  - guide
+  - setup
+  - installation
+keywords: install, setup, dependencies, bun, arecord, xsel, linux, ubuntu, prerequisites
+---
+
 # Installation Guide
 
 This guide will help you install Voice Transcriber on your Linux system.
 
 ## Prerequisites
+
+!!! info "System Requirements"
+    Voice Transcriber runs on Linux systems with Bun runtime. Windows and macOS support is planned for future releases.
 
 Before installing Voice Transcriber, ensure you have the following:
 

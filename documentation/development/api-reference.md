@@ -1,3 +1,14 @@
+---
+title: API Reference
+description: Complete API reference documentation for all Voice Transcriber services and interfaces
+tags:
+  - expert
+  - reference
+  - development
+  - api
+keywords: api, reference, interfaces, services, methods, types, documentation, typescript, code
+---
+
 # Voice Transcriber - API Reference
 
 ## Overview
@@ -527,3 +538,10 @@ if (!result.success) {
 // Use result.data if operation succeeded
 console.log('Success:', result.data);
 ```
+
+## Related Pages
+
+- [Technical Architecture](architecture.md) - System architecture and design principles
+- [Testing Guide](testing.md) - How to test services and write unit tests
+- [Development Guide](development-guide.md) - Development workflow and setup
+- [Configuration Guide](../getting-started/configuration.md) - Configuration schema and options

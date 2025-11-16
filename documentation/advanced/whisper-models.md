@@ -1,3 +1,14 @@
+---
+title: Whisper Models Comparison
+description: Compare different Faster-Whisper models for speed, accuracy, and resource usage
+tags:
+  - advanced
+  - reference
+  - transcription
+  - backends
+keywords: whisper, models, faster-whisper, comparison, performance, accuracy, speed, benchmarks
+---
+
 # Faster-Whisper Models Comparison
 
 ## Model Variants Overview
@@ -130,6 +141,12 @@ Models are **auto-downloaded** on first use.
 ```
 
 ---
+
+## Related Pages
+
+- [Speaches Integration](speaches-integration.md) - Setup guide for self-hosted transcription
+- [Transcription Backends](../user-guide/transcription-backends.md) - Compare OpenAI vs Speaches
+- [Configuration Guide](../getting-started/configuration.md) - How to configure models
 
 ## References
 

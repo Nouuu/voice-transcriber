@@ -8,7 +8,7 @@ describe("VoiceTranscriberApp", () => {
 	beforeEach(() => {
 		// Use a test config path to avoid creating real config files in CI
 		app = new VoiceTranscriberApp(
-			"/tmp/test-voice-transcriber-config.json"
+			"/tmp/voice-transcriber-test-config.json"
 		);
 
 		// Mock loadWithSetup to avoid the setup wizard in CI
@@ -30,7 +30,6 @@ describe("VoiceTranscriberApp", () => {
 			// Mock the config to have no API key directly on existing app
 			(app as any).config = {
 				openaiApiKey: "",
-				formatterEnabled: true,
 				loadWithSetup: mock().mockResolvedValue(undefined),
 				getTranscriptionConfig: mock().mockReturnValue({
 					apiKey: "",
@@ -41,9 +40,13 @@ describe("VoiceTranscriberApp", () => {
 				}),
 				getFormatterConfig: mock().mockReturnValue({
 					apiKey: "",
-					enabled: true,
 					language: "en",
-					prompt: "test prompt",
+					backend: "openai",
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 			};
 
@@ -187,6 +190,12 @@ describe("VoiceTranscriberApp", () => {
 					enabled: true,
 					language: "en",
 					prompt: "test",
+					backend: "openai",
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 				benchmarkMode: false,
 			};
@@ -226,6 +235,12 @@ describe("VoiceTranscriberApp", () => {
 				enabled: true,
 				language: "en",
 				prompt: "old",
+				backend: "openai" as const,
+				model: "gpt-4o-mini",
+				selectedPersonalities: [],
+				activePersonalities: [],
+				builtinPersonalities: {},
+				customPersonalities: {},
 			};
 
 			const mockConfig = {
@@ -271,6 +286,12 @@ describe("VoiceTranscriberApp", () => {
 					enabled: true,
 					language: "en",
 					prompt: "test",
+					backend: "openai",
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 			};
 
@@ -278,8 +299,8 @@ describe("VoiceTranscriberApp", () => {
 			(app as any).systemTrayService = mockTray;
 			(app as any).config = mockConfig;
 
-			// Should not throw
-			await expect((app as any).handleReload()).resolves.toBeUndefined();
+			// Should not throw (handleReload is synchronous)
+			expect(() => (app as any).handleReload()).not.toThrow();
 		});
 
 		it("should handle benchmarkMode change on reload", async () => {
@@ -309,6 +330,12 @@ describe("VoiceTranscriberApp", () => {
 					enabled: true,
 					language: "en",
 					prompt: "test",
+					backend: "openai",
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
 				}),
 			};
 
@@ -345,6 +372,8 @@ describe("VoiceTranscriberApp", () => {
 					success: true,
 					text: "Hello world.",
 				}),
+				getPersonalityPrompt: mock().mockReturnValue("test prompt"),
+				buildCompositePrompt: mock().mockReturnValue("test prompt"),
 			};
 
 			const mockClipboard = {
@@ -352,7 +381,16 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockConfig = {
-				formatterEnabled: true,
+				getFormatterConfig: () => ({
+					apiKey: "test-key",
+					language: "en",
+					backend: "openai" as const,
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
+				}),
 			};
 
 			// Create AudioProcessor instance with mocks
@@ -367,13 +405,16 @@ describe("VoiceTranscriberApp", () => {
 			});
 
 			// Test the complete workflow
-			await audioProcessor.processAudioFile("/tmp/test.wav");
+			await audioProcessor.processAudioFile("/tmp/test.wav", [
+				"builtin:default",
+			]);
 
 			expect(mockTranscription.transcribe).toHaveBeenCalledWith(
 				"/tmp/test.wav"
 			);
 			expect(mockFormatter.formatText).toHaveBeenCalledWith(
-				"Hello world"
+				"Hello world",
+				{ promptOverride: "test prompt" }
 			);
 			expect(mockClipboard.writeText).toHaveBeenCalledWith(
 				"Hello world."
@@ -397,7 +438,16 @@ describe("VoiceTranscriberApp", () => {
 			};
 
 			const mockConfig = {
-				formatterEnabled: false,
+				getFormatterConfig: () => ({
+					apiKey: "test-key",
+					language: "en",
+					backend: "openai" as const,
+					model: "gpt-4o-mini",
+					selectedPersonalities: [],
+					activePersonalities: [],
+					builtinPersonalities: {},
+					customPersonalities: {},
+				}),
 			};
 
 			const { AudioProcessor } = await import(

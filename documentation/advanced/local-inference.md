@@ -1,3 +1,13 @@
+---
+title: Local Inference Guide
+description: Roadmap and implementation guide for local Whisper transcription without cloud APIs
+tags:
+  - advanced
+  - integration
+  - self-hosted
+keywords: local, inference, offline, cpu, whisper, self-hosted, privacy, cost-free, roadmap
+---
+
 # Local Inference Roadmap - Whisper Local Transcription
 
 **Goal**: Implement local Whisper transcription using CPU-only inference for offline usage and cost reduction.
