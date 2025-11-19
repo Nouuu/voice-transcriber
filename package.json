@@ -25,13 +25,13 @@
 		"@breezystack/lamejs": "^1.2.7",
 		"clipboardy": "^5.0.0",
 		"node-systray-v2": "https://github.com/Edgar-P-yan/node-systray-v2.git",
-		"openai": "^6.8.1"
+		"openai": "^6.9.1"
 	},
 	"devDependencies": {
-		"@types/bun": "latest",
-		"@types/node": "^24.10.0",
-		"@typescript-eslint/eslint-plugin": "^8.46.4",
-		"@typescript-eslint/parser": "^8.46.3",
+		"@types/bun": "^1.3.2",
+		"@types/node": "^24.10.1",
+		"@typescript-eslint/eslint-plugin": "^8.47.0",
+		"@typescript-eslint/parser": "^8.47.0",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-prettier": "^5.5.4",
